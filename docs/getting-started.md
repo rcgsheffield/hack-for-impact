@@ -33,7 +33,7 @@ Environment variables:
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama, or any OpenAI-compatible server such as NIM |
 | `OLLAMA_MODEL` | `nemotron-3.5-lightning:30b` | Try `qwen3.6:35b-a3b` if Nemotron's tool calls misbehave |
 | `REPORTS_PATH` | `data/reports.jsonl` | Where filed reports are recorded |
-| `MAX_AGENT_STEPS` | `6` | Model calls allowed per user message |
+| `MAX_AGENT_STEPS` | `12` | Model calls allowed per user message |
 | `LLM_TIMEOUT` | `180` | Seconds to wait for one model response |
 
 Filed reports go to `data/reports.jsonl` only. Nothing is sent to the council.

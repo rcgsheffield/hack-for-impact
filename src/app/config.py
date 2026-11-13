@@ -15,7 +15,9 @@ REPORTS_PATH = Path(os.environ.get("REPORTS_PATH", "data/reports.jsonl"))
 # Deployed commit, set by deploy.sh and reported by /health.
 GIT_SHA = os.environ.get("GIT_SHA", "unknown")
 
-# Maximum model calls per user turn, so a confused model can't loop forever.
-MAX_AGENT_STEPS = int(os.environ.get("MAX_AGENT_STEPS", "6"))
+# Maximum model calls (tool rounds) per user turn, so a confused model can't loop forever.
+# 12 leaves room for a whole form-toolkit run (start, problem, location, reporter, review) plus a retry or two;
+# the LangChain agent turns this into a graph recursion limit of 2 * MAX_AGENT_STEPS + 1.
+MAX_AGENT_STEPS = int(os.environ.get("MAX_AGENT_STEPS", "12"))
 # Seconds to wait for one model response. Large models can take a while to load on first request.
 LLM_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "180"))
