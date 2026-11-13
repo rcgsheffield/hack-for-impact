@@ -198,7 +198,8 @@ def _save_report(record: dict) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    return {"reference": record["reference"], "status": "recorded (prototype: not sent to the council)"}
+    return {"reference": record["reference"], "url": f"/reports/{record['reference']}",
+            "status": "recorded (prototype: not sent to the council)"}
 
 
 # The council's tree form (src/mock/report_tree.html): option values, and the advice it shows instead of

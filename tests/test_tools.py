@@ -56,6 +56,7 @@ def test_assess_pothole(surface, depth, band, category):
 def test_file_report_writes_form_payload(reports_path):
     result = tools.file_report("road", "Greater than 40mm", "10 Fargate", "Deep pothole", 1)
     assert re.fullmatch(r"SCC-\d{8}-[0-9A-F]{4}", result["reference"])
+    assert result["url"] == f"/reports/{result['reference']}"
     record = json.loads(reports_path.read_text().strip())
     assert record["reference"] == result["reference"]
     assert record["form_payload"] == {

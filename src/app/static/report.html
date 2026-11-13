@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your report</title>
+<link rel="stylesheet" href="/static/report-card.css">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f4f2; --surface: #fcfcfb; --border: #e2e1dc;
+    --text: #0b0b0b; --text-2: #52514e; --muted: #6f6e69;
+    --accent: #2a78d6; --warn-bg: #fdf1e7; --warn-text: #7a3412;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1a1a19; --border: #2f2f2d;
+      --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
+      --accent: #3987e5; --warn-bg: #33241a; --warn-text: #f4c9a8;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --border: #2f2f2d;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
+    --accent: #3987e5; --warn-bg: #33241a; --warn-text: #f4c9a8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 16px; }
+  h1 { font-size: 1.5rem; margin: 0; }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  .lead { color: var(--text-2); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1 id="heading">Your report</h1>
+    <p class="lead" id="lead">Loading…</p>
+  </div>
+  <div id="card" aria-live="polite"></div>
+  <p><a href="/">Report another problem</a></p>
+</main>
+<script src="/static/report-card.js"></script>
+<script>
+(async () => {
+  const ref = decodeURIComponent(location.pathname.split("/").filter(Boolean).pop() || "");
+  const lead = document.getElementById("lead"), card = document.getElementById("card");
+  try {
+    const r = await fetch(`/api/reports/${encodeURIComponent(ref)}`, { cache: "no-store" });
+    if (r.status === 404) {
+      lead.textContent = "We couldn't find a report with that reference. Check the reference number and try again.";
+      return;
+    }
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    document.title = `Report ${data.report.reference}`;
+    lead.textContent = "Thank you. This is what was recorded.";
+    card.innerHTML = ReportCard.render(data.report, { audience: "resident", forms: data.forms });
+  } catch (e) {
+    lead.textContent = "The report couldn't be loaded just now. Please refresh the page to try again.";
+  }
+})();
+</script>
+</body>
+</html>
