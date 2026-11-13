@@ -14,6 +14,7 @@ import httpx
 
 from . import config
 from .geocode import geocode, le_gis
+from .triage import safe_triage, triage
 
 COUNCIL_PHONE = "0114 273 4567"
 POTHOLE_FORM = "https://forms.sheffield.gov.uk/site/portal/form/report_pothole_crack"
@@ -90,7 +91,7 @@ def route_report(problem_type: str, road_or_place: str, description: str = "") -
             result["urgent_advice"] = COUNCIL_URGENT_ADVICE
             result["tell_user"] = [COUNCIL_URGENT_ADVICE]
             result["next_step"] = "First tell the user the urgent_advice. Then " + result["next_step"][0].lower() + result["next_step"][1:]
-        return result
+        return _with_similar(result, "report_tree", road_or_place)
     if _matches(PRIVATE_PATTERNS, road_or_place):
         return {
             "owner": "The landowner (private)",
@@ -100,16 +101,38 @@ def route_report(problem_type: str, road_or_place: str, description: str = "") -
         }
 
     if problem_type in FILEABLE_TYPES:
-        return {
+        return _with_similar({
             "owner": "Sheffield City Council (repairs by Amey under the Streets Ahead contract)",
             "can_file": True,
             "form": POTHOLE_FORM,
-        }
+        }, "report_pothole_crack", road_or_place)
     return {
         "owner": "Sheffield City Council",
         "can_file": False,
         "how_to_report": f"This prototype only files road and pavement defects. Call {COUNCIL_PHONE} or use sheffield.gov.uk.",
     }
+
+
+def _with_similar(result: dict, form: str, road_or_place: str) -> dict:
+    """Before filing: add earlier reports of the same kind of problem near this place, if any. Never raises."""
+    from .submissions import similar_reports  # lazy: submissions is the dashboard side
+
+    try:
+        geo = geocode(road_or_place)
+        similar = similar_reports(form, geo["lat"] if geo else None, geo["lon"] if geo else None, road_or_place)
+    except Exception:  # Duplicate detection must never stop a report being filed.
+        return result
+    if similar.get("count"):
+        n = similar["count"]
+        result["similar_reports"] = {k: similar[k] for k in ("count", "nearest_m", "first_at") if k in similar}
+        heads_up = (f"{'1 other report' if n == 1 else f'{n} other reports'} of a similar problem near here "
+                    f"{'has' if n == 1 else 'have'} already been made. Still file this one: it's grouped with "
+                    "them and shows the council how many people it affects.")
+        result["similar_reports"]["message"] = heads_up
+        result.setdefault("tell_user", []).append(heads_up)
+        step = result.get("next_step", "Carry on.")
+        result["next_step"] = f"Mention the similar_reports message to the user, then carry on and file the report. {step}"
+    return result
 
 
 def assess_pothole(surface: str, depth_mm: float) -> dict:
@@ -119,15 +142,22 @@ def assess_pothole(surface: str, depth_mm: float) -> dict:
     if depth_mm < 0:
         raise ValueError("depth_mm must be zero or more")
     threshold = DEPTH_THRESHOLD_MM[surface]
-    deep = depth_mm > threshold
+    depth_band = f"{'Greater' if depth_mm > threshold else 'Less'} than {threshold}mm"
+    depth_field = "rad_road_pothole_depth" if surface == "road" else "rad_path_pothole_depth"
+    # The same rules as the stored triage, so the agent's category and the dashboard's priority always agree.
+    t = triage({"form": "report_pothole_crack", "fields": {"rad_problem_location": FORM_SURFACE[surface],
+                                                           depth_field: depth_band}})
+    urgent = t["priority"] == "P1"
     return {
-        "depth_band": f"{'Greater' if deep else 'Less'} than {threshold}mm",
-        "suggested_category": 1 if deep else 2,
+        "depth_band": depth_band,
+        "suggested_category": 1 if urgent else 2,
         "category_meaning": (
             "Category 1: immediate safety risk, made safe within 24 hours"
-            if deep else
+            if urgent else
             "Category 2: no immediate risk, fixed through planned maintenance"
         ),
+        "priority": f"{t['priority']} {t['label']}",
+        "response_target": t["response_target"],
         "note": "Suggestion only. The council decides the category after inspection.",
     }
 
@@ -271,17 +301,33 @@ def _save_report(record: dict) -> dict:
         geo = geocode(payload.get("txt_find_address_about_the_location"))
     record["geo"] = geo
     payload["le_gis"] = le_gis(geo)
+    record["triage"] = safe_triage({"form": record.get("form") or "report_pothole_crack", "fields": payload,
+                                    "reference": record["reference"]})
     path = Path(config.REPORTS_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
     result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
-              "status": "recorded (prototype: not sent to the council)"}
+              "status": "recorded (prototype: not sent to the council)",
+              "priority": f"{record['triage']['priority']} {record['triage']['label']}",
+              "response_target": record["triage"]["response_target"],
+              "priority_note": "Suggested priority only. The council decides after inspection."}
     if geo:
         result["located_at"] = geo["matched"]
     else:
         result["location_note"] = "Couldn't place this on the map; the inspector will use the description."
+    _add_similar(result, record["reference"])
     return result
+
+
+def _add_similar(result: dict, reference: str) -> None:
+    """Tell the resident (in code, via tell_user) if others have reported a similar problem nearby."""
+    from .submissions import similar_to_reference  # lazy: submissions is the dashboard side
+
+    similar = similar_to_reference(reference)
+    if similar.get("count"):
+        result["similar_reports"] = {k: similar[k] for k in ("count", "nearest_m", "first_at", "message") if k in similar}
+        result.setdefault("tell_user", []).append(similar["message"])
 
 
 # The council's tree form (src/mock/report_tree.html): option values, and the advice it shows instead of

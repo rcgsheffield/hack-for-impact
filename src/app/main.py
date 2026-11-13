@@ -97,8 +97,7 @@ location_pin = gr.HTML(
     value="",
     render=False,  # rendered beside the chat below
     html_template="""
-<section class="lp" aria-labelledby="lp-heading">
-  <h2 id="lp-heading">Where is the problem? <span class="lp-optional">(optional)</span></h2>
+<section class="lp" aria-label="Problem location">
   <div class="lp-actions">
     <button type="button" class="lp-use">📍 Use my location</button>
     <button type="button" class="lp-clear" disabled>Clear pin</button>
@@ -107,15 +106,13 @@ location_pin = gr.HTML(
   <p class="lp-status" role="status" aria-live="polite">Loading map…</p>
 </section>""",
     css_template="""
-.lp h2 { font-size: 1rem; margin: 0 0 .5rem; }
-.lp-optional { font-weight: normal; opacity: .75; }
 .lp-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .5rem; }
 .lp button { font: inherit; padding: .4rem .8rem; border-radius: 6px; cursor: pointer;
              border: 1px solid var(--border-color-primary); background: var(--button-secondary-background-fill);
              color: var(--button-secondary-text-color); }
 .lp button:disabled { opacity: .5; cursor: not-allowed; }
 .lp button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
-.lp-map { height: 320px; border-radius: 8px; border: 1px solid var(--border-color-primary); }
+.lp-map { height: 300px; border-radius: 8px; border: 1px solid var(--border-color-primary); }
 .lp-status { margin: .5rem 0 0; font-size: .9rem; }""",
     js_on_load=(submissions.STATIC_DIR / "location-pin.js").read_text(encoding="utf-8"),
     head=f'<link rel="stylesheet" href="{LEAFLET}leaflet.css"><script src="{LEAFLET}leaflet.js"></script>',
@@ -243,37 +240,130 @@ def _on_tab_closed(request: gr.Request) -> None:
     _close_browser(getattr(request, "session_hash", None))
 
 
+def location_label(location: str | None) -> str:
+    """The location panel's title, so people can see whether a pin is set while it's collapsed."""
+    m = LOCATION_RE.match(location or "")
+    if not m:
+        return "📍 Add a location (optional)"
+    return "📍 Location: " + ("pin on the map ✓" if m.group(4) else "your current location ✓")
+
+
+EXAMPLES = [
+    ("🕳️ Deep pothole on Fargate",
+     "There's a really deep pothole outside 10 Fargate, about 5cm deep. A cyclist nearly came off."),
+    ("🌳 Branch down on Derbyshire Lane",
+     "A big branch has come down across the pavement on Derbyshire Lane outside number 12"),
+    ("📍 Pothole where I'm standing", "There's a pothole right here where I'm standing, about two inches deep"),
+    ("🛣️ Stocksbridge Bypass pothole", "Huge pothole on the Stocksbridge Bypass heading north"),
+    ("🅿️ Supermarket car park", "The supermarket car park on Abbeydale Road is full of potholes"),
+]
+
+FIRST_PLACEHOLDER = "Describe the problem and where it is…"
+REPLY_PLACEHOLDER = "Reply, or describe another problem…"
+
+WELCOME = """### Tell us what's wrong and where
+Describe a pothole, damaged pavement or street tree problem in your own words. The assistant checks who's \
+responsible, asks for anything missing, and files the report. You can add a location on the map below."""
+
+THEME = gr.themes.Soft(
+    primary_hue="teal",
+    neutral_hue="slate",
+    text_size=gr.themes.sizes.text_lg,
+    radius_size=gr.themes.sizes.radius_lg,
+    font=["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+    # System fonts: Gradio's bundled mono font is served from /static, which our StaticFiles mount shadows.
+    font_mono=["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+)
+
+CSS = """
+.gradio-container { max-width: 920px !important; margin: 0 auto !important; }
+#ct-header { align-items: center; gap: 1rem; }
+#ct-header h1 { font-size: 1.9rem; margin: 0; letter-spacing: -0.01em; }
+#ct-header p { margin: .25rem 0 0; color: var(--body-text-color-subdued); }
+.ct-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+.ct-badge { font-size: .8rem; padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--border-color-primary);
+            color: var(--body-text-color-subdued); background: var(--background-fill-secondary); }
+.ct-badge.warn { color: var(--body-text-color); border-color: var(--color-accent); }
+#ct-links { text-align: right; }
+.ct-button { display: inline-block; white-space: nowrap; font-weight: 600; text-decoration: none; padding: .45rem 1rem;
+             border-radius: 999px; border: 1px solid var(--border-color-primary); background: var(--background-fill-primary);
+             color: var(--body-text-color) !important; }
+.ct-button:hover { border-color: var(--color-accent); }
+.ct-button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+#ct-mode { padding: 0 !important; }
+#ct-mode .wrap { gap: .4rem; }
+#ct-mode label { padding: .35rem .8rem !important; font-size: .95rem; }
+#ct-tools { gap: .75rem; align-items: flex-start; }
+#ct-chat .placeholder { text-align: center; max-width: 36rem; margin: 0 auto; padding: 0 1rem; }
+#ct-chat .placeholder h3 { margin-bottom: .4rem; }
+#ct-chat .examples { display: flex !important; flex-wrap: wrap; justify-content: center; gap: .5rem !important;
+                     padding: 0 1rem; }
+#ct-chat button.example { border: 1px solid var(--border-color-primary) !important; border-radius: 999px !important;
+                          padding: .45rem 1rem !important; background: var(--background-fill-secondary) !important;
+                          width: auto !important; flex: 0 0 auto; }
+#ct-chat button.example:hover { border-color: var(--color-accent) !important; }
+footer { display: none !important; }
+@media (max-width: 640px) {
+  #ct-header { gap: .25rem; }
+  #ct-links { text-align: left; }
+  #ct-header h1 { font-size: 1.5rem; }
+}
+"""
+
 with gr.Blocks(title="CouncilTriagent") as demo:
-    gr.Markdown(
-        "# CouncilTriagent\n"
-        "Report a problem with a road, pavement or street tree in Sheffield in your own words, and drop a pin "
-        "on the map if you can. "
-        f"Running locally on NVIDIA DGX Spark ({config.OLLAMA_MODEL}). "
-        "**Unofficial hackathon prototype: nothing is sent to the council.** "
-        "[Submissions dashboard](/dashboard). "
-        "To watch the agent fill in the council's own form, open the *Watch the agent fill in the form* tab."
-    )
-    thread_state = gr.State(None)
-    with gr.Row(equal_height=False):
-        with gr.Column(scale=2, min_width=280):
-            location_pin.render()
-        with gr.Column(scale=3, min_width=320):
-            mode_radio = gr.Radio(MODE_CHOICES, value="chat", label="How should the agent file reports?")
-            gr.ChatInterface(
-                respond,
-                additional_inputs=[mode_radio, location_pin, thread_state],
-                additional_outputs=[thread_state],
-                # One column per input: message, mode, location, thread id. None leaves those as they are.
-                examples=[[ex, None, None, None] for ex in [
-                    "There's a really deep pothole outside 10 Fargate, about 5cm deep. A cyclist nearly came off.",
-                    "A big branch has come down across the pavement on Derbyshire Lane outside number 12",
-                    "There's a pothole right here where I'm standing, about two inches deep",
-                    "Huge pothole on the Stocksbridge Bypass heading north",
-                    "The supermarket car park on Abbeydale Road is full of potholes",
-                ]],
-                run_examples_on_click=True,
-                cache_examples=False,
+    with gr.Row(elem_id="ct-header"):
+        with gr.Column(scale=4, min_width=280):
+            gr.HTML(
+                "<h1>CouncilTriagent</h1>"
+                "<p>Report a road, pavement or street tree problem in Sheffield, in your own words. "
+                "To watch the agent fill in the council's own form, open the "
+                "<em>Watch the agent fill in the form</em> tab.</p>"
+                "<div class='ct-badges'>"
+                f"<span class='ct-badge' title='Model: {config.OLLAMA_MODEL}'>Runs locally on NVIDIA DGX Spark</span>"
+                "<span class='ct-badge warn'>Prototype: nothing is sent to the council</span>"
+                "</div>"
             )
+        with gr.Column(scale=1, min_width=160, elem_id="ct-links"):
+            gr.HTML("<a class='ct-button' href='/dashboard'>📊 Dashboard</a>")
+
+    thread_state = gr.State(None)
+    # The controls go under the chat, but ChatInterface needs its extra inputs to exist already (otherwise it
+    # renders them in its own accordion). So build the row now without placing it, and place it after the chat.
+    with gr.Row(elem_id="ct-tools", equal_height=False, render=False) as tools_row:
+        with gr.Column(scale=3, min_width=300):
+            with gr.Accordion(location_label(None), open=False) as location_panel:
+                location_pin.render()
+        with gr.Column(scale=2, min_width=240):
+            gr.Markdown("**How should reports be filed?**")
+            mode_radio = gr.Radio(
+                [("💬 Chat", "chat"), ("🖥️ Web form", "form")], value="chat", show_label=False, container=False,
+                elem_id="ct-mode",
+                info="Chat: the assistant records the report itself. Web form: it fills in the council's form in a browser.",
+            )
+
+    chat = gr.ChatInterface(
+        respond,
+        # Fill the screen, leaving room for the header, message box and controls (all visible at 1280x800).
+        chatbot=gr.Chatbot(height="calc(100vh - 370px)", min_height=360, show_label=False, placeholder=WELCOME, elem_id="ct-chat",
+                           layout="bubble", group_consecutive_messages=True),
+        textbox=gr.Textbox(placeholder=FIRST_PLACEHOLDER, show_label=False, lines=1,
+                           max_lines=6, submit_btn=True, autofocus=True),
+        additional_inputs=[mode_radio, location_pin, thread_state],
+        additional_outputs=[thread_state],
+        # One column per input: message, mode, location, thread id. None leaves those as they are.
+        examples=[[text, None, None, None] for _, text in EXAMPLES],
+        example_labels=[label for label, _ in EXAMPLES],
+        run_examples_on_click=True,
+        cache_examples=False,
+    )
+
+    tools_row.render()
+    # ChatInterface blanks the placeholder when a message is sent and never restores it; put it back.
+    chat.chatbot.change(lambda history: gr.Textbox(placeholder=REPLY_PLACEHOLDER if history else FIRST_PLACEHOLDER),
+                        chat.chatbot, chat.textbox, show_progress="hidden", queue=False)
+    location_pin.change(lambda v: gr.Accordion(label=location_label(v)), location_pin, location_panel,
+                        show_progress="hidden", queue=False)
+
 
 with gr.Blocks() as browser_mode:
     gr.Markdown(
@@ -299,10 +389,11 @@ with gr.Blocks() as browser_mode:
         with gr.Column(scale=6):
             live.render()
 
-ui = gr.TabbedInterface([demo, browser_mode], ["Report a problem", "Watch the agent fill in the form"],
-                        title="CouncilTriagent")
+# No title= here: it would add a second heading above the chat page's own header.
+ui = gr.TabbedInterface([demo, browser_mode], ["Report a problem", "Watch the agent fill in the form"])
+ui.title = "CouncilTriagent"  # browser tab title
 with ui:
     ui.unload(_on_tab_closed)  # Close this visitor's browser when they close the page.
 
 # Mount last so /health and /mock/ aren't shadowed by Gradio's routes.
-app = gr.mount_gradio_app(app, ui, path="/")
+app = gr.mount_gradio_app(app, ui, path="/", theme=THEME, css=CSS, footer_links=[])

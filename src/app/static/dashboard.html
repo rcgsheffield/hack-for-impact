@@ -18,6 +18,7 @@
     --accent: #2a78d6; --accent-soft: #e5effb;
     --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
     --new: #fff4d6; --warn-bg: #fdf1e7; --warn-text: #7a3412;
+    --p1: #c8102e; --p2: #d9690f; --p3: #2a78d6; --p4: #8a8984; --alert-bg: #fde8eb; --alert-text: #8a0b20;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -27,6 +28,7 @@
       --accent: #3987e5; --accent-soft: #1d2b3d;
       --s1: #3987e5; --s2: #d95926; --s3: #199e70;
       --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
+      --p1: #f0555f; --p2: #f08a3c; --p3: #3987e5; --p4: #8f8e86; --alert-bg: #3b1a1e; --alert-text: #ffc2c8;
     }
   }
   :root[data-theme="dark"] {
@@ -36,6 +38,7 @@
     --accent: #3987e5; --accent-soft: #1d2b3d;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70;
     --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
+    --p1: #f0555f; --p2: #f08a3c; --p3: #3987e5; --p4: #8f8e86; --alert-bg: #3b1a1e; --alert-text: #ffc2c8;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
@@ -95,7 +98,33 @@
   .map-note { color: var(--muted); font-size: .8125rem; margin: 8px 0 0; }
   .map-off { padding: 24px; color: var(--muted); text-align: center; }
   .linkish { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; }
+  /* Priority: icon and text as well as colour (WCAG 1.4.1). */
+  .prio { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: 600; font-size: .8125rem;
+          padding: 1px 8px 1px 6px; border-radius: 999px; border: 1px solid var(--pc); }
+  .prio .ic { color: var(--pc); font-size: .9em; }
+  .prio-P1 { --pc: var(--p1); background: var(--alert-bg); } .prio-P2 { --pc: var(--p2); }
+  .prio-P3 { --pc: var(--p3); } .prio-P4 { --pc: var(--p4); font-weight: 400; }
+  .kpi.urgent { border-color: var(--p1); }
+  .kpi.urgent .value { color: var(--p1); }
+  .alert { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 0 0 12px;
+           padding: 10px 14px; border-radius: 8px; border: 1px solid var(--p1); background: var(--alert-bg); color: var(--alert-text); }
+  .alert[hidden] { display: none; }
+  .triage { margin: 0 0 12px; padding: 10px 12px; border-left: 4px solid var(--pc); background: var(--surface); border-radius: 6px; }
+  .triage ul { margin: 6px 0 0; padding-left: 20px; }
+  .triage .muted { font-size: .8125rem; }
+  .pulse { animation: pulse 1.6s ease-out 3; }
+  @keyframes pulse { 0% { stroke-width: 2; } 50% { stroke-width: 10; stroke-opacity: .4; } 100% { stroke-width: 2; } }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tag.dup { background: var(--warn-bg); color: var(--warn-text); border-color: transparent; margin-left: 6px; }
+  .groups-card { margin-bottom: 12px; }
+  .groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .group { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: start; padding: 10px 12px;
+           border: 1px solid var(--border); border-radius: 8px; }
+  .group.active { border-color: var(--accent); background: var(--accent-soft); }
+  .group .count { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 2.5em; }
+  .group .actions { display: flex; gap: 10px; white-space: nowrap; }
+  .group-filter { display: inline-flex; gap: 6px; align-items: center; }
 </style>
 </head>
 <body>
@@ -110,11 +139,19 @@
   </header>
   <p class="banner">Unofficial hackathon prototype. These are submissions to the <strong>mock</strong> council forms: nothing is sent to the council. Reporter names and contact details are not stored.</p>
 
+  <div class="alert" id="p1-alert" role="status" aria-live="polite" hidden>
+    <span id="p1-alert-text"></span>
+    <button type="button" id="p1-alert-close">Dismiss</button>
+  </div>
+
   <section class="kpis" aria-label="Summary">
+    <div class="card kpi urgent"><div class="label">P1 emergencies awaiting action</div><div class="value" id="k-p1">–</div><div class="sub" id="k-p1-sub"></div></div>
+    <div class="card kpi"><div class="label">P2 high priority</div><div class="value" id="k-p2">–</div><div class="sub" id="k-p2-sub"></div></div>
     <div class="card kpi"><div class="label">Submissions</div><div class="value" id="k-total">–</div><div class="sub" id="k-total-sub"></div></div>
     <div class="card kpi"><div class="label">Last hour</div><div class="value" id="k-hour">–</div><div class="sub" id="k-hour-sub"></div></div>
     <div class="card kpi"><div class="label">By agents</div><div class="value" id="k-agent">–</div><div class="sub" id="k-agent-sub"></div></div>
     <div class="card kpi"><div class="label">Form page views</div><div class="value" id="k-views">–</div><div class="sub" id="k-views-sub"></div></div>
+    <div class="card kpi"><div class="label">Repeated problems</div><div class="value" id="k-dup">–</div><div class="sub" id="k-dup-sub"></div></div>
   </section>
 
   <section class="charts">
@@ -139,9 +176,28 @@
     <p class="map-note" id="map-note"></p>
   </section>
 
+  <section class="card groups-card" aria-labelledby="h-groups">
+    <h2 id="h-groups">Repeated problems</h2>
+    <p class="muted" id="groups-note" style="margin:-6px 0 10px"></p>
+    <ul class="groups" id="groups"></ul>
+  </section>
+
   <section class="card" aria-labelledby="h-list">
-    <h2 id="h-list">All submissions</h2>
+    <h2 id="h-list">Triage queue</h2>
     <div class="filters">
+      <label class="sr-only" for="f-sort">Sort</label>
+      <select id="f-sort">
+        <option value="priority">Priority first</option>
+        <option value="time">Newest first</option>
+      </select>
+      <label class="sr-only" for="f-prio">Priority</label>
+      <select id="f-prio">
+        <option value="">All priorities</option>
+        <option value="P1">P1 Emergency</option>
+        <option value="P2">P2 High</option>
+        <option value="P3">P3 Routine</option>
+        <option value="P4">P4 Low</option>
+      </select>
       <label class="sr-only" for="f-form">Form</label>
       <select id="f-form"><option value="">All forms</option></select>
       <label class="sr-only" for="f-source">Source</label>
@@ -153,13 +209,15 @@
       </select>
       <label class="sr-only" for="f-q">Search</label>
       <input id="f-q" type="search" placeholder="Search reference, location, details…">
+      <label class="group-filter"><input type="checkbox" id="f-dup"> Repeated only</label>
+      <span class="group-filter" id="group-chip" hidden></span>
       <span class="muted" id="shown"></span>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th scope="col">Time</th><th scope="col">Reference</th><th scope="col">Form</th><th scope="col">Problem</th>
+        <thead><tr><th scope="col">Priority</th><th scope="col">Time</th><th scope="col">Reference</th><th scope="col">Form</th><th scope="col">Problem</th>
           <th scope="col">Location</th><th scope="col">Source</th></tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -178,8 +236,30 @@
   const slot = form => FORM_SLOTS[form] || OTHER_SLOT;
   const color = form => `var(${slot(form)})`;
 
+  // Triage priority (src/app/triage.py). Icon and text carry the meaning; colour only reinforces it.
+  const PRIO = {
+    P1: { icon: "⚠", label: "Emergency", rank: 0, radius: 10 },
+    P2: { icon: "▲", label: "High", rank: 1, radius: 8 },
+    P3: { icon: "●", label: "Routine", rank: 2, radius: 7 },
+    P4: { icon: "↪", label: "Low", rank: 3, radius: 6 },
+  };
+  const prioOf = i => (i.triage && PRIO[i.triage.priority]) ? i.triage.priority : "P3";
+  const badge = i => { const p = prioOf(i); return `<span class="prio prio-${p}"><span class="ic" aria-hidden="true">${PRIO[p].icon}</span>${p} ${PRIO[p].label}</span>`; };
+  const ago = ms => { const m = Math.max(0, Math.round(ms / 60000)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 1440)} d ${Math.floor(m % 1440 / 60)} h`; };
+  function triageHtml(i) {
+    const t = i.triage; if (!t) return "";
+    const p = prioOf(i);
+    return `<div class="triage" style="--pc:var(--${p.toLowerCase()})"><div>${badge(i)} <strong>${esc(t.response_target)}</strong></div>`
+      + `<ul>${(t.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>`
+      + `<div class="muted">Suggested by ${t.engine === "rules+llm" ? "rules plus the local AI model" : t.engine === "fallback" ? "a fallback (triage failed)" : "rules"}`
+      + ` · score ${esc(t.score)} · the council decides after inspection</div></div>`;
+  }
+
   let data = null, seen = null, paused = false, open = new Set(), forms = {};
+  let groupFilter = null; // id of the duplicate group the table is filtered to, or null
   const formName = f => forms[f] || f || "Unknown";
+  const dupOf = i => i.duplicate && i.duplicate.group_size > 1 ? i.duplicate : null;
+  const dupBadge = i => { const d = dupOf(i); return d ? `<span class="tag dup" title="Probably the same problem as ${d.others} other report${d.others === 1 ? "" : "s"} (first ${esc(d.first_reference)})">×${d.group_size} similar</span>` : ""; };
 
   // ---------- tooltip ----------
   const tip = $("tip");
@@ -317,10 +397,12 @@
   function popupHtml(i) {
     const t = new Date(i.submitted_at);
     return `<strong>${esc(formName(i.form))}${i.problem ? ` · ${esc(i.problem)}` : ""}</strong>`
+      + `${badge(i)}<br>`
       + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
       + (i.location ? `<br>${esc(i.location)}` : "")
       + (i.geo_source && !["form", "device"].includes(i.geo_source) ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
-      + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "");
+      + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "")
+      + (dupOf(i) ? `<br><strong>Repeated problem: ${dupOf(i).group_size} reports</strong> (first ${esc(dupOf(i).first_reference)})` : "");
   }
 
   function drawMap(items, fresh) {
@@ -328,25 +410,26 @@
     $("map-note").textContent = !items.length ? "No submissions to map."
       : `${pts.length} of ${items.length} shown submission${items.length === 1 ? "" : "s"} mapped.`
         + (missing ? ` ${missing} ha${missing === 1 ? "s" : "ve"} no coordinates (the location couldn't be found from what was typed).` : "");
-    const keys = [...new Set(items.map(i => i.form))];
-    $("map-legend").innerHTML = keys.length < 2 ? "" : keys.map(f =>
-      `<span><span class="sw" style="background:${color(f)};border-radius:50%"></span>${esc(formName(f))}</span>`).join("");
+    $("map-legend").innerHTML = Object.entries(PRIO).map(([p, v]) =>
+      `<span><span class="sw" style="background:var(--${p.toLowerCase()});border-radius:50%"></span>${v.icon} ${p} ${v.label}</span>`).join("");
     if (!map) return;
     const stroke = cssVar("--surface"), want = new Set(pts.map(keyOf));
     for (const [k, m] of markers) if (!want.has(k)) { layer.removeLayer(m); markers.delete(k); }
-    // Oldest first so the newest markers are drawn on top.
-    [...pts].reverse().forEach(i => {
-      const k = keyOf(i), style = { radius: fresh.has(k) ? 11 : 7, color: stroke, weight: 2, fillColor: cssVar(slot(i.form)), fillOpacity: 0.9 };
+    // Lowest priority first, then oldest, so P1 and the newest markers are drawn on top.
+    [...pts].reverse().sort((a, b) => PRIO[prioOf(b)].rank - PRIO[prioOf(a)].rank).forEach(i => {
+      const k = keyOf(i), r = PRIO[prioOf(i)].radius;
+      const style = { radius: fresh.has(k) ? r + 4 : r, color: stroke, weight: 2, fillColor: cssVar("--" + prioOf(i).toLowerCase()), fillOpacity: 0.9 };
       let m = markers.get(k);
       if (!m) {
         m = L.circleMarker([i.lat, i.lon], style).bindPopup("").addTo(layer);
         markers.set(k, m);
-        if (fresh.has(k)) setTimeout(() => m.setStyle({ radius: 7 }), 4000);
+        if (fresh.has(k)) setTimeout(() => m.setStyle({ radius: r }), 4000);
+        if (fresh.has(k) && prioOf(i) === "P1") m.getElement()?.classList.add("pulse");
       } else if (!fresh.has(k)) {
         m.setStyle(style);
       }
       m.setPopupContent(popupHtml(i));
-      m.bindTooltip(`${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
+      m.bindTooltip(`${prioOf(i)} ${PRIO[prioOf(i)].label} · ${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
     });
     if (!fitted && pts.length) { fitMap(); fitted = true; }
   }
@@ -363,6 +446,12 @@
   function drawKpis(all) {
     const hourAgo = Date.now() - 3600e3;
     const bySource = s => all.filter(i => i.source === s).length;
+    const p1 = all.filter(i => prioOf(i) === "P1"), count = p => all.filter(i => prioOf(i) === p).length;
+    $("k-p1").textContent = p1.length;
+    const oldest = Math.min(...p1.map(i => new Date(i.submitted_at).getTime()).filter(Number.isFinite));
+    $("k-p1-sub").textContent = p1.length ? (Number.isFinite(oldest) ? `Oldest waiting ${ago(Date.now() - oldest)}` : "") : "None waiting";
+    $("k-p2").textContent = count("P2");
+    $("k-p2-sub").textContent = `Routine ${count("P3")} · Low ${count("P4")}`;
     $("k-total").textContent = all.length;
     $("k-total-sub").textContent = Object.entries(all.reduce((o, i) => (o[i.form] = (o[i.form] || 0) + 1, o), {}))
       .map(([f, n]) => `${formName(f)} ${n}`).join(" · ") || "None yet";
@@ -374,19 +463,69 @@
     const v = Object.values(data.views || {}).reduce((o, p) => (o.agent += p.agent, o.person += p.person, o), { agent: 0, person: 0 });
     $("k-views").textContent = v.agent + v.person;
     $("k-views-sub").textContent = `Agent ${v.agent} · Person ${v.person} (served from /mock/ only)`;
+    const groups = data.groups || [];
+    const inGroups = groups.reduce((s, g) => s + g.size, 0);
+    $("k-dup").textContent = groups.length;
+    $("k-dup-sub").textContent = groups.length
+      ? `${inGroups} reports in groups · biggest ×${groups[0].size}` : "No duplicates detected";
   }
+
+  // ---------- duplicate groups ----------
+  function drawGroups() {
+    const groups = data.groups || [], cfg = data.dedup || {};
+    $("groups-note").textContent = `Reports of the same kind of problem within ${Math.round(cfg.radius_m ?? 60)} m and ${Math.round(cfg.window_days ?? 30)} days of each other, `
+      + "or on the same street when one has no map position (marked approximate).";
+    if (!groups.length) { $("groups").innerHTML = `<li class="empty">No repeated problems yet.</li>`; return; }
+    $("groups").innerHTML = groups.map(g => {
+      const first = new Date(g.first_at), last = new Date(g.last_at);
+      const span = isNaN(first) ? "" : `${fmtDateTime(first)}${isNaN(last) || +last === +first ? "" : ` – ${fmtDateTime(last)}`}`;
+      const srcs = Object.entries(g.sources || {}).map(([s, n]) => `${esc(SOURCE_LABEL[s] || s)} ${n}`).join(" · ");
+      const firstKey = g.members[g.members.length - 1]?.key || "";
+      return `<li class="group${groupFilter === g.id ? " active" : ""}">
+        <span class="count">×${g.size}</span>
+        <div>
+          <span class="tag"><span class="sw" style="background:${color(g.form)}"></span>${esc(formName(g.form))}</span>
+          ${g.problem ? ` <strong>${esc(g.problem)}</strong>` : ""}
+          <div>${esc(g.location) || '<span class="muted">Location not recorded</span>'}${g.approximate ? ' <span class="muted">(approximate: matched by street)</span>' : ""}</div>
+          <div class="muted">First ${esc(g.id)} · ${esc(span)}${srcs ? ` · ${srcs}` : ""}</div>
+        </div>
+        <div class="actions">
+          <button type="button" class="linkish" data-group="${esc(g.id)}">${groupFilter === g.id ? "Show all" : "Show reports"}</button>
+          ${map && markers.has(firstKey) ? `<button type="button" class="linkish map-link" data-map-key="${esc(firstKey)}">map</button>` : ""}
+        </div>
+      </li>`;
+    }).join("");
+  }
+  $("groups").addEventListener("click", e => {
+    const link = e.target.closest(".map-link");
+    if (link) { showOnMap(link.dataset.mapKey); return; }
+    const b = e.target.closest("[data-group]");
+    if (!b) return;
+    groupFilter = groupFilter === b.dataset.group ? null : b.dataset.group;
+    render(new Set());
+    if (groupFilter) $("h-list").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
 
   // ---------- table ----------
   function filtered() {
-    const f = $("f-form").value, src = $("f-source").value, q = $("f-q").value.trim().toLowerCase();
-    return data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) &&
-      (!q || [i.reference, i.location, i.details, i.problem, i.title].join(" ").toLowerCase().includes(q)));
+    const f = $("f-form").value, src = $("f-source").value, pr = $("f-prio").value, q = $("f-q").value.trim().toLowerCase();
+    const dupOnly = $("f-dup").checked;
+    if (groupFilter && !(data.groups || []).some(g => g.id === groupFilter)) groupFilter = null;
+    const chip = $("group-chip");
+    chip.hidden = !groupFilter;
+    chip.innerHTML = groupFilter ? `Group ${esc(groupFilter)} <button type="button" class="linkish" id="clear-group">clear</button>` : "";
+    const items = data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) && (!pr || prioOf(i) === pr) &&
+      (!dupOnly || dupOf(i)) && (!groupFilter || (i.duplicate && i.duplicate.group_id === groupFilter)) &&
+      (!q || [i.reference, i.location, i.details, i.problem, i.title, ...((i.triage || {}).reasons || [])].join(" ").toLowerCase().includes(q)));
+    // The API sends newest first; a stable sort by priority keeps newest first within each priority.
+    return $("f-sort").value === "time" ? items : items.sort((a, b) => PRIO[prioOf(a)].rank - PRIO[prioOf(b)].rank);
   }
+  $("group-chip").addEventListener("click", e => { if (e.target.id === "clear-group") { groupFilter = null; render(new Set()); } });
 
   function drawTable(items, fresh) {
     $("shown").textContent = items.length === data.submissions.length ? "" : `${items.length} of ${data.submissions.length} shown`;
     if (!items.length) {
-      $("rows").innerHTML = `<tr><td colspan="6" class="empty">${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</td></tr>`;
+      $("rows").innerHTML = `<tr><td colspan="7" class="empty">${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</td></tr>`;
       return;
     }
     $("rows").innerHTML = items.map(i => {
@@ -396,17 +535,18 @@
         : map ? ` <button type="button" class="linkish map-link" data-map-key="${esc(key)}">map</button>`
         : ` <a href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>`;
       const row = `<tr class="row${fresh.has(key) ? " fresh" : ""}" tabindex="0" data-key="${esc(key)}" aria-expanded="${open.has(key)}">
+        <td>${badge(i)}</td>
         <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
         <td class="num">${esc(i.reference)}</td>
         <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
-        <td>${esc(i.problem) || '<span class="muted">–</span>'}</td>
+        <td>${esc(i.problem) || '<span class="muted">–</span>'}${dupBadge(i)}</td>
         <td>${esc(i.location) || '<span class="muted">–</span>'}${mapLink}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
         <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
       </tr>`;
       const residentLink = i.reference
         ? `<p class="rc-link"><a href="/reports/${encodeURIComponent(i.reference)}" target="_blank" rel="noopener">Open resident view</a></p>` : "";
       const detail = open.has(key)
-        ? `<tr class="detail"><td colspan="6">${ReportCard.render(i, { audience: "staff", forms })}${residentLink}</td></tr>` : "";
+        ? `<tr class="detail"><td colspan="7">${triageHtml(i)}${ReportCard.render(i, { audience: "staff", forms })}${residentLink}</td></tr>` : "";
       return row + detail;
     }).join("");
   }
@@ -435,6 +575,7 @@
     drawTime(items);
     drawProblems(items);
     drawMap(items, fresh);
+    drawGroups();
     drawTable(items, fresh);
   }
 
@@ -457,6 +598,12 @@
       seen = keys;
       syncFormFilter();
       render(fresh);
+      const newP1 = data.submissions.filter(i => fresh.has(i.source + ":" + i.reference + ":" + i.submitted_at) && prioOf(i) === "P1");
+      if (newP1.length) {
+        $("p1-alert-text").textContent = `New emergency report${newP1.length > 1 ? "s" : ""}: `
+          + newP1.map(i => `${i.reference}${i.location ? ` at ${i.location}` : ""} (${(i.triage.reasons || [])[0] || "P1"})`).join("; ");
+        $("p1-alert").hidden = false;
+      }
       $("dot").className = "dot";
       $("updated").textContent = `Live · updated ${fmtTime(new Date())}${fresh.size ? ` · ${fresh.size} new` : ""}`;
       if (fresh.size) document.title = `(${fresh.size} new) Submissions dashboard`;
@@ -466,7 +613,8 @@
     }
   }
 
-  ["f-form", "f-source", "f-q"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
+  $("p1-alert-close").addEventListener("click", () => ($("p1-alert").hidden = true));
+  ["f-sort", "f-prio", "f-form", "f-source", "f-q", "f-dup"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
   $("pause").addEventListener("click", () => {
     paused = !paused;
     $("pause").textContent = paused ? "Resume" : "Pause";
