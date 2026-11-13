@@ -21,6 +21,7 @@ from pathlib import Path
 from unittest import mock
 
 from . import config, tools
+from .submissions import load_submissions
 
 # (age in hours, filing function, kwargs). Expected priority with the rules alone is noted on each.
 SCENARIOS = [
@@ -57,6 +58,10 @@ SCENARIOS = [
     (3, "file_report", dict(surface="road", depth_band="Less than 40mm", location="Sharrow Vale Road, Sheffield S11 8ZF",
                             description="Road is essentially all potholes. Still not fixed.", lat=53.367880, lon=-1.462520)),
 ]
+# OpenStreetMap highway=* class of the seeded main roads (both are A roads, "primary" in OSM). Seeded reports use fixed
+# coordinates like a shared device location, so Photon never supplies a road class; the seed records it instead.
+ROAD_CLASS = {"Ecclesall Road": "primary", "Abbeydale Road": "primary"}
+
 # P4: a nuisance tree the council's form redirects. file_tree_report refuses it, so it's saved through the
 # shared save step with the form's own field values (as a browser submission of the redirected form would look).
 REDIRECT_SCENARIO = (26, {"rad_tree_location": "Highway", "rad_tree_problem": "Nuisance",
@@ -97,6 +102,9 @@ def seed(reset: bool = False, now: datetime | None = None) -> list[dict]:
     seeded = records[len(kept):]
     for record, hours in zip(seeded, ages):
         record["seed"] = True
+        road = str(record["form_payload"].get("txt_find_address_about_the_location", "")).split(",")[0]
+        if road in ROAD_CLASS and record.get("geo"):
+            record["geo"]["road_class"] = ROAD_CLASS[road]
         record["filed_at"] = (now - timedelta(hours=hours)).isoformat(timespec="seconds")
     _write(path, records)
     return seeded
@@ -106,9 +114,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--reset", action="store_true", help="remove earlier demo reports first (real reports are kept)")
     args = parser.parse_args()
-    for r in seed(reset=args.reset):
-        t = r["triage"]
-        print(f"{r['reference']}  {t['priority']} {t['label']:<9}  {'; '.join(t['reasons'])}")
+    refs = {r["reference"] for r in seed(reset=args.reset)}
+    for i in load_submissions()["submissions"]:  # the queue as the dashboard shows it, with map context
+        if i["reference"] in refs:
+            t = i["triage"]
+            print(f"{i['reference']}  {t['priority']} {t['label']:<9}  {'; '.join(t['reasons'])}")
     print(f"Seeded {len(SCENARIOS) + 1} reports into {config.REPORTS_PATH}. Open /dashboard.")
 
 

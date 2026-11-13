@@ -179,3 +179,29 @@ def test_combine_signals_joins_engines_and_reasons():
     result = triage({"form": "report_pothole_crack", "details": ""}, merged)
     assert result["engine"] == "rules+llm+context"
     assert result["reasons"][:2] == ["A cyclist came off", "Primary road"]
+
+
+SHALLOW_ROAD = {"rad_problem_location": "Road Surface", "rad_road_pothole_depth": "Less than 40mm"}
+
+
+def test_modifiers_alone_never_make_p1():
+    """Children, a bus route and an A road add up, but without an immediate hazard the report stays P2."""
+    ctx = {"engine": "context", "reasons": [{"points": 20, "reason": "On an A road"}]}
+    got = triage({"form": "report_pothole_crack", "fields": SHALLOW_ROAD,
+                  "details": "Outside the school on the bus route, kids walk round it"}, ctx)
+    assert got["priority"] == "P2"
+
+
+def test_hazard_signal_can_make_p1():
+    llm = {"engine": "llm", "reasons": [{"points": 30, "reason": "Someone has been hurt (read by local AI)", "hazard": True},
+                                        {"points": 15, "reason": "Risk to cyclists (read by local AI)"}]}
+    got = triage({"form": "report_pothole_crack", "fields": SHALLOW_ROAD, "details": "went over the handlebars"}, llm)
+    assert got["priority"] == "P1"
+
+
+def test_cluster_replaces_reported_before_keyword():
+    ctx = {"engine": "context", "reasons": [{"points": 20, "reason": "Reported 3 times in 8 days",
+                                             "replaces": "Reported before"}]}
+    got = triage({"form": "report_pothole_crack", "fields": SHALLOW_ROAD, "details": "Reported before, still not fixed"}, ctx)
+    assert "Reported before" not in got["reasons"]
+    assert got["score"] == t.BASE_SCORE + 20

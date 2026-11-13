@@ -33,6 +33,7 @@ MAX_TEXT_CHARS = 2000         # the details box is short; cap what goes to the m
 # Points for each fact the model reports. Same weights as the matching keyword rule in triage.KEYWORD_RULES,
 # so the model finds hazards the regexes miss without counting more than a rule would.
 INJURY_POINTS = 30
+HAZARD_FACTS = {"injury"}  # an immediate risk on its own: may make a report P1 (triage.HAZARD_REASONS)
 BLOCKING_POINTS = 20
 VULNERABLE_POINTS = 15
 CYCLIST_POINTS = 15
@@ -104,7 +105,8 @@ def to_signals(raw: dict, text: str = "") -> dict | None:
     if raw.get("traffic_exposure") == "high":
         facts.append("traffic")
     already = {reason for _, reason in _keyword_rules(text)}
-    reasons = [{"points": MAPPING[f][0], "reason": MAPPING[f][1]} for f in facts if MAPPING[f][2] not in already]
+    reasons = [{"points": MAPPING[f][0], "reason": MAPPING[f][1], "hazard": f in HAZARD_FACTS}
+               for f in facts if MAPPING[f][2] not in already]
     return {"engine": ENGINE, "reasons": reasons, "raw": raw}
 
 

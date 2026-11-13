@@ -73,7 +73,7 @@ def test_valid_json_maps_to_points_in_code(ollama):
 def test_model_points_are_ignored(ollama):
     ollama.reply = model_reply(injury_reported=True, points=999, priority="P1")
     s = tl.extract_signals("someone went flying")
-    assert s["reasons"] == [{"points": tl.INJURY_POINTS, "reason": tl.MAPPING["injury"][1]}]
+    assert s["reasons"] == [{"points": tl.INJURY_POINTS, "reason": tl.MAPPING["injury"][1], "hazard": True}]
 
 
 def test_low_confidence_is_ignored(ollama):

@@ -65,7 +65,9 @@ def repeat_reason(count: int, first: datetime, last: datetime) -> dict | None:
     if count < 2:
         return None
     points = min(MAX_REPEAT_POINTS, REPEAT_POINTS_PER_REPORT * (count - 1))
-    return {"points": points, "reason": f"Reported {count} times {_span((last - first).days)}"}
+    # Counted from the map, so it replaces the keyword rule for "reported before" in the resident's words.
+    return {"points": points, "reason": f"Reported {count} times {_span((last - first).days)}",
+            "replaces": "Reported before"}
 
 
 def cluster(items: list[dict], ts) -> None:

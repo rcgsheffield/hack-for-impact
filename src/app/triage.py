@@ -1,7 +1,11 @@
 """Automatic triage: a priority (P1-P4), plain-English reasons and a response target for any report.
 
 Deterministic rules decide the priority. Optional `signals` (from a local LLM, #26, or map context, #27) can only add
-points and reasons; they never set the priority directly. The result is always a suggestion: the council sets the
+points and reasons; they never set the priority directly.
+
+Only an immediate hazard (HAZARD_REASONS, or a signal reason marked "hazard": true) can make a report P1, matching the
+council's Category 1 ("immediate safety risk"). Without one, context and vulnerability add up to P2 at most
+(NO_HAZARD_MAX_SCORE), so a shallow defect on a busy road near a school is High, not Emergency. The result is always a suggestion: the council sets the
 category after inspection.
 
 Sources (docs/sheffield-council-services.md, "Potholes and road/pavement defects"): Category 1 is an immediate safety
@@ -82,6 +86,12 @@ KEYWORD_RULES = [
     (15, "Flooding", [r"\bflood", r"\bstanding water\b"]),
 ]
 
+# Findings that are an immediate risk on their own: the only ones that can make a report P1.
+HAZARD_REASONS = {"Someone has been hurt", "Exposed wires or gas", "Tree or branch has fallen",
+                  "Tree touching phone or power cables", "Dangerous tree blocking the road or pavement"}
+DEEP_DEFECT_MARK = "deeper than"  # a defect deeper than the form's threshold is Category 1: a hazard
+NO_HAZARD_MAX_SCORE = BANDS[0][1] - 1  # highest score without a hazard: top of P2
+
 FEW_DETAILS_REASON = "Few details: needs review"
 NO_RISK_REASON = "No immediate risk reported"
 REDIRECT_REASON = "Not a council highway problem: redirected"
@@ -108,7 +118,7 @@ def _defect_rules(fields: dict) -> list[tuple[int, str]]:
     surface = "Pavement" if "Pavement" in str(fields.get("rad_problem_location", "")) else "Road"
     band = str(fields.get("rad_road_pothole_depth") or fields.get("rad_path_pothole_depth") or "")
     if band.startswith("Greater than"):
-        return [(DEEP_DEFECT_POINTS, f"{surface} pothole deeper than {band.removeprefix('Greater than ')}")]
+        return [(DEEP_DEFECT_POINTS, f"{surface} pothole {DEEP_DEFECT_MARK} {band.removeprefix('Greater than ')}")]
     if not band:
         return [(0, "Depth not given: needs review")]
     return []
@@ -123,6 +133,10 @@ def _tree_rules(fields: dict) -> tuple[list[tuple[int, str]], bool]:
     redirected = (fields.get("rad_tree_location") in REDIRECT_TREE_LOCATIONS or problem in REDIRECT_TREE_PROBLEMS
                   or problem == "Utility")  # the form sends cable problems to the utility company
     return hits, redirected
+
+
+def _is_hazard(reason: str) -> bool:
+    return reason in HAZARD_REASONS or f"pothole {DEEP_DEFECT_MARK} " in reason
 
 
 def _keyword_rules(text: str) -> list[tuple[int, str]]:
@@ -148,13 +162,18 @@ def triage(item: dict, signals: dict | None = None) -> dict:
     hits += _keyword_rules(details)
 
     engine = "rules"
-    for s in (signals or {}).get("reasons") or []:
+    hazard = any(_is_hazard(r) for _, r in hits)
+    extra = (signals or {}).get("reasons") or []
+    replaced = {str(s["replaces"]) for s in extra if s.get("replaces")}  # e.g. a counted cluster replaces "Reported before"
+    hits = [h for h in hits if h[1] not in replaced]
+    for s in extra:
         hits.append((int(s.get("points", 0)), str(s["reason"])))
-    if signals and signals.get("reasons"):
+        hazard = hazard or bool(s.get("hazard"))
+    if extra:
         engine = "rules+" + str(signals.get("engine") or "signals")
 
     reasons = list(dict.fromkeys(r for _, r in hits))
-    score = min(MAX_SCORE, BASE_SCORE + sum(p for p, _ in hits))
+    score = min(MAX_SCORE if hazard else NO_HAZARD_MAX_SCORE, BASE_SCORE + sum(p for p, _ in hits))
     if redirected and score < BANDS[0][1]:  # a P1 hazard stays P1 even if the form redirects it
         score = REDIRECT_SCORE
         reasons.append(REDIRECT_REASON)
