@@ -167,3 +167,15 @@ def test_safe_triage_falls_back_instead_of_raising(monkeypatch):
 def test_by_priority_counts_every_level():
     items = [{"triage": {"priority": "P1"}}, {"triage": {"priority": "P1"}}, {"triage": {"priority": "P4"}}, {}]
     assert t.by_priority(items) == {"P1": 2, "P2": 0, "P3": 0, "P4": 1}
+
+
+def test_combine_signals_joins_engines_and_reasons():
+    from app.triage import combine_signals, triage
+    llm = {"engine": "llm", "reasons": [{"points": 30, "reason": "A cyclist came off"}]}
+    ctx = {"engine": "context", "reasons": [{"points": 15, "reason": "Primary road"}]}
+    assert combine_signals(None, {"engine": "context", "reasons": []}) is None
+    merged = combine_signals(llm, None, ctx)
+    assert merged["engine"] == "llm+context"
+    result = triage({"form": "report_pothole_crack", "details": ""}, merged)
+    assert result["engine"] == "rules+llm+context"
+    assert result["reasons"][:2] == ["A cyclist came off", "Primary road"]

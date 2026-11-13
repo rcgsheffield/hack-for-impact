@@ -165,6 +165,19 @@ def triage(item: dict, signals: dict | None = None) -> dict:
     return _result(_priority(score), score, reasons, engine)
 
 
+def combine_signals(*sources: dict | None) -> dict | None:
+    """Merge signal dicts from several sources (LLM #26, map context #27) into one for triage().
+
+    Each source is {"engine": "llm" | "context" | ..., "reasons": [{"points": int, "reason": str}, ...], ...}.
+    Sources with no reasons are dropped; the engines are joined in order, e.g. "llm+context".
+    """
+    used = [s for s in sources if s and s.get("reasons")]
+    if not used:
+        return None
+    return {"engine": "+".join(str(s.get("engine") or "signals") for s in used),
+            "reasons": [r for s in used for r in s["reasons"]]}
+
+
 def safe_triage(item: dict, signals: dict | None = None) -> dict:
     """triage(), but never raises: a failure gives a P3 that asks for manual review, so filing never stops."""
     try:
