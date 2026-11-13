@@ -5,7 +5,6 @@ and a resident's view of one report at /reports/{reference}.
 Run: uvicorn app.main:app --app-dir src --host 0.0.0.0 --port 8000
 """
 
-import json
 import re
 from collections.abc import Iterator
 from functools import cache
@@ -20,6 +19,7 @@ from hack_for_impact.agent.llm import build_agent, new_thread_id, run_agent_even
 
 from . import config, submissions, usage
 from .agent import ToolStep
+from .tool_display import describe as describe_tool
 
 app = FastAPI(title="CouncilTriagent")
 app.include_router(usage.router)
@@ -131,10 +131,8 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
     try:
         for event in run_agent_events(agent, messages, thread_id):
             if isinstance(event, ToolStep):
-                shown.append(gr.ChatMessage(
-                    content=f"**Arguments**\n```json\n{event.arguments}\n```\n**Result**\n```json\n{json.dumps(event.result, indent=2)}\n```",
-                    metadata={"title": f"🔧 {event.name}", "status": "done"},
-                ))
+                title, body = describe_tool(event.name, event.arguments, event.result)
+                shown.append(gr.ChatMessage(content=body, metadata={"title": title, "status": "done"}))
             else:
                 shown.append(gr.ChatMessage(content=event))
             yield shown, thread_id
