@@ -32,7 +32,7 @@ class PotholeFormSession(CouncilFormSession):
     default_url = FORM_URL
     noun = "pothole"
 
-    def set_problem(self, surface: str, depth_mm: float, photo_path: str | None = None) -> dict:
+    def set_problem(self, surface: str, depth_mm: float, photo_id: str | None = None) -> dict:
         assessment = assess_pothole(surface, depth_mm)  # validates and gives the form's exact option value
 
         def step():
@@ -41,7 +41,7 @@ class PotholeFormSession(CouncilFormSession):
             p.check(f"input[name=rad_problem_location][value='{FORM_SURFACE[surface]}']")
             field = "rad_road_pothole_depth" if surface == "road" else "rad_path_pothole_depth"
             p.check(f"input[name={field}][value='{assessment['depth_band']}']")
-            self._attach_photo(photo_path)
+            self._attach_photo(photo_id)
             return self._click_next("page_about_the_problem")
 
         state = self._run(step)
@@ -58,7 +58,8 @@ class PotholeFormSession(CouncilFormSession):
 class ProblemArgs(BaseModel):
     surface: Literal["road", "pavement"] = Field(description="'road', or 'pavement' for a pavement or cycle path")
     depth_mm: float = Field(ge=0, description="Estimated depth in millimetres (4 cm = 40 mm)")
-    photo_path: str | None = Field(None, description="Path to a jpg, png or pdf of the problem, if the user gave one")
+    photo_id: str | None = Field(None, description="The photo_id from the user's photo upload note, if they sent a photo. "
+                                                    "Never a file path.")
 
 
 class PotholeFormToolkit(BaseToolkit):

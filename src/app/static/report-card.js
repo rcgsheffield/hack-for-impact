@@ -176,6 +176,9 @@
   </header>
   ${resident || (opts && opts.triage) ? severityHtml(sev, resident, !showRef) : ""}
   ${rows.length ? `<dl class="ct-dl rc-fields">${rows.join("")}</dl>` : ""}
+  ${/^\/photos\/[0-9a-f]{32}\.jpg$/.test(item.photo_url || "")
+    ? `<figure class="rc-photo"><a href="${esc(item.photo_url)}" target="_blank" rel="noopener"><img src="${esc(item.photo_url)}" alt="Photo of the reported problem" loading="lazy"></a>
+       <figcaption>${resident ? "Your photo" : "Photo from the resident"} (location and camera details removed)</figcaption></figure>` : ""}
   ${item.details ? `<div class="rc-details"><h4>${resident ? "What you told us" : "Details"}</h4><p>${esc(item.details)}</p></div>` : ""}
   ${resident && dup ? `<div class="ct-dup-note rc-dup"><span class="ct-dup-note__icon" aria-hidden="true">⧉</span><div><strong>You're not the only one.</strong> ${esc(dup.others)} other report${dup.others === 1 ? " has" : "s have"} been made about a similar problem nearby. They're grouped together so the council can see how many people it affects.</div></div>` : ""}
   ${resident

@@ -38,3 +38,8 @@
   .report-card { padding: var(--ct-space-4); }
   .rc-ref { text-align: left; }
 }
+/* Resident's photo (photos.py); location and camera details were removed when it was uploaded. */
+.rc-photo { margin: 0; }
+.rc-photo img { display: block; max-width: 100%; max-height: 320px; border-radius: var(--ct-radius); object-fit: contain;
+                border: 1px solid var(--ct-border); }
+.rc-photo figcaption { color: var(--ct-muted); font-size: var(--ct-text-sm); margin-top: 4px; }

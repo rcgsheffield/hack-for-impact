@@ -92,6 +92,11 @@ Environment variables:
 | `MOCK_SUBMISSIONS_PATH` | `data/mock_submissions.jsonl` | Mock-form submissions made by the form agents, without reporter details |
 | `GEOCODE_LIVE` | `1` | `0` to geocode only the built-in sample addresses (no calls to postcodes.io or Photon) |
 | `MAX_AGENT_STEPS` | `12` | Model calls allowed per user message |
+| `VISION_MODEL` | `qwen3.6:35b-a3b` | Vision model for `analyse_photo` (must accept images). For a laptop, `qwen3-vl:2b` works but is slow on a CPU |
+| `VISION_URL` | `OLLAMA_URL` | Ollama for the vision model, if different |
+| `VISION_TIMEOUT` | `120` | Seconds to wait for one photo analysis |
+| `UPLOADS_PATH` | `data/uploads` | Where photos are stored, re-encoded with no location or camera details |
+| `DEDUP_RADIUS_M` / `DEDUP_WINDOW_DAYS` | `60` / `30` | Reports this close in distance and time are grouped as one repeated problem |
 | `LLM_TIMEOUT` | `180` | Seconds to wait for one model response |
 | `BROWSER_*` | | Browser agent settings, see [browser-agent.md](browser-agent.md#settings) |
 | `TRIAGE_LLM` | `1` | `0` to triage with rules and map context only (no Ollama call after filing) |

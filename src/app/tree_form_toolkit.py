@@ -55,7 +55,7 @@ class TreeFormSession(CouncilFormSession):
         return super().next_step(page)
 
     def set_problem(self, tree_location: str, problem: str | None = None, blocking: bool | None = None,
-                    photo_path: str | None = None) -> dict:
+                    photo_id: str | None = None) -> dict:
         if tree_location == "Highway" and not problem:
             raise FormStepError("problem is required for a tree on or next to a road or pavement")
         if tree_location == "Highway" and problem in BLOCKING_PROBLEMS and blocking is None:
@@ -76,7 +76,7 @@ class TreeFormSession(CouncilFormSession):
                                    next_step="Stop here. Tell the user this advice in plain words; don't continue the form.")
             if problem in BLOCKING_PROBLEMS:
                 p.check(f"input[name=rad_tree_blocking][value='{'Yes' if blocking else 'No'}']")
-            self._attach_photo(photo_path)
+            self._attach_photo(photo_id)
             return self._click_next("page_about_the_problem") | {"can_file": True}
 
         state = self._run(step)
@@ -101,7 +101,8 @@ class TreeProblemArgs(BaseModel):
         "Roots: roots damaging pavement or road. Utility: touching a phone line or power cable. "
         "Nuisance: fruit, leaves, sap or bird mess. Other: something else."))
     blocking: bool | None = Field(None, description="For Fallen, Dangerous or Obstruction: is it blocking the road or pavement now?")
-    photo_path: str | None = Field(None, description="Path to a jpg, png or pdf of the tree, if the user gave one")
+    photo_id: str | None = Field(None, description="The photo_id from the user's photo upload note, if they sent a photo. "
+                                                    "Never a file path.")
 
 
 class TreeFormToolkit(BaseToolkit):

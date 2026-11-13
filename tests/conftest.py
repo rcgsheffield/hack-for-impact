@@ -11,6 +11,7 @@ def mock_submissions_path(tmp_path, monkeypatch):
     # Filing now reads every source (duplicate detection), so keep the other data files out of the real data/ too.
     monkeypatch.setattr(config, "REPORTS_PATH", tmp_path / "reports.jsonl")
     monkeypatch.setattr(config, "USAGE_PATH", tmp_path / "usage.jsonl")
+    monkeypatch.setattr(config, "UPLOADS_PATH", tmp_path / "uploads")
     return path
 
 

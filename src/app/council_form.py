@@ -27,6 +27,7 @@ from typing import Any, Callable, Literal
 from langchain_core.tools import BaseTool, StructuredTool
 from pydantic import BaseModel, Field
 
+from .photos import PhotoError, photo_file
 from .submissions import save_submission, similar_to_reference
 from .triage import safe_triage
 from .urgency import COUNCIL_PHONE
@@ -191,12 +192,15 @@ class CouncilFormSession:
         self._page.click(f"#{page_id} {selector}")
         return self._state()
 
-    def _attach_photo(self, photo_path: str | None) -> None:
-        if not photo_path:
+    def _attach_photo(self, photo_id: str | None) -> None:
+        """Upload a user's photo to the form. Only ids from photos.save_upload, never paths: a model can't be talked
+        into attaching arbitrary server files, and errors don't reveal which files exist."""
+        if not photo_id:
             return
-        path = Path(photo_path)
-        if not path.is_file():
-            raise FormStepError(f"Photo not found: {photo_path}")
+        try:
+            path = photo_file(photo_id)
+        except PhotoError as e:
+            raise FormStepError(str(e)) from e
         self._page.set_input_files("#file_image_of_defect", str(path))
         file_error = self._page.evaluate(
             "() => (document.querySelector('#f_file_image_of_defect .err-msg') || {}).textContent || ''")

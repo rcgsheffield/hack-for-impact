@@ -117,6 +117,23 @@ def describe(name: str, arguments: str | dict, result: dict) -> tuple[str, str]:
         body = f"{args.get('amount', '?')} {args.get('unit', '')} ≈ **{result.get('mm', '?')} mm**{approx}"
     elif name == "nearest_address":
         title, body = "📍 Looked up the nearest address", f"**{result.get('address', '?')}**  \n{result.get('note', '')}"
+    elif name == "analyse_photo":
+        title = "📷 Looked at your photo"
+        kind = str(result.get("problem_type") or "unclear").replace("_", " ")
+        conf = result.get("confidence")
+        details = [f"Looks like: **{kind}**" + (f" ({round(conf * 100)}% sure)" if isinstance(conf, (int, float)) else "")]
+        if result.get("surface") not in (None, "unknown", "not_applicable"):
+            details.append(f"Surface: {str(result['surface']).replace('_', ' ')}")
+        if result.get("tree_problem") not in (None, "not_applicable"):
+            details.append(f"Tree: {result['tree_problem']}")
+        if result.get("blocking_the_way"):
+            details.append("Blocking the way")
+        if result.get("hazards"):
+            details.append("Hazards: " + "; ".join(str(h) for h in result["hazards"][:3]))
+        if result.get("photo_quality") not in (None, "good"):
+            details.append(f"Photo: {str(result['photo_quality']).replace('_', ' ')}")
+        body = "  \n".join(details) + (f"  \n_{result['summary']}_" if result.get("summary") else "") \
+            + f"  \nChecked on this machine by {result.get('model', 'the vision model')}; not confirmed."
     elif name == "route_report":
         if result.get("can_file"):
             title = "🧭 Checked who's responsible"

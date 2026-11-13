@@ -24,7 +24,7 @@ from PIL import Image
 
 from hack_for_impact.agent.llm import build_agent, new_thread_id, run_agent_events, user_turns
 
-from . import config, submissions, usage
+from . import config, photos, submissions, usage
 from .agent import ToolStep
 from .browser_agent import BrowserSession, make_browser_agent, page_heading
 from .tool_display import describe as describe_tool
@@ -32,6 +32,7 @@ from .tool_display import describe as describe_tool
 app = FastAPI(title="CouncilTriagent")
 app.include_router(usage.router)
 app.include_router(submissions.router)
+app.include_router(photos.router)
 # Our page assets (src/app/static: report-card.js, ...) at /ui. Not /static: that's Gradio's own asset path,
 # and mounting over it broke Gradio's fonts. Mounted before Gradio so it isn't shadowed.
 app.mount("/ui", StaticFiles(directory=submissions.STATIC_DIR), name="ui")
@@ -140,6 +141,33 @@ def location_note(location: str | None) -> str:
             "Use it only if they are at the problem now.]")
 
 
+def _files(message) -> list[str]:
+    """Paths of the files attached to a multimodal message ({"text", "files"})."""
+    files = message.get("files", []) if isinstance(message, dict) else []
+    return [f if isinstance(f, str) else (f.get("path") if isinstance(f, dict) else getattr(f, "path", "")) for f in files]
+
+
+def photo_notes(message) -> str:
+    """Save the message's photos safely (photos.save_upload) and return the note for the model: each photo_id, and
+    any GPS position the phone recorded, which the agent must confirm before using. The chat shows the photo itself."""
+    notes = []
+    for path in _files(message)[:3]:
+        try:
+            saved = photos.save_upload(path)
+        except (photos.PhotoError, OSError) as e:
+            notes.append(f"[The user tried to attach a file that can't be used ({e}). Tell them, briefly.]")
+            continue
+        note = (f"[The user attached a photo: photo_id {saved['photo_id']}. Call analyse_photo with this photo_id "
+                "first, and pass photo_id when filing so the photo is attached to the report.")
+        if saved["gps"]:
+            when = f", taken {saved['taken_at'][:16].replace('T', ' ')}" if saved["taken_at"] else ""
+            note += (f" The photo's own GPS position is lat {saved['gps']['lat']}, lon {saved['gps']['lon']}{when}. "
+                     "Ask the user to confirm this is where the problem is before using it as the location; you can "
+                     "call nearest_address to name the street.")
+        notes.append(note + "]")
+    return ("\n\n" + "\n".join(notes)) if notes else ""
+
+
 def respond(message, history: list[dict], mode: str | None, location: str | None,
             thread_id: str | None) -> Iterator[tuple[list[gr.ChatMessage], str]]:
     """One chat turn. Each conversation is a checkpointer thread keyed by a UUID held in the browser session.
@@ -151,7 +179,8 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
     # Each mode has its own agent and checkpointer, so switching mode mid-chat starts a new thread (seeded below).
     agent = get_agent(mode or "chat")
     # The location note goes to the model only; the chat shows what the user typed.
-    new_message = {"role": "user", "content": _text(message) + location_note(location)}
+    text = _text(message) or ("(The user sent a photo without a message.)" if _files(message) else "")
+    new_message = {"role": "user", "content": text + location_note(location) + photo_notes(message)}
     shown_turns = sum(m.get("role") == "user" for m in history)
     if thread_id and user_turns(agent, thread_id) == shown_turns:
         messages = [new_message]
@@ -263,14 +292,16 @@ EXAMPLES = [
     ("🅿️ Supermarket car park", "The supermarket car park on Abbeydale Road is full of potholes"),
 ]
 
-FIRST_PLACEHOLDER = "Describe the problem and where it is…"
+FIRST_PLACEHOLDER = "Describe the problem and where it is, or add a photo…"
 REPLY_PLACEHOLDER = "Reply, or describe another problem…"
 
 WELCOME = """<div class="ct-intro">
 <img class="ct-intro__mark" src="/ui/logo-mark.svg" alt="" width="72" height="72">
 <h2 class="ct-intro__title">Tell us what's wrong and where</h2>
 <p class="ct-intro__lead">Describe a pothole, damaged pavement or street tree problem in your own words. The assistant \
-checks who's responsible, asks for anything missing, and files the report. You can add a location on the map below.</p>
+checks who's responsible, asks for anything missing, and files the report. You can add a photo (📎) and a location on \
+the map below. Photos are checked by a vision model on this machine, and their location and camera details are \
+removed.</p>
 </div>"""
 
 # Map Gradio's theme onto the design system's tokens (src/app/static/ui.css). The tokens switch themselves for dark
@@ -472,12 +503,15 @@ with gr.Blocks(title="CouncilTriagent") as demo:
         # Fill the screen, leaving room for the header, message box and controls (all visible at 1280x800).
         chatbot=gr.Chatbot(height="calc(100vh - 400px)", min_height=360, show_label=False, placeholder=WELCOME, elem_id="ct-chat",
                            layout="bubble", group_consecutive_messages=True),
-        textbox=gr.Textbox(placeholder=FIRST_PLACEHOLDER, show_label=False, lines=1,
-                           max_lines=6, submit_btn=True, autofocus=True),
+        # Text plus photos: the paperclip opens the camera or gallery on a phone. Photos go through photo_notes().
+        multimodal=True,
+        textbox=gr.MultimodalTextbox(placeholder=FIRST_PLACEHOLDER, show_label=False, lines=1, max_lines=6,
+                                     submit_btn=True, autofocus=True, file_types=["image"], file_count="multiple",
+                                     sources=["upload"]),
         additional_inputs=[mode_radio, location_pin, thread_state],
         additional_outputs=[thread_state],
         # One column per input: message, mode, location, thread id. None leaves those as they are.
-        examples=[[text, None, None, None] for _, text in EXAMPLES],
+        examples=[[{"text": text, "files": []}, None, None, None] for _, text in EXAMPLES],
         example_labels=[label for label, _ in EXAMPLES],
         run_examples_on_click=True,
         cache_examples=False,
@@ -485,7 +519,7 @@ with gr.Blocks(title="CouncilTriagent") as demo:
 
     tools_row.render()
     # ChatInterface blanks the placeholder when a message is sent and never restores it; put it back.
-    chat.chatbot.change(lambda history: gr.Textbox(placeholder=REPLY_PLACEHOLDER if history else FIRST_PLACEHOLDER),
+    chat.chatbot.change(lambda history: gr.MultimodalTextbox(placeholder=REPLY_PLACEHOLDER if history else FIRST_PLACEHOLDER),
                         chat.chatbot, chat.textbox, show_progress="hidden", queue=False)
     location_pin.change(lambda v: gr.Accordion(label=location_label(v)), location_pin, location_panel,
                         show_progress="hidden", queue=False)

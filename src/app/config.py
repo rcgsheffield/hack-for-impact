@@ -17,6 +17,13 @@ USAGE_PATH = Path(os.environ.get("USAGE_PATH", "data/usage.jsonl"))
 # Read by the submissions dashboard at /dashboard (src/app/submissions.py).
 MOCK_SUBMISSIONS_PATH = Path(os.environ.get("MOCK_SUBMISSIONS_PATH", "data/mock_submissions.jsonl"))
 
+# Photos (photos.py): uploads are re-encoded without metadata and stored here, the only place tools may read them from.
+UPLOADS_PATH = Path(os.environ.get("UPLOADS_PATH", "data/uploads"))
+# Vision model for analyse_photo, on the same Ollama by default. Must accept images (Ollama capability "vision").
+VISION_MODEL = os.environ.get("VISION_MODEL") or "qwen3.6:35b-a3b"
+VISION_URL = (os.environ.get("VISION_URL") or os.environ.get("OLLAMA_URL") or "http://127.0.0.1:11434").rstrip("/")
+VISION_TIMEOUT = float(os.environ.get("VISION_TIMEOUT", "120"))
+
 # Duplicate detection (dedup.py): reports of the same kind of problem within this distance and time window are
 # grouped, so the council sees one problem with N reports and residents hear that others have reported it too.
 DEDUP_RADIUS_M = float(os.environ.get("DEDUP_RADIUS_M", "60"))

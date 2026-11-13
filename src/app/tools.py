@@ -14,6 +14,7 @@ import httpx
 
 from . import config
 from .geocode import geocode, le_gis
+from .photos import analyse_photo, photo_file
 from .triage import safe_triage, triage
 from .triage_llm import enrich_in_background
 from .urgency import COUNCIL_PHONE, URGENT_ADVICE
@@ -261,8 +262,16 @@ def nearest_address(lat: float, lon: float) -> dict:
                           "file_tree_report or the form's set_..._location tool so the report is pinned on the map.")}
 
 
+def _photo_fields(photo_id: str | None) -> tuple[dict, dict | None]:
+    """(form payload fields, record["photo"]) for an uploaded photo, or ({}, None). Bad ids raise PhotoError (ValueError)."""
+    if not photo_id:
+        return {}, None
+    path = photo_file(photo_id)
+    return {"txt_file_name_image_of_defect": path.name}, {"photo_id": path.stem, "url": f"/photos/{path.name}"}
+
+
 def file_report(surface: str, depth_band: str, location: str, description: str, suggested_category: int | None = None,
-                lat: float | None = None, lon: float | None = None) -> dict:
+                lat: float | None = None, lon: float | None = None, photo_id: str | None = None) -> dict:
     """Record a completed road or pavement defect report and return its reference number."""
     if surface not in FORM_SURFACE:
         raise ValueError("surface must be 'road' or 'pavement'")
@@ -275,6 +284,7 @@ def file_report(surface: str, depth_band: str, location: str, description: str, 
     if not description.strip():
         raise ValueError("description is required")
 
+    photo_payload, photo = _photo_fields(photo_id)
     reference = _new_reference()
     # Field names match the council form, so this payload could pre-fill it.
     depth_field = "rad_road_pothole_depth" if surface == "road" else "rad_path_pothole_depth"
@@ -288,8 +298,11 @@ def file_report(surface: str, depth_band: str, location: str, description: str, 
             "txt_find_address_about_the_location": location.strip(),
             "txta_details_about_the_location": description.strip(),
             **_gis_fields(lat, lon),
+            **photo_payload,
         },
     }
+    if photo:
+        record["photo"] = photo
     return _save_report(record)
 
 
@@ -379,7 +392,8 @@ def assess_tree(tree_location: str, problem: str | None = None, blocking: bool |
 
 
 def file_tree_report(tree_location: str, problem: str, location: str, description: str,
-                     blocking: bool | None = None, lat: float | None = None, lon: float | None = None) -> dict:
+                     blocking: bool | None = None, lat: float | None = None, lon: float | None = None,
+                     photo_id: str | None = None) -> dict:
     """Record a completed street tree report and return its reference number."""
     assessment = assess_tree(tree_location, problem, blocking)
     if not assessment["can_file"]:
@@ -393,14 +407,18 @@ def file_tree_report(tree_location: str, problem: str, location: str, descriptio
     payload = {"rad_tree_location": tree_location, "rad_tree_problem": problem}
     if problem in TREE_BLOCKING_PROBLEMS:
         payload["rad_tree_blocking"] = "Yes" if blocking else "No"
+    photo_payload, photo = _photo_fields(photo_id)
     payload |= {"txt_find_address_about_the_location": location.strip(),
-                "txta_details_about_the_location": description.strip(), **_gis_fields(lat, lon)}
-    result = _save_report({
+                "txta_details_about_the_location": description.strip(), **_gis_fields(lat, lon), **photo_payload}
+    record = {
         "reference": _new_reference(),
         "filed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "form": "report_tree",
         "form_payload": payload,
-    })
+    }
+    if photo:
+        record["photo"] = photo
+    result = _save_report(record)
     result["owner"] = TREE_OWNER
     if "urgent_advice" in assessment:  # P1 results already carry URGENT_ADVICE; keep that wording
         result.setdefault("urgent_advice", assessment["urgent_advice"])
@@ -408,7 +426,9 @@ def file_tree_report(tree_location: str, problem: str, location: str, descriptio
 
 
 TOOLS = {f.__name__: f for f in (route_report, convert_to_mm, nearest_address, assess_pothole, file_report,
-                                  assess_tree, file_tree_report)}
+                                  assess_tree, file_tree_report, analyse_photo)}
+
+PHOTO_ID_HELP = "The photo_id from the user's photo upload note (32 hex characters). Never a file path."
 
 LATLON_HELP = ("The problem's map position. Only use the user's shared device location, and only if they are at "
                "the problem now (e.g. 'right here', 'in front of me').")
@@ -491,6 +511,7 @@ SCHEMAS = [
                     "suggested_category": {"type": "integer", "enum": [1, 2]},
                     "lat": {"type": "number", "description": LATLON_HELP},
                     "lon": {"type": "number", "description": LATLON_HELP},
+                    "photo_id": {"type": "string", "description": PHOTO_ID_HELP},
                 },
                 "required": ["surface", "depth_band", "location", "description"],
             },
@@ -535,8 +556,26 @@ SCHEMAS = [
                     "description": {"type": "string", "description": "Short description of the problem for the inspector"},
                     "lat": {"type": "number", "description": LATLON_HELP},
                     "lon": {"type": "number", "description": LATLON_HELP},
+                    "photo_id": {"type": "string", "description": PHOTO_ID_HELP},
                 },
                 "required": ["tree_location", "problem", "location", "description"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "analyse_photo",
+            "description": ("Look at a photo the user attached, with a local vision model. Returns what it seems to show "
+                            "(problem type, surface, tree problem, blocking, hazards, photo quality). Call it as soon as "
+                            "the user attaches a photo, before route_report. Treat it as evidence, not fact."),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "photo_id": {"type": "string", "description": PHOTO_ID_HELP},
+                    "hint": {"type": "string", "description": "What the user said about the problem, in their words"},
+                },
+                "required": ["photo_id"],
             },
         },
     },

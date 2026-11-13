@@ -88,5 +88,24 @@ def test_form_validation_errors_are_returned(tools):
 
 def test_bad_arguments_return_errors(tools):
     call(tools, "start_pothole_form")
-    assert "error" in call(tools, "set_pothole_problem", surface="road", depth_mm=40, photo_path="missing.jpg")
+    assert "error" in call(tools, "set_pothole_problem", surface="road", depth_mm=40, photo_id="/etc/passwd.png")
     assert "error" in call(tools, "set_pothole_reporter", anonymous=False, date_of_birth="1990")
+
+
+def test_attaches_an_uploaded_photo_by_id(tools):
+    import io
+
+    from PIL import Image
+
+    from app import photos
+
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 30), (90, 90, 90)).save(buf, "JPEG")
+    pid = photos.save_upload(buf.getvalue())["photo_id"]
+    call(tools, "start_pothole_form")
+    assert call(tools, "set_pothole_problem", surface="road", depth_mm=50, photo_id=pid)["page"] == "page_about_the_location"
+    call(tools, "set_pothole_location", location="Fargate", details="Pothole by the bench")
+    call(tools, "set_pothole_reporter", anonymous=True)
+    assert call(tools, "review_pothole_form")["answers"]["Photo"] == f"{pid}.jpg"
+    record = call(tools, "submit_pothole_form")["record"]
+    assert record["fields"]["txt_file_name_image_of_defect"] == f"{pid}.jpg"

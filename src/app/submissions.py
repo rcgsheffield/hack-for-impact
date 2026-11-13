@@ -33,6 +33,7 @@ from fastapi.responses import FileResponse
 
 from . import config, dedup, triage_context
 from .geocode import geocode, le_gis
+from .photos import photo_url
 from .triage import by_priority, combine_signals, safe_triage
 from .triage_llm import cached_signals, enrich_in_background
 
@@ -133,6 +134,14 @@ def _problem(fields: dict) -> str:
     return f"{surface}: {depth}" if surface and depth else surface or depth
 
 
+def _photo_url_of(item: dict) -> str | None:
+    """/photos/<id>.jpg if the report has an uploaded photo (photos.py) that still exists, else None."""
+    raw = item.get("raw") or {}
+    fields = raw.get("fields") or raw.get("form_payload") or {}
+    photo_id = (raw.get("photo") or {}).get("photo_id") or str(fields.get("txt_file_name_image_of_defect") or "")
+    return photo_url(photo_id) if photo_id else None
+
+
 def _from_mock(r: dict) -> dict:
     fields = r.get("fields") or {}
     lat, lon = _latlon(r.get("le_gis", ""))
@@ -228,6 +237,7 @@ def load_submissions() -> dict[str, Any]:
         # LLM (#26) or the map context (#27) adds signals, since both arrive after the report was filed.
         sig = combine_signals(cached_signals(i["reference"]), context)
         i["triage"] = safe_triage(i, sig) if sig else (i["raw"] or {}).get("triage") or safe_triage(i)
+        i["photo_url"] = _photo_url_of(i)
     items.sort(key=_ts, reverse=True)
     return {"generated_at": _now(), "count": len(items), "by_priority": by_priority(items), "forms": FORM_NAMES,
             "views": views, "submissions": items,
