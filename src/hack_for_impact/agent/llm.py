@@ -108,7 +108,7 @@ def mode_tools(mode: str) -> list[BaseTool]:
 
 def build_agent(model_name: str = "gemma4:e2b", model_provider: str = "ollama", base_url: str = OLLAMA_URL,
                 api_key: str = "not-needed", mode: str = "chat", tools: list | None = None,
-                system_prompt: str | None = None, checkpointer: BaseCheckpointSaver | None = None):
+                system_prompt: str | None = None, checkpointer: BaseCheckpointSaver | None = None, model=None):
     """
     Build a LangChain agent for one branch (see MODES):
     - mode="chat": route_report, convert_to_mm, assess_pothole/file_report and assess_tree/file_tree_report.
@@ -122,7 +122,8 @@ def build_agent(model_name: str = "gemma4:e2b", model_provider: str = "ollama", 
         raise ValueError(f"mode must be one of {MODES}")
     # A timeout, so a busy or stuck shared Ollama ends the turn instead of leaving the chat waiting forever.
     extra = {"client_kwargs": {"timeout": config.LLM_TIMEOUT}} if model_provider == "ollama" else {}
-    model = init_chat_model(
+    # A ready-made chat model (app.models.chat_model, for routing) wins over model_name/provider/base_url.
+    model = model or init_chat_model(
         model_name,
         model_provider=model_provider,
         base_url=base_url,
@@ -156,6 +157,12 @@ def user_turns(agent, thread_id: str) -> int:
     return sum(isinstance(m, HumanMessage) for m in state.values.get("messages", []))
 
 
+def latest_checkpoint_id(agent, thread_id: str) -> str | None:
+    """The thread's newest checkpoint, so a turn can be re-run from before it (see run_agent_events)."""
+    state = agent.get_state({"configurable": {"thread_id": thread_id}})
+    return (state.config or {}).get("configurable", {}).get("checkpoint_id")
+
+
 def follow_up_after_route(result: dict, has_pin: bool) -> str:
     """A plain next step after a successful route_report, for when the model gives no usable reply."""
     owner = result.get("owner", "the council")
@@ -174,7 +181,7 @@ def _unusable(reply: str) -> bool:
 
 
 def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
-                     max_steps: int | None = None) -> Iterator[ToolStep | str]:
+                     max_steps: int | None = None, checkpoint_id: str | None = None) -> Iterator[ToolStep | str]:
     """Run one user turn. Yields a ToolStep for each tool call, then the final reply as a str.
 
     Same contract as app.agent.run_agent_events, so the frontend can show each tool call as it happens.
@@ -182,6 +189,8 @@ def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
     user's message. With a thread_id, earlier turns (including tool calls and results) come from the checkpointer,
     so pass only the new message. Without one, a fresh thread is used.
     `max_steps` caps model calls for this turn (default config.MAX_AGENT_STEPS); the browser agent needs more.
+    `checkpoint_id` runs the turn from that earlier checkpoint of the thread instead of its latest one: a fork, used
+    to redo a turn on a bigger model. Agents sharing a checkpointer can continue each other's threads.
 
     Emergencies are escalated in code, not just the prompt: if the new message already triages as P1, a note telling
     the model to give the phone advice first is added to it; and if that or any tool result was urgent, the final
@@ -202,6 +211,8 @@ def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
     reply = ""
     routed: dict | None = None  # the last route_report result this turn, if it said we can file
     run_config = thread_config(thread_id or new_thread_id(), max_steps)
+    if checkpoint_id:
+        run_config["configurable"]["checkpoint_id"] = checkpoint_id
     start = last = time.monotonic()
     try:
         for update in agent.stream({"messages": messages}, config=run_config, stream_mode="updates"):

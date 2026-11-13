@@ -451,10 +451,11 @@ class BrowserAgent:
         return self.agent.invoke(self._prepare(input), *args, **kwargs)
 
 
-def make_browser_agent(session: BrowserSession | None = None, model: str | None = None,
+def make_browser_agent(session: BrowserSession | None = None, model: str | None = None, tier: str = "large",
                        max_steps: int = config.BROWSER_MAX_AGENT_STEPS, forms_url: str = config.BROWSER_FORMS_URL,
                        screenshots: bool = False, **llm_kwargs):
-    """A LangChain agent on the local Ollama model with the browser tools. Returns (agent, session).
+    """A LangChain agent on the `tier` model (src/app/models.py; "large" by default, since it reads whole web pages)
+    with the browser tools. Returns (agent, session). `model` overrides just the model name.
 
     screenshots=True keeps agent.tools.last_screenshot up to date after every action (the chat UI's live view).
     llm_kwargs go to ChatOllama; num_ctx defaults to config.BROWSER_NUM_CTX because every step adds a page.
@@ -464,6 +465,6 @@ def make_browser_agent(session: BrowserSession | None = None, model: str | None 
     session = session or BrowserSession()
     tools = BrowserTools(session, forms_url, screenshots=screenshots)
     llm_kwargs.setdefault("num_ctx", config.BROWSER_NUM_CTX)
-    agent = make_agent(browser_tools(tools), SYSTEM_PROMPT, model, **llm_kwargs)
+    agent = make_agent(browser_tools(tools), SYSTEM_PROMPT, model, tier=tier, **llm_kwargs)
     # Each model call plus its tool round is two graph steps.
     return BrowserAgent(agent.with_config({"recursion_limit": 2 * max_steps + 1}), tools), session

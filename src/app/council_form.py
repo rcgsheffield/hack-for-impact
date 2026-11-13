@@ -386,18 +386,18 @@ def common_tools(s: CouncilFormSession, noun: str, problem_tool: BaseTool) -> li
     ]
 
 
-def make_agent(tools: list[BaseTool], system_prompt: str, model: str | None = None, **llm_kwargs):
-    """A LangChain agent on the local Ollama model with the given tools.
+def make_agent(tools: list[BaseTool], system_prompt: str, model: str | None = None, tier: str = "agent",
+               **llm_kwargs):
+    """A LangChain agent with the given tools on a model tier (src/app/models.py; the Spark's Ollama by default).
 
-    llm_kwargs go to ChatOllama, e.g. reasoning=False to switch off a thinking model's reasoning (faster on CPU).
+    `model` overrides just the model name (e.g. a CLI --model flag). llm_kwargs go to the chat model, e.g.
+    reasoning=False to switch off a thinking model's reasoning (faster on CPU).
     """
     from langchain.agents import create_agent
-    from langchain_ollama import ChatOllama
 
-    from . import config
+    from . import models
 
-    llm = ChatOllama(model=model or config.OLLAMA_MODEL, base_url=config.OLLAMA_URL, temperature=0, **llm_kwargs)
-    return create_agent(llm, tools, system_prompt=system_prompt)
+    return create_agent(models.chat_model(tier, model, **llm_kwargs), tools, system_prompt=system_prompt)
 
 
 REFERENCE_RE = re.compile(r"\b[A-Z]{0,4}-?\d{6,}\b")

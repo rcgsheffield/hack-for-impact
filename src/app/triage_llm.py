@@ -6,7 +6,7 @@ rubric holds the points, and adding a node to a rubric adds a question here with
 uses a model's answer only where the form and keyword rules left a node open, and only at p >= MIN_CONFIDENCE.
 
 Two backends, chosen by config.TRIAGE_DECIDER:
-- "ollama" (default): the local model on the organisers' Ollama (config.OLLAMA_URL / OLLAMA_MODEL), structured JSON
+- "ollama" (default): the small model tier (models.spec("small"), the Spark's Ollama by default), structured JSON
   via Ollama's `format` schema at temperature 0. A general LLM's p is self-reported, not calibrated.
 - "jev": TypeSafe's hosted System One model (triage_jev.py), with calibrated probabilities per option. Off by
   default: it sends report text to a US service.
@@ -28,7 +28,7 @@ from pathlib import Path
 
 import httpx
 
-from . import config
+from . import config, models
 from .triage_deciders import Decision, signals_from
 from .triage_rubric import Rubric, rubric_for
 
@@ -81,8 +81,10 @@ def to_decisions(raw: dict, rubric: Rubric, source: str = ENGINE) -> dict[str, D
 
 
 def _ollama(text: str, rubric: Rubric) -> dict | None:
-    resp = httpx.post(f"{config.OLLAMA_URL}/api/chat", timeout=config.TRIAGE_LLM_TIMEOUT, json={
-        "model": config.OLLAMA_MODEL,
+    small = models.spec("small")  # model routing: a short structured-JSON job for the fast tier
+    resp = httpx.post(f"{small.base_url}/api/chat", timeout=config.TRIAGE_LLM_TIMEOUT, json={
+        "model": small.model,
+        "think": models.thinks("small"),
         "messages": [{"role": "system", "content": prompt_for(rubric)},
                      {"role": "user", "content": text[:MAX_TEXT_CHARS]}],
         "format": schema_for(rubric),
@@ -156,7 +158,7 @@ def enrich(reference: str, text: str, form: str | None = None) -> dict | None:
         signals = extract_signals(text, form)
         if signals is None:
             return None
-        model = config.JEV_MODEL if config.TRIAGE_DECIDER == "jev" else config.OLLAMA_MODEL
+        model = config.JEV_MODEL if config.TRIAGE_DECIDER == "jev" else models.spec("small").model
         line = json.dumps({"reference": str(reference), "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                            "model": model, "form": form, "signals": signals})
         path = Path(config.TRIAGE_SIGNALS_PATH)
