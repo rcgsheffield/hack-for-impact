@@ -18,3 +18,10 @@ def no_live_geocoding(monkeypatch):
     geocode.cache_clear()
     yield
     geocode.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def no_llm_triage(tmp_path, monkeypatch):
+    """No test calls the model in the background; signals are cached in a temporary file."""
+    monkeypatch.setattr(config, "TRIAGE_LLM", False)
+    monkeypatch.setattr(config, "TRIAGE_SIGNALS_PATH", tmp_path / "triage_signals.jsonl")

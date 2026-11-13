@@ -15,6 +15,7 @@ import httpx
 from . import config
 from .geocode import geocode, le_gis
 from .triage import safe_triage, triage
+from .triage_llm import enrich_in_background
 
 COUNCIL_PHONE = "0114 273 4567"
 POTHOLE_FORM = "https://forms.sheffield.gov.uk/site/portal/form/report_pothole_crack"
@@ -285,6 +286,7 @@ def _save_report(record: dict) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
+    enrich_in_background(record["reference"], payload.get("txta_details_about_the_location", ""))
     result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
               "status": "recorded (prototype: not sent to the council)",
               "priority": f"{record['triage']['priority']} {record['triage']['label']}",

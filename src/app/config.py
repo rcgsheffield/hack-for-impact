@@ -30,3 +30,11 @@ GIT_SHA = os.environ.get("GIT_SHA", "unknown")
 MAX_AGENT_STEPS = int(os.environ.get("MAX_AGENT_STEPS", "12"))
 # Seconds to wait for one model response. Large models can take a while to load on first request.
 LLM_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "180"))
+
+# Local-model triage signals (src/app/triage_llm.py, issue #26): read the report text after filing and add reasons.
+# "0" turns it off (tests, or Ollama down); triage then uses the rules only.
+TRIAGE_LLM = (os.environ.get("TRIAGE_LLM") or "1").lower() not in ("0", "false", "no")
+# Seconds to wait for the model's reading of one report; on timeout triage falls back to the rules.
+TRIAGE_LLM_TIMEOUT = float(os.environ.get("TRIAGE_LLM_TIMEOUT") or "20")
+# Cached model signals by report reference, one JSON object per line.
+TRIAGE_SIGNALS_PATH = Path(os.environ.get("TRIAGE_SIGNALS_PATH") or "data/triage_signals.jsonl")
