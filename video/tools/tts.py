@@ -9,7 +9,9 @@ To give a clip a different character's voice, name it on the heading:
 Names come from VOICES below; clips with no voice= use the narrator.
 
 Usage:
-    export ELEVENLABS_API_KEY=...        # never commit this
+    # Put ELEVENLABS_API_KEY=... in a .env file (git-ignored), or export it.
+    # .env is searched for from the current directory upwards; real environment
+    # variables take precedence over it. Needs: pip install python-dotenv
     python3 video/tools/tts.py            # generate all clips (skips existing ones)
     python3 video/tools/tts.py s2 s5      # (re)generate only these clips
     python3 video/tools/tts.py --force    # regenerate everything
@@ -28,6 +30,11 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+try:
+    from dotenv import find_dotenv, load_dotenv
+except ImportError:  # python-dotenv is optional: plain exported variables still work
+    load_dotenv = None
 
 VIDEO_DIR = Path(__file__).resolve().parent.parent
 SCRIPT_PATH = VIDEO_DIR / "script" / "voiceover.md"
@@ -122,9 +129,14 @@ def main() -> None:
             print(f"{cid} [{clip_voices[cid]}]: {text}")
         return
 
+    if load_dotenv:
+        # Search upwards from this script so it works from any working directory
+        # and finds a .env at the repo root or in video/.
+        load_dotenv(find_dotenv(usecwd=False) or find_dotenv(usecwd=True))
     api_key = os.environ.get("ELEVENLABS_API_KEY")
     if not api_key:
-        sys.exit("error: set ELEVENLABS_API_KEY (see https://elevenlabs.io/app/settings/api-keys)")
+        hint = "" if load_dotenv else " (install python-dotenv to load it from a .env file)"
+        sys.exit(f"error: set ELEVENLABS_API_KEY{hint} (see https://elevenlabs.io/app/settings/api-keys)")
     narrator_id = os.environ.get("ELEVENLABS_VOICE_ID", DEFAULT_VOICE_ID)
     model_id = os.environ.get("ELEVENLABS_MODEL_ID", DEFAULT_MODEL_ID)
 
