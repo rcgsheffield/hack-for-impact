@@ -77,6 +77,10 @@ One-time runner setup, done on the Spark over SSH:
    ```
 3. Make sure `rsync` is installed. If the app will use Docker, add the runner's user to the `docker` group.
 
+### Smoke test (GPU + Ollama)
+
+[`src/smoke/`](src/smoke) is a small Docker Compose stack (GPU-enabled Ollama plus a FastAPI wrapper) that checks the runner, the NVIDIA Container Toolkit and local inference end to end. The **Smoke test** workflow (`.github/workflows/smoke.yml`) runs it on the Spark for pull requests touching `src/smoke/` or via **Actions → Smoke test → Run workflow**; it never deploys. It pulls `nemotron-mini` (override with `MODEL`), generates a reply and fails if the model isn't resident in VRAM. Locally: `cd src/smoke && docker compose up -d --build && REQUIRE_GPU=0 ./smoke_test.sh`.
+
 ## Team
 
 _Add team members here._
