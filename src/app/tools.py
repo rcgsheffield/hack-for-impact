@@ -205,3 +205,23 @@ def call_tool(name: str, arguments: str | dict | None) -> dict:
         return {"error": f"Arguments were not valid JSON: {e}"}
     except (TypeError, ValueError) as e:
         return {"error": str(e)}
+
+
+def langchain_tools() -> list:
+    """The same tools as LangChain StructuredTools, for build_agent / create_agent.
+
+    Each returns JSON text, and errors come back as {"error": ...} via call_tool, as in the OpenAI loop.
+    """
+    from langchain_core.tools import StructuredTool
+
+    def wrap(schema: dict) -> StructuredTool:
+        spec = schema["function"]
+        name = spec["name"]
+
+        def run(**kwargs) -> str:
+            return json.dumps(call_tool(name, kwargs))
+
+        return StructuredTool.from_function(func=run, name=name, description=spec["description"],
+                                            args_schema=spec["parameters"])
+
+    return [wrap(s) for s in SCHEMAS]

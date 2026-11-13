@@ -5,14 +5,17 @@ Run: uvicorn app.main:app --app-dir src --host 0.0.0.0 --port 8000
 
 import json
 from collections.abc import Iterator
+from functools import cache
 
 import gradio as gr
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from hack_for_impact.agent.llm import build_agent, run_agent_events
+
 from . import config
-from .agent import ToolStep, run_agent_events
+from .agent import ToolStep
 
 app = FastAPI(title="CouncilTriagent")
 
@@ -56,11 +59,17 @@ def _to_model_history(history: list[dict]) -> list[dict]:
     return out
 
 
+@cache
+def get_agent():
+    """The LangChain agent with the council tools, on the configured local Ollama model. Built on first use."""
+    return build_agent(model_name=config.OLLAMA_MODEL, base_url=config.OLLAMA_URL)
+
+
 def respond(message, history: list[dict]) -> Iterator[list[gr.ChatMessage]]:
     shown: list[gr.ChatMessage] = []
     turn = _to_model_history(history) + [{"role": "user", "content": _text(message)}]
     try:
-        for event in run_agent_events(turn):
+        for event in run_agent_events(get_agent(), turn):
             if isinstance(event, ToolStep):
                 shown.append(gr.ChatMessage(
                     content=f"**Arguments**\n```json\n{event.arguments}\n```\n**Result**\n```json\n{json.dumps(event.result, indent=2)}\n```",
