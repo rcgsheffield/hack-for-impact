@@ -188,3 +188,11 @@ def test_shared_location_goes_to_the_model_not_the_chat(monkeypatch):
 
     sent = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"][0].content
     assert sent.startswith("pothole right here") and "[Device location shared by the user: lat 53.38, lon -1.47" in sent
+
+
+def test_location_panel_title_shows_whether_a_location_is_set():
+    from app import main
+
+    assert main.location_label("") == "📍 Add a location (optional)"
+    assert main.location_label("53.38, -1.47 (map pin)") == "📍 Location: pin on the map ✓"
+    assert main.location_label("53.38, -1.47 (±9 m)") == "📍 Location: your current location ✓"
