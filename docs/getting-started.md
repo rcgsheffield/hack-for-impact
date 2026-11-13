@@ -43,6 +43,10 @@ To log agent runs too, point the form toolkit at the served copy; they show up w
 POTHOLE_FORM_URL=http://127.0.0.1:8000/mock/report_pothole_crack.html uv run python -m app.pothole_form_toolkit
 ```
 
+### Location pin
+
+The chat page has an optional map beside the chat. "Use my location" asks the browser for the device's position (GPS on a phone) and drops a pin; people can also tap the map, and drag the pin to the exact spot. The pin becomes a note on the model's copy of the message (`location_note` in `src/app/main.py`), and the model passes its lat/lon to the filing tools. A device fix is sent as `lat, lon (±N m)` ("use it only if they're at the problem"); a tapped or dragged pin as `lat, lon (map pin)` ("this is where the problem is"). Browsers only share location on a secure origin, so the button works at <https://spark12.local> and `localhost` but is disabled at `http://spark12.local:8000`, where tapping the map still works. The map script is `src/app/static/location-pin.js`.
+
 ### Submissions dashboard
 
 <http://127.0.0.1:8000/dashboard> (on the Spark: <http://spark12.local/dashboard>) shows every submission to the mock forms and refreshes every 5 seconds. It combines:
