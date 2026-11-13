@@ -10,6 +10,8 @@ Stack: **Python, FastAPI and a [Gradio](https://www.gradio.app/) chat UI, with t
 | `src/app/static/report-card.js` | Front-end library: `ReportCard.render(item, {audience: "staff" | "resident"})` draws one report as a card (styles in `report-card.css`) |
 | `src/app/agent.py` | System prompt and tool-calling loop |
 | `src/app/tools.py` | Agent tools: `route_report`, `assess_pothole`, `file_report` |
+| `src/app/triage.py` | Automatic triage: priority, reasons and response target for every report; signals from `triage_llm.py` (local LLM) and `triage_context.py` (road class, repeat reports), resident messaging in `urgency.py`. See [`triage.md`](triage.md) |
+| `src/app/triage_eval.py`, `src/app/demo_seed.py` | Triage evaluation on the labelled set; demo queue for the dashboard |
 | `src/app/geocode.py` | Turns a typed location into coordinates for the map (sample addresses, postcodes.io, Photon) |
 | `src/app/config.py` | Settings from environment variables |
 | `src/app/check.sh` | Checks the deployed app's `/health` |
@@ -69,11 +71,13 @@ A map plots every filtered submission that has coordinates, coloured by form; a 
 
 `src/app/geocode.py` tries the mocks' 10 sample addresses first (offline), then postcodes.io for postcodes and Photon (OpenStreetMap) for anything else, keeping only results inside Sheffield. Lookups time out after 3 s and are cached. A report is filed even if it can't be placed; its `lat`/`lon` are then `null`. Popups mark points placed from typed text as approximate. The map loads Leaflet from unpkg.com and Esri tiles, so it needs internet access; the rest of the dashboard doesn't.
 
+Reports are sorted by suggested priority (P1 first) with their reasons; how that's worked out, and how to fill the queue for a demo (`python -m app.demo_seed`), is in [`triage.md`](triage.md).
+
 Expanding a row shows the report as a card (`static/report-card.js`, staff view) with the raw record folded away, and a link to the resident view.
 
 ### Viewing one report
 
-`/reports/<reference>` (JSON at `/api/reports/<reference>`) shows a single report to the resident who filed it: reference number, what was recorded, severity and a prototype notice, without agent or source details. `file_report` returns this link as `url` and the chat agent passes it on. To render reports on another page, include `/static/report-card.css` and `/static/report-card.js`, then set `el.innerHTML = ReportCard.render(item, { audience: "resident" })` with an item from either API.
+`/reports/<reference>` (JSON at `/api/reports/<reference>`) shows a single report to the resident who filed it: reference number, what was recorded, the suggested priority with its response target and reasons (plus the phone advice for P1) and a prototype notice, without agent or source details. `file_report` returns this link as `url` and the chat agent passes it on. To render reports on another page, include `/static/report-card.css` and `/static/report-card.js`, then set `el.innerHTML = ReportCard.render(item, { audience: "resident" })` with an item from either API.
 
 ## Settings
 
@@ -88,6 +92,9 @@ Environment variables:
 | `GEOCODE_LIVE` | `1` | `0` to geocode only the built-in sample addresses (no calls to postcodes.io or Photon) |
 | `MAX_AGENT_STEPS` | `12` | Model calls allowed per user message |
 | `LLM_TIMEOUT` | `180` | Seconds to wait for one model response |
+| `TRIAGE_LLM` | `1` | `0` to triage with rules and map context only (no Ollama call after filing) |
+| `TRIAGE_LLM_TIMEOUT` | `20` | Seconds to wait for the triage model's reading of a report |
+| `TRIAGE_SIGNALS_PATH` | `data/triage_signals.jsonl` | Cache of the triage model's readings, by reference |
 
 Filed reports go to `data/reports.jsonl` only. Nothing is sent to the council.
 
