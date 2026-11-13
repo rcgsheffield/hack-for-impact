@@ -1,0 +1,171 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #3d4a5c;
+      color: #1f2530;
+    }
+    #fx-hold {
+      position: absolute;
+      left: 140px;
+      top: 90px;
+      padding: 20px 32px;
+      border-radius: 18px;
+      background: #1d2129;
+      color: #f1f4f8;
+      font-size: 40px;
+      font-weight: 700;
+    }
+    #fx-holdtime {
+      font-family: "JetBrains Mono", monospace;
+      color: #f3d98b;
+    }
+    #fx-quote {
+      position: absolute;
+      left: 140px;
+      top: 230px;
+      width: 680px;
+      font-size: 64px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      color: #f1f4f8;
+    }
+    .fx-win {
+      position: absolute;
+      top: 120px;
+      width: 900px;
+      height: 860px;
+      border-radius: 18px;
+      background: #f5f6f8;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+    #fx-winx {
+      left: 860px;
+    }
+    #fx-winy {
+      left: 940px;
+      top: 170px;
+    }
+    .fx-bar {
+      position: relative;
+      z-index: 2;
+      height: 90px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      background: #d8dde5;
+      font-size: 34px;
+      font-weight: 700;
+      color: #1f2530;
+    }
+    .fx-scroll {
+      padding: 30px 36px;
+    }
+    .fx-field {
+      margin-bottom: 26px;
+    }
+    .fx-lab {
+      font-size: 28px;
+      font-weight: 700;
+      color: #333b48;
+      margin-bottom: 8px;
+    }
+    .fx-box {
+      height: 52px;
+      border: 3px solid #a9b1bf;
+      border-radius: 8px;
+      background: #fff;
+    }
+    .fx-err .fx-box {
+      border-color: #c62828;
+    }
+    .fx-err .fx-lab::after {
+      content: "  · Required";
+      color: #c62828;
+    }
+    #fx-stamp {
+      position: absolute;
+      left: 1020px;
+      top: 480px;
+      padding: 18px 40px;
+      border: 10px solid #c62828;
+      border-radius: 14px;
+      color: #c62828;
+      font-size: 72px;
+      font-weight: 900;
+      background: rgba(255, 255, 255, 0.85);
+    }
+  </style>
+  <div id="root" data-composition-id="form-x" data-width="1920" data-height="1080">
+    <div id="fx-hold">On hold <span id="fx-holdtime">00:00</span></div>
+    <div id="fx-quote">“Please fill in form X.”</div>
+    <div class="fx-win" id="fx-winx" data-layout-allow-overflow data-layout-allow-overlap>
+      <div class="fx-bar">Form X · Highway defect report (1 of 4)</div>
+      <div class="fx-scroll" id="fx-scrollx">
+        <div class="fx-field"><div class="fx-lab">Full name</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Unique property reference</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Road classification</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Grid reference (easting)</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Grid reference (northing)</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Defect depth (mm)</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Defect width (mm)</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Asset ID</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Ward</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Date first observed</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Service area code</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Previous reference</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Upload evidence (max 2 MB)</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Declaration</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Preferred contact method</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Accessibility needs</div><div class="fx-box"></div></div>
+      </div>
+    </div>
+    <div class="fx-win" id="fx-winy" data-layout-allow-overlap data-layout-allow-occlusion>
+      <div class="fx-bar">Form Y · Supplementary information</div>
+      <div class="fx-scroll">
+        <div class="fx-field fx-err"><div class="fx-lab">Form X reference</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Section 58 defence notice</div><div class="fx-box"></div></div>
+        <div class="fx-field fx-err"><div class="fx-lab">Witness details</div><div class="fx-box"></div></div>
+        <div class="fx-field"><div class="fx-lab">Vehicle registration</div><div class="fx-box"></div></div>
+      </div>
+    </div>
+    <div id="fx-stamp">ERROR 422</div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const hold = { s: 0 };
+      tl.fromTo("#fx-hold", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.3 }, 0);
+      tl.fromTo(
+        hold,
+        { s: 0 },
+        {
+          s: 20 * 60 + 14,
+          duration: 2.6,
+          ease: "power1.in",
+          onUpdate: () => {
+            const v = Math.floor(hold.s);
+            document.querySelector("#fx-holdtime").textContent =
+              String(Math.floor(v / 60)).padStart(2, "0") + ":" + String(v % 60).padStart(2, "0");
+          },
+        },
+        0.1,
+      );
+      tl.fromTo("#fx-quote", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.4);
+      tl.fromTo("#fx-winx", { x: 200, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 2.6);
+      tl.fromTo("#fx-scrollx", { y: 0 }, { y: -900, duration: 3.6, ease: "power1.inOut" }, 3.2);
+      tl.fromTo(".fx-err .fx-box", { backgroundColor: "#ffffff" }, { backgroundColor: "#fde7e7", duration: 0.2, stagger: 0.15 }, 3.6);
+      tl.fromTo("#fx-winx", { rotation: 0 }, { rotation: -2, duration: 0.3 }, 5.0);
+      tl.fromTo("#fx-winy", { y: 300, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 5.0);
+      tl.fromTo("#fx-quote", { opacity: 1 }, { opacity: 0, duration: 0.2 }, 5.0);
+      tl.fromTo("#fx-stamp", { scale: 2.4, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.3, ease: "power4.in" }, 6.4);
+      tl.fromTo("#root", { x: 0 }, { x: 10, duration: 0.05, yoyo: true, repeat: 5 }, 6.7);
+      window.__timelines["form-x"] = tl;
+    })();
+  </script>
+</template>

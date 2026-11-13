@@ -237,3 +237,6 @@ video/composition/.hyperframes/
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Windows download metadata (WSL)
+*:Zone.Identifier

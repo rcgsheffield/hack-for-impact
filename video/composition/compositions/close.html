@@ -1,0 +1,198 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #eef3e6;
+      color: #13200f;
+    }
+    #cl-queue {
+      position: absolute;
+      left: 140px;
+      top: 150px;
+      width: 900px;
+      padding: 36px 40px;
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 30px 80px rgba(30, 60, 0, 0.15);
+    }
+    #cl-qtitle {
+      font-size: 40px;
+      font-weight: 900;
+      margin-bottom: 26px;
+    }
+    .cl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 0;
+      border-top: 2px solid #e3e9da;
+      font-size: 34px;
+      font-weight: 700;
+    }
+    .cl-chip {
+      padding: 6px 20px;
+      border-radius: 30px;
+      font-size: 28px;
+      font-weight: 700;
+      background: #e3f2c8;
+      color: #2f5200;
+    }
+    .cl-hi {
+      background: #fde2cf;
+      color: #8a3200;
+    }
+    #cl-qnote {
+      margin-top: 18px;
+      font-size: 28px;
+      color: #4d5c44;
+    }
+    #cl-irene {
+      position: absolute;
+      left: 1330px;
+      top: 230px;
+      width: 320px;
+      height: 520px;
+    }
+    .cl-face {
+      position: absolute;
+      left: 50px;
+      top: 0;
+      width: 220px;
+      height: 240px;
+      border-radius: 50%;
+      background: #f2c7a5;
+    }
+    .cl-hair {
+      position: absolute;
+      left: 30px;
+      top: -22px;
+      width: 260px;
+      height: 170px;
+      border-radius: 130px 130px 40px 40px;
+      background: #c9ccd3;
+    }
+    .cl-eye {
+      position: absolute;
+      top: 120px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #2a1d17;
+    }
+    .cl-mouth {
+      position: absolute;
+      left: 70px;
+      top: 160px;
+      width: 80px;
+      height: 40px;
+      border-bottom: 8px solid #6b3b2b;
+      border-radius: 0 0 50% 50% / 0 0 100% 100%;
+    }
+    .cl-body {
+      position: absolute;
+      left: 0;
+      top: 230px;
+      width: 320px;
+      height: 290px;
+      border-radius: 140px 140px 0 0;
+      background: #7b5ea7;
+    }
+    #cl-ping {
+      position: absolute;
+      left: 1180px;
+      top: 800px;
+      width: 620px;
+      padding: 22px 28px;
+      border-radius: 20px;
+      background: #13200f;
+      color: #ffffff;
+      font-size: 30px;
+      line-height: 1.35;
+    }
+    #cl-card {
+      position: absolute;
+      inset: 0;
+      background: #0b0f0a;
+      color: #eef5e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      opacity: 0;
+    }
+    #cl-name {
+      font-size: 150px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    #cl-name span {
+      color: #76b900;
+    }
+    #cl-tag {
+      margin-top: 26px;
+      font-size: 44px;
+      color: #cfe3b8;
+    }
+    #cl-meta {
+      margin-top: 70px;
+      font-size: 32px;
+      color: #a8c48a;
+      line-height: 1.6;
+    }
+    #cl-url {
+      font-family: "JetBrains Mono", monospace;
+      color: #eef5e6;
+    }
+  </style>
+  <div id="root" data-composition-id="close" data-width="1920" data-height="1080">
+    <div id="cl-queue">
+      <div id="cl-qtitle">Today's reports · triaged</div>
+      <div class="cl-row"><span>Highways · 14 reports</span><span class="cl-chip cl-hi">3 urgent</span></div>
+      <div class="cl-row"><span>Waste &amp; fly-tipping · 9</span><span class="cl-chip">routed</span></div>
+      <div class="cl-row"><span>Street lighting · 5</span><span class="cl-chip">routed</span></div>
+      <div class="cl-row"><span>Duplicates merged · 22</span><span class="cl-chip">done</span></div>
+      <div id="cl-qnote">Every report complete, classified and in the right system.</div>
+    </div>
+    <div id="cl-irene">
+      <div class="cl-body"></div>
+      <div class="cl-hair"></div>
+      <div class="cl-face">
+        <div class="cl-eye" style="left: 60px"></div>
+        <div class="cl-eye" style="left: 140px"></div>
+        <div class="cl-mouth"></div>
+      </div>
+    </div>
+    <div id="cl-ping">SHF-24817 · Inspection booked for Tuesday. We'll update you when it's fixed.</div>
+    <div id="cl-card" data-layout-allow-occlusion>
+      <div id="cl-name">Council<span>Triagent</span></div>
+      <div id="cl-tag">Report it in your own words. The agent does the rest.</div>
+      <div id="cl-meta">
+        Public Services track · NVIDIA Hack for Impact Sheffield 2026<br />
+        <span id="cl-url">github.com/rcgsheffield/hack-for-impact</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#cl-queue", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.1);
+      tl.fromTo(".cl-row", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35, stagger: 0.18, ease: "power2.out" }, 0.4);
+      tl.fromTo("#cl-qnote", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 1.3);
+      tl.fromTo("#cl-irene", { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 2.0);
+      tl.fromTo("#cl-ping", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "back.out(1.7)" }, 2.6);
+      tl.fromTo("#cl-irene", { y: 0 }, { y: -16, duration: 0.25, yoyo: true, repeat: 1, ease: "sine.inOut" }, 3.0);
+      tl.fromTo(["#cl-queue", "#cl-irene", "#cl-ping"], { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 4.5);
+      // title card as the VO says the name
+      tl.fromTo("#cl-card", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power2.out" }, 4.8);
+      tl.fromTo("#cl-name", { scale: 0.92, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power3.out" }, 5.2);
+      tl.fromTo("#cl-tag", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 6.0);
+      tl.fromTo("#cl-meta", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 6.6);
+      window.__timelines["close"] = tl;
+    })();
+  </script>
+</template>
