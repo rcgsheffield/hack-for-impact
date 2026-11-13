@@ -18,6 +18,7 @@
     --accent: #2a78d6; --accent-soft: #e5effb;
     --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
     --new: #fff4d6; --warn-bg: #fdf1e7; --warn-text: #7a3412;
+    --p1: #c8102e; --p2: #d9690f; --p3: #2a78d6; --p4: #8a8984; --alert-bg: #fde8eb; --alert-text: #8a0b20;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -27,6 +28,7 @@
       --accent: #3987e5; --accent-soft: #1d2b3d;
       --s1: #3987e5; --s2: #d95926; --s3: #199e70;
       --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
+      --p1: #f0555f; --p2: #f08a3c; --p3: #3987e5; --p4: #8f8e86; --alert-bg: #3b1a1e; --alert-text: #ffc2c8;
     }
   }
   :root[data-theme="dark"] {
@@ -36,6 +38,7 @@
     --accent: #3987e5; --accent-soft: #1d2b3d;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70;
     --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
+    --p1: #f0555f; --p2: #f08a3c; --p3: #3987e5; --p4: #8f8e86; --alert-bg: #3b1a1e; --alert-text: #ffc2c8;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
@@ -95,6 +98,23 @@
   .map-note { color: var(--muted); font-size: .8125rem; margin: 8px 0 0; }
   .map-off { padding: 24px; color: var(--muted); text-align: center; }
   .linkish { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; }
+  /* Priority: icon and text as well as colour (WCAG 1.4.1). */
+  .prio { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: 600; font-size: .8125rem;
+          padding: 1px 8px 1px 6px; border-radius: 999px; border: 1px solid var(--pc); }
+  .prio .ic { color: var(--pc); font-size: .9em; }
+  .prio-P1 { --pc: var(--p1); background: var(--alert-bg); } .prio-P2 { --pc: var(--p2); }
+  .prio-P3 { --pc: var(--p3); } .prio-P4 { --pc: var(--p4); font-weight: 400; }
+  .kpi.urgent { border-color: var(--p1); }
+  .kpi.urgent .value { color: var(--p1); }
+  .alert { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 0 0 12px;
+           padding: 10px 14px; border-radius: 8px; border: 1px solid var(--p1); background: var(--alert-bg); color: var(--alert-text); }
+  .alert[hidden] { display: none; }
+  .triage { margin: 0 0 12px; padding: 10px 12px; border-left: 4px solid var(--pc); background: var(--surface); border-radius: 6px; }
+  .triage ul { margin: 6px 0 0; padding-left: 20px; }
+  .triage .muted { font-size: .8125rem; }
+  .pulse { animation: pulse 1.6s ease-out 3; }
+  @keyframes pulse { 0% { stroke-width: 2; } 50% { stroke-width: 10; stroke-opacity: .4; } 100% { stroke-width: 2; } }
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
@@ -110,7 +130,14 @@
   </header>
   <p class="banner">Unofficial hackathon prototype. These are submissions to the <strong>mock</strong> council forms: nothing is sent to the council. Reporter names and contact details are not stored.</p>
 
+  <div class="alert" id="p1-alert" role="status" aria-live="polite" hidden>
+    <span id="p1-alert-text"></span>
+    <button type="button" id="p1-alert-close">Dismiss</button>
+  </div>
+
   <section class="kpis" aria-label="Summary">
+    <div class="card kpi urgent"><div class="label">P1 emergencies awaiting action</div><div class="value" id="k-p1">–</div><div class="sub" id="k-p1-sub"></div></div>
+    <div class="card kpi"><div class="label">P2 high priority</div><div class="value" id="k-p2">–</div><div class="sub" id="k-p2-sub"></div></div>
     <div class="card kpi"><div class="label">Submissions</div><div class="value" id="k-total">–</div><div class="sub" id="k-total-sub"></div></div>
     <div class="card kpi"><div class="label">Last hour</div><div class="value" id="k-hour">–</div><div class="sub" id="k-hour-sub"></div></div>
     <div class="card kpi"><div class="label">By agents</div><div class="value" id="k-agent">–</div><div class="sub" id="k-agent-sub"></div></div>
@@ -140,8 +167,21 @@
   </section>
 
   <section class="card" aria-labelledby="h-list">
-    <h2 id="h-list">All submissions</h2>
+    <h2 id="h-list">Triage queue</h2>
     <div class="filters">
+      <label class="sr-only" for="f-sort">Sort</label>
+      <select id="f-sort">
+        <option value="priority">Priority first</option>
+        <option value="time">Newest first</option>
+      </select>
+      <label class="sr-only" for="f-prio">Priority</label>
+      <select id="f-prio">
+        <option value="">All priorities</option>
+        <option value="P1">P1 Emergency</option>
+        <option value="P2">P2 High</option>
+        <option value="P3">P3 Routine</option>
+        <option value="P4">P4 Low</option>
+      </select>
       <label class="sr-only" for="f-form">Form</label>
       <select id="f-form"><option value="">All forms</option></select>
       <label class="sr-only" for="f-source">Source</label>
@@ -157,9 +197,9 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th scope="col">Time</th><th scope="col">Reference</th><th scope="col">Form</th><th scope="col">Problem</th>
+        <thead><tr><th scope="col">Priority</th><th scope="col">Time</th><th scope="col">Reference</th><th scope="col">Form</th><th scope="col">Problem</th>
           <th scope="col">Location</th><th scope="col">Source</th></tr></thead>
-        <tbody id="rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -177,6 +217,25 @@
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const slot = form => FORM_SLOTS[form] || OTHER_SLOT;
   const color = form => `var(${slot(form)})`;
+
+  // Triage priority (src/app/triage.py). Icon and text carry the meaning; colour only reinforces it.
+  const PRIO = {
+    P1: { icon: "⚠", label: "Emergency", rank: 0, radius: 10 },
+    P2: { icon: "▲", label: "High", rank: 1, radius: 8 },
+    P3: { icon: "●", label: "Routine", rank: 2, radius: 7 },
+    P4: { icon: "↪", label: "Low", rank: 3, radius: 6 },
+  };
+  const prioOf = i => (i.triage && PRIO[i.triage.priority]) ? i.triage.priority : "P3";
+  const badge = i => { const p = prioOf(i); return `<span class="prio prio-${p}"><span class="ic" aria-hidden="true">${PRIO[p].icon}</span>${p} ${PRIO[p].label}</span>`; };
+  const ago = ms => { const m = Math.max(0, Math.round(ms / 60000)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 1440)} d ${Math.floor(m % 1440 / 60)} h`; };
+  function triageHtml(i) {
+    const t = i.triage; if (!t) return "";
+    const p = prioOf(i);
+    return `<div class="triage" style="--pc:var(--${p.toLowerCase()})"><div>${badge(i)} <strong>${esc(t.response_target)}</strong></div>`
+      + `<ul>${(t.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>`
+      + `<div class="muted">Suggested by ${t.engine === "rules+llm" ? "rules plus the local AI model" : t.engine === "fallback" ? "a fallback (triage failed)" : "rules"}`
+      + ` · score ${esc(t.score)} · the council decides after inspection</div></div>`;
+  }
 
   let data = null, seen = null, paused = false, open = new Set(), forms = {};
   const formName = f => forms[f] || f || "Unknown";
@@ -317,6 +376,7 @@
   function popupHtml(i) {
     const t = new Date(i.submitted_at);
     return `<strong>${esc(formName(i.form))}${i.problem ? ` · ${esc(i.problem)}` : ""}</strong>`
+      + `${badge(i)}<br>`
       + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
       + (i.location ? `<br>${esc(i.location)}` : "")
       + (i.geo_source && !["form", "device"].includes(i.geo_source) ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
@@ -328,25 +388,26 @@
     $("map-note").textContent = !items.length ? "No submissions to map."
       : `${pts.length} of ${items.length} shown submission${items.length === 1 ? "" : "s"} mapped.`
         + (missing ? ` ${missing} ha${missing === 1 ? "s" : "ve"} no coordinates (the location couldn't be found from what was typed).` : "");
-    const keys = [...new Set(items.map(i => i.form))];
-    $("map-legend").innerHTML = keys.length < 2 ? "" : keys.map(f =>
-      `<span><span class="sw" style="background:${color(f)};border-radius:50%"></span>${esc(formName(f))}</span>`).join("");
+    $("map-legend").innerHTML = Object.entries(PRIO).map(([p, v]) =>
+      `<span><span class="sw" style="background:var(--${p.toLowerCase()});border-radius:50%"></span>${v.icon} ${p} ${v.label}</span>`).join("");
     if (!map) return;
     const stroke = cssVar("--surface"), want = new Set(pts.map(keyOf));
     for (const [k, m] of markers) if (!want.has(k)) { layer.removeLayer(m); markers.delete(k); }
-    // Oldest first so the newest markers are drawn on top.
-    [...pts].reverse().forEach(i => {
-      const k = keyOf(i), style = { radius: fresh.has(k) ? 11 : 7, color: stroke, weight: 2, fillColor: cssVar(slot(i.form)), fillOpacity: 0.9 };
+    // Lowest priority first, then oldest, so P1 and the newest markers are drawn on top.
+    [...pts].reverse().sort((a, b) => PRIO[prioOf(b)].rank - PRIO[prioOf(a)].rank).forEach(i => {
+      const k = keyOf(i), r = PRIO[prioOf(i)].radius;
+      const style = { radius: fresh.has(k) ? r + 4 : r, color: stroke, weight: 2, fillColor: cssVar("--" + prioOf(i).toLowerCase()), fillOpacity: 0.9 };
       let m = markers.get(k);
       if (!m) {
         m = L.circleMarker([i.lat, i.lon], style).bindPopup("").addTo(layer);
         markers.set(k, m);
-        if (fresh.has(k)) setTimeout(() => m.setStyle({ radius: 7 }), 4000);
+        if (fresh.has(k)) setTimeout(() => m.setStyle({ radius: r }), 4000);
+        if (fresh.has(k) && prioOf(i) === "P1") m.getElement()?.classList.add("pulse");
       } else if (!fresh.has(k)) {
         m.setStyle(style);
       }
       m.setPopupContent(popupHtml(i));
-      m.bindTooltip(`${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
+      m.bindTooltip(`${prioOf(i)} ${PRIO[prioOf(i)].label} · ${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
     });
     if (!fitted && pts.length) { fitMap(); fitted = true; }
   }
@@ -363,6 +424,12 @@
   function drawKpis(all) {
     const hourAgo = Date.now() - 3600e3;
     const bySource = s => all.filter(i => i.source === s).length;
+    const p1 = all.filter(i => prioOf(i) === "P1"), count = p => all.filter(i => prioOf(i) === p).length;
+    $("k-p1").textContent = p1.length;
+    const oldest = Math.min(...p1.map(i => new Date(i.submitted_at).getTime()).filter(Number.isFinite));
+    $("k-p1-sub").textContent = p1.length ? (Number.isFinite(oldest) ? `Oldest waiting ${ago(Date.now() - oldest)}` : "") : "None waiting";
+    $("k-p2").textContent = count("P2");
+    $("k-p2-sub").textContent = `Routine ${count("P3")} · Low ${count("P4")}`;
     $("k-total").textContent = all.length;
     $("k-total-sub").textContent = Object.entries(all.reduce((o, i) => (o[i.form] = (o[i.form] || 0) + 1, o), {}))
       .map(([f, n]) => `${formName(f)} ${n}`).join(" · ") || "None yet";
@@ -378,15 +445,17 @@
 
   // ---------- table ----------
   function filtered() {
-    const f = $("f-form").value, src = $("f-source").value, q = $("f-q").value.trim().toLowerCase();
-    return data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) &&
-      (!q || [i.reference, i.location, i.details, i.problem, i.title].join(" ").toLowerCase().includes(q)));
+    const f = $("f-form").value, src = $("f-source").value, pr = $("f-prio").value, q = $("f-q").value.trim().toLowerCase();
+    const items = data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) && (!pr || prioOf(i) === pr) &&
+      (!q || [i.reference, i.location, i.details, i.problem, i.title, ...((i.triage || {}).reasons || [])].join(" ").toLowerCase().includes(q)));
+    // The API sends newest first; a stable sort by priority keeps newest first within each priority.
+    return $("f-sort").value === "time" ? items : items.sort((a, b) => PRIO[prioOf(a)].rank - PRIO[prioOf(b)].rank);
   }
 
   function drawTable(items, fresh) {
     $("shown").textContent = items.length === data.submissions.length ? "" : `${items.length} of ${data.submissions.length} shown`;
     if (!items.length) {
-      $("rows").innerHTML = `<tr><td colspan="6" class="empty">${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</td></tr>`;
+      $("rows").innerHTML = `<tr><td colspan="7" class="empty">${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</td></tr>`;
       return;
     }
     $("rows").innerHTML = items.map(i => {
@@ -396,6 +465,7 @@
         : map ? ` <button type="button" class="linkish map-link" data-map-key="${esc(key)}">map</button>`
         : ` <a href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>`;
       const row = `<tr class="row${fresh.has(key) ? " fresh" : ""}" tabindex="0" data-key="${esc(key)}" aria-expanded="${open.has(key)}">
+        <td>${badge(i)}</td>
         <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
         <td class="num">${esc(i.reference)}</td>
         <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
@@ -406,7 +476,7 @@
       const residentLink = i.reference
         ? `<p class="rc-link"><a href="/reports/${encodeURIComponent(i.reference)}" target="_blank" rel="noopener">Open resident view</a></p>` : "";
       const detail = open.has(key)
-        ? `<tr class="detail"><td colspan="6">${ReportCard.render(i, { audience: "staff", forms })}${residentLink}</td></tr>` : "";
+        ? `<tr class="detail"><td colspan="7">${triageHtml(i)}${ReportCard.render(i, { audience: "staff", forms })}${residentLink}</td></tr>` : "";
       return row + detail;
     }).join("");
   }
@@ -457,6 +527,12 @@
       seen = keys;
       syncFormFilter();
       render(fresh);
+      const newP1 = data.submissions.filter(i => fresh.has(i.source + ":" + i.reference + ":" + i.submitted_at) && prioOf(i) === "P1");
+      if (newP1.length) {
+        $("p1-alert-text").textContent = `New emergency report${newP1.length > 1 ? "s" : ""}: `
+          + newP1.map(i => `${i.reference}${i.location ? ` at ${i.location}` : ""} (${(i.triage.reasons || [])[0] || "P1"})`).join("; ");
+        $("p1-alert").hidden = false;
+      }
       $("dot").className = "dot";
       $("updated").textContent = `Live · updated ${fmtTime(new Date())}${fresh.size ? ` · ${fresh.size} new` : ""}`;
       if (fresh.size) document.title = `(${fresh.size} new) Submissions dashboard`;
@@ -466,7 +542,8 @@
     }
   }
 
-  ["f-form", "f-source", "f-q"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
+  $("p1-alert-close").addEventListener("click", () => ($("p1-alert").hidden = true));
+  ["f-sort", "f-prio", "f-form", "f-source", "f-q"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
   $("pause").addEventListener("click", () => {
     paused = !paused;
     $("pause").textContent = paused ? "Resume" : "Pause";

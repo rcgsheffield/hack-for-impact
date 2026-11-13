@@ -77,7 +77,7 @@ KEYWORD_RULES = [
         r"\bpartially sighted\b", r"\bpushchairs?\b", r"\bprams?\b", r"\bbuggy\b", r"\belderly\b", r"\bwalking stick\b"]),
     (15, "Risk to cyclists or motorcyclists", [r"\bcycl(ist|ists|ing|e lane)\b", r"\bbikes?\b", r"\bmotorbikes?\b",
                                                r"\bmotorcycl"]),
-    (15, "Busy road or traffic swerving", [r"\bbusy (road|junction|street)\b", r"\bmain road\b", r"\bbus (route|stop)\b",
+    (15, "Busy road, bus route or traffic swerving", [r"\bbusy (road|junction|street)\b", r"\bmain road\b", r"\bbus (route|stop)\b",
                                            r"\bswerv", r"\broundabout\b"]),
     (15, "Flooding", [r"\bflood", r"\bstanding water\b"]),
 ]

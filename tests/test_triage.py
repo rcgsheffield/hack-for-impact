@@ -86,7 +86,7 @@ def test_trees_off_the_highway_are_redirected(location):
     ("a pushchair got stuck", "Affects children or disabled people"),
     ("dangerous for bikes", "Risk to cyclists or motorcyclists"),
     ("motorbikes swerve round it", "Risk to cyclists or motorcyclists"),
-    ("on a busy road", "Busy road or traffic swerving"),
+    ("on a busy road", "Busy road, bus route or traffic swerving"),
     ("flooding after rain", "Flooding"),
 ])
 def test_keyword_rules_give_their_reason(words, reason):
