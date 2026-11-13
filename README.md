@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/logo.svg" alt="Hack for Impact logo: a smiling tree with circuit-trace roots" width="200">
+</p>
+
 # Hack for Impact
 
 > Build autonomous systems that think, act, and run anywhere, whilst also making a positive impact on the world.
