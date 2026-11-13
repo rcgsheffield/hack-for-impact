@@ -46,7 +46,7 @@ A report starts at 30 points (P3). Each finding adds points; bands are P1 ≥ 70
 | Words: flooding | 15 | | |
 | A road (OSM trunk/primary) / B road (secondary) | 20 / 15 | | Inspection cadence: A/B roads monthly, residential yearly |
 | Link road / cycle path / footpath | 5 / 10 / 5 | | |
-| Same problem reported again within 25 m and 30 days | 10 per repeat, max 30 | | "Reported 3 times in 8 days" |
+| Same problem reported again (\`dedup.py\` group: same kind within 60 m and 30 days) | 10 per repeat, max 30 | | "Reported 3 times in 8 days"; the same groups the dashboard and residents see |
 
 All weights are named constants in `src/app/triage.py`, `triage_context.py` and `triage_llm.py`.
 
@@ -100,5 +100,5 @@ Files 11 reports through the real filing code: 2× P1 (fallen tree across Rustli
 - Fly-tipping partly in the road is redirected (P4) rather than routine (P3), the one miss in the labelled set.
 - Keyword rules are English-only and miss phrasing they don't list; the LLM covers some of this when Ollama is up.
 - Road class needs a Photon match on a street. Reports placed by device location or the offline sample geocoder get no road-class points.
-- Repeat clusters are recomputed on every dashboard read from all reports; fine for a demo, not for a city's volume.
+- Repeat groups are recomputed on every dashboard read from all reports; fine for a demo, not for a city's volume.
 - The labelled set is small and written by the team. It shows the rules do what we intended, not that they match inspectors' decisions.

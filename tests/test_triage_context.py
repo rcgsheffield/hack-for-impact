@@ -1,4 +1,4 @@
-"""Map context for triage (#27): road class and repeat-report clusters, offline with fixed coordinates."""
+"""Map context for triage (#27): road class and repeat reports (dedup.py groups), offline with fixed coordinates."""
 
 import json
 
@@ -12,11 +12,13 @@ PAYLOAD_30MM = {"rad_problem_location": "Road Surface", "rad_road_pothole_depth"
                 "txt_find_address_about_the_location": "Somewhere", "txta_details_about_the_location": "30mm pothole"}
 
 
-def report(ref, filed_at, road_class=None, lat=LAT, lon=LON, form=None):
+def report(ref, filed_at, road_class=None, lat=LAT, lon=LON, form=None, details=None):
     geo = {"lat": lat, "lon": lon, "matched": "x", "source": "photon"}
     if road_class:
         geo["road_class"] = road_class
     r = {"reference": ref, "filed_at": filed_at, "geo": geo, "form_payload": dict(PAYLOAD_30MM)}
+    if details:
+        r["form_payload"]["txta_details_about_the_location"] = details
     if form:
         r["form"] = form
     return r
@@ -45,37 +47,31 @@ def test_same_pothole_scores_higher_on_a_primary_road(reports):
 
 def test_third_report_at_the_same_spot_raises_the_cluster(reports):
     one = reports(report("1", "2026-11-01T10:00:00+00:00"))["1"]
-    assert one["report_count"] == 1 and one["triage"]["priority"] == "P3"
+    assert one["duplicate"]["group_size"] == 1 and one["triage"]["priority"] == "P3"
 
     # About 10 m apart, within 10 days; plus a tree report at the same spot, which is a different problem.
     items = reports(report("1", "2026-11-01T10:00:00+00:00"),
                     report("2", "2026-11-05T10:00:00+00:00", lat=LAT + 0.00009),
-                    report("3", "2026-11-11T10:00:00+00:00", lon=LON + 0.0001),
+                    report("3", "2026-11-11T10:00:00+00:00", lon=LON + 0.0001, details="Reported before"),
                     report("T", "2026-11-11T10:00:00+00:00", form="report_tree"))
     cluster = [items[k] for k in "123"]
-    assert {i["cluster_id"] for i in cluster} == {"C-1"}
-    assert all(i["report_count"] == 3 for i in cluster)
+    assert len({i["duplicate"]["group_id"] for i in cluster}) == 1
+    assert all(i["duplicate"]["group_size"] == 3 for i in cluster)
     assert all("Reported 3 times in 10 days" in i["triage"]["reasons"] for i in cluster)
     assert all(i["triage"]["score"] > one["triage"]["score"] for i in cluster)
     assert items["1"]["triage"]["priority"] == "P2"
-    assert items["T"]["report_count"] == 1 and items["T"]["cluster_id"] != "C-1"
+    assert items["T"]["duplicate"]["group_size"] == 1
+    assert "Reported before" not in items["3"]["triage"]["reasons"]  # the counted group replaces the keyword
 
 
-def test_far_apart_or_old_reports_are_not_clustered(reports):
-    items = reports(report("1", "2026-09-01T10:00:00+00:00"),            # 70 days earlier
-                    report("2", "2026-11-10T10:00:00+00:00"),
-                    report("3", "2026-11-10T10:00:00+00:00", lat=LAT + 0.0005))  # about 55 m away
-    assert [items[k]["report_count"] for k in "123"] == [1, 1, 1]
-
-
-def test_api_exposes_clusters(reports):
+def test_api_serves_the_repeat_reason(reports):
     from fastapi.testclient import TestClient
     from app import main
 
     reports(report("1", "2026-11-01T10:00:00+00:00"), report("2", "2026-11-02T10:00:00+00:00"))
     data = TestClient(main.app).get("/api/submissions").json()
-    assert data["repeat_clusters"] == 1
-    assert {(i["cluster_id"], i["report_count"]) for i in data["submissions"]} == {("C-1", 2)}
+    assert len(data["groups"]) == 1
+    assert all("Reported 2 times in 1 day" in i["triage"]["reasons"] for i in data["submissions"])
 
 
 @pytest.mark.parametrize("road_class, points", [("trunk", 20), ("primary_link", 20), ("secondary", 15),
@@ -84,6 +80,3 @@ def test_road_class_points(road_class, points):
     hit = triage_context.road_class_reason(road_class)
     assert (hit["points"] if hit else None) == points
 
-
-def test_distance():
-    assert triage_context.distance_m(LAT, LON, LAT + 0.0001, LON) == pytest.approx(11.1, abs=0.2)

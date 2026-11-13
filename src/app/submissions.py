@@ -15,9 +15,8 @@ Reporter details (name, date of birth, phone, email) are never written to disk b
 Every item has a triage dict (triage.py): stored on the record when it was filed, or worked out when read.
 Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
 address search or map, "device" when the chat user shared their device location, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
-Every item has road_class (OSM highway=*, or None), cluster_id and report_count (triage_context.py): reports of the
-same form at the same spot within 30 days share a cluster_id, so the dashboard can group them. The response has
-repeat_clusters, the number of clusters with more than one report.
+Every item has road_class (OSM highway=*, or None) and a duplicate group (dedup.py); triage_context.py turns both
+into triage signals (an A road, "Reported 3 times in 8 days").
 """
 
 from __future__ import annotations
@@ -32,7 +31,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-from . import config, triage_context
+from . import config, dedup, triage_context
 from .geocode import geocode, le_gis
 from .triage import by_priority, combine_signals, safe_triage
 from .triage_llm import cached_signals, enrich_in_background
@@ -221,17 +220,41 @@ def load_submissions() -> dict[str, Any]:
             who = "agent" if any(m in str(r.get("user_agent", "")) for m in AGENT_UA_MARKERS) else "person"
             page = views.setdefault(str(r.get("page", "")).removesuffix(".html"), {"agent": 0, "person": 0})
             page[who] += 1
-    contexts = triage_context.annotate(items, _ts)  # sets cluster_id/report_count; road class and repeat signals
+    groups = dedup.group(items)  # annotates every item with item["duplicate"]
+    contexts = triage_context.annotate(items, _ts)  # road class and repeat-report signals (uses the dedup groups)
     for i, context in zip(items, contexts):
         # Stored when filed, or worked out now for older records and browser submissions. Re-worked when the local
         # LLM (#26) or the map context (#27) adds signals, since both arrive after the report was filed.
         sig = combine_signals(cached_signals(i["reference"]), context)
         i["triage"] = safe_triage(i, sig) if sig else (i["raw"] or {}).get("triage") or safe_triage(i)
     items.sort(key=_ts, reverse=True)
-    clusters = len({i["cluster_id"] for i in items if i["report_count"] > 1})
     return {"generated_at": _now(), "count": len(items), "by_priority": by_priority(items), "forms": FORM_NAMES,
-            "repeat_clusters": clusters,
-            "views": views, "submissions": items}
+            "views": views, "submissions": items,
+            "groups": groups, "dedup": {"radius_m": config.DEDUP_RADIUS_M, "window_days": config.DEDUP_WINDOW_DAYS}}
+
+
+def similar_reports(form: str, lat: float | None = None, lon: float | None = None, location: str = "",
+                    problem: str = "", exclude_reference: str = "") -> dict:
+    """Earlier reports like this one (dedup.similar over everything submitted so far). Never raises."""
+    try:
+        return dedup.similar(load_submissions()["submissions"], form, lat, lon, location, problem, exclude_reference)
+    except Exception:  # Duplicate detection is a nice-to-have; it must not break filing.
+        log.exception("could not check for similar reports")
+        return {"count": 0, "message": ""}
+
+
+def similar_to_reference(reference: str) -> dict:
+    """Similar reports for one just-filed report, found by its reference. Never raises."""
+    try:
+        item = find_submission(reference)
+        if item is None:
+            return {"count": 0, "message": ""}
+        problem = (dedup._fields(item).get("rad_tree_problem") or "") if item.get("form") == "report_tree" else ""
+        return similar_reports(item.get("form", ""), item.get("lat"), item.get("lon"), item.get("location", ""),
+                               problem, exclude_reference=reference)
+    except Exception:
+        log.exception("could not check for similar reports")
+        return {"count": 0, "message": ""}
 
 
 @router.get("/api/submissions")

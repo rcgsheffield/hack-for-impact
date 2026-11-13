@@ -149,6 +149,9 @@ def describe(name: str, arguments: str | dict, result: dict) -> tuple[str, str]:
     else:
         title, body = f"🔧 {name.replace('_', ' ').capitalize()}", ""
 
+    similar = (result.get("similar_reports") or {}).get("message", "")
+    if similar and not errors:
+        body += f"  \n👥 {similar}"
     if result.get("tell_user") and name != "assess_tree":
-        body += "".join(f"  \n🚨 {advice}" for advice in result["tell_user"] if advice not in body)
+        body += "".join(f"  \n🚨 {advice}" for advice in result["tell_user"] if advice not in body and advice != similar)
     return title, body.strip() + _technical(name, args, result)

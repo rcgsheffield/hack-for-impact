@@ -239,3 +239,11 @@ def test_scripted_p1_tree_report_tells_the_resident_to_phone(monkeypatch):
     assert "suggestion only" in filed["priority_note"]
     assert "score" not in filed and "engine" not in filed
     assert "0114 273 4567" in events[-1]
+
+
+def test_location_panel_title_shows_whether_a_location_is_set():
+    from app import main
+
+    assert main.location_label("") == "📍 Add a location (optional)"
+    assert main.location_label("53.38, -1.47 (map pin)") == "📍 Location: pin on the map ✓"
+    assert main.location_label("53.38, -1.47 (±9 m)") == "📍 Location: your current location ✓"

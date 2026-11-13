@@ -7,9 +7,9 @@ busier road class gets more points; a residential street or service road gets no
 
 Road class is OpenStreetMap's highway=* value, kept from Photon by geocode.py (geo["road_class"]).
 
-Repeat reports: reports of the same form within CLUSTER_RADIUS_M and CLUSTER_WINDOW of each other are one cluster
-(single-link: A near B and B near C puts A, B and C together). Every report in a cluster gets the same cluster_id,
-report_count and repeat-report points, so the whole cluster rises in the queue.
+Repeat reports: dedup.py groups reports of the same problem (same kind, within config.DEDUP_RADIUS_M and
+config.DEDUP_WINDOW_DAYS). Every report in a group gets the same repeat-report points, so the whole group rises in
+the queue.
 
 The output is a signals dict for triage.triage(): {"engine": "context", "reasons": [{"points", "reason"}, ...]}.
 Signals only add points; the rules engine still decides the priority.
@@ -17,8 +17,7 @@ Signals only add points; the rules engine still decides the priority.
 
 from __future__ import annotations
 
-import math
-from datetime import datetime, timedelta
+from datetime import datetime
 
 ENGINE = "context"
 
@@ -37,19 +36,8 @@ ROAD_CLASS_POINTS = {
 for _link in ("motorway", "trunk", "primary", "secondary", "tertiary"):  # slip roads count as their road
     ROAD_CLASS_POINTS[f"{_link}_link"] = ROAD_CLASS_POINTS[_link]
 
-CLUSTER_RADIUS_M = 25                 # same spot: typical spread of phone GPS and of where people pin a pothole
-CLUSTER_WINDOW = timedelta(days=30)   # older reports are probably a new defect, or already fixed
 REPEAT_POINTS_PER_REPORT = 10         # each report after the first...
 MAX_REPEAT_POINTS = 30                # ...up to this: repeats alone lift a routine report (30) to P2, never P1
-EARTH_RADIUS_M = 6_371_000
-
-
-def distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Great-circle (haversine) distance in metres."""
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    a = (math.sin((p2 - p1) / 2) ** 2
-         + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2)
-    return 2 * EARTH_RADIUS_M * math.asin(math.sqrt(a))
 
 
 def road_class_reason(road_class: str | None) -> dict | None:
@@ -70,48 +58,22 @@ def repeat_reason(count: int, first: datetime, last: datetime) -> dict | None:
             "replaces": "Reported before"}
 
 
-def cluster(items: list[dict], ts) -> None:
-    """Set cluster_id and report_count on every item. ts(item) -> aware datetime, or datetime.min if unknown.
-
-    Items without coordinates or a time are their own cluster of one (cluster_id None).
-    """
-    placed = [i for i in items if i.get("lat") is not None and i.get("lon") is not None and ts(i).year > 1]
-    parent = list(range(len(placed)))
-
-    def root(k: int) -> int:
-        while parent[k] != k:
-            parent[k] = parent[parent[k]]
-            k = parent[k]
-        return k
-
-    for a in range(len(placed)):  # O(n^2): fine for a dashboard's worth of reports
-        for b in range(a + 1, len(placed)):
-            x, y = placed[a], placed[b]
-            if (x.get("form") == y.get("form") and abs(ts(x) - ts(y)) <= CLUSTER_WINDOW
-                    and distance_m(x["lat"], x["lon"], y["lat"], y["lon"]) <= CLUSTER_RADIUS_M):
-                parent[root(a)] = root(b)
-
-    groups: dict[int, list[dict]] = {}
-    for k, item in enumerate(placed):
-        groups.setdefault(root(k), []).append(item)
-    for i in items:
-        i["cluster_id"], i["report_count"] = None, 1
-    for members in groups.values():
-        members.sort(key=ts)
-        first = members[0]
-        cid = f"C-{first.get('reference') or id(first)}"
-        for m in members:
-            m["cluster_id"], m["report_count"] = cid, len(members)
-            m["_cluster_span"] = (ts(first), ts(members[-1]))
-
-
 def annotate(items: list[dict], ts) -> list[dict | None]:
-    """Cluster the items (in place) and return each one's context signals, aligned with items (None if none)."""
-    cluster(items, ts)
+    """Each item's context signals, aligned with items (None if none). ts(item) -> aware datetime.
+
+    Repeat reports come from dedup.group(), which must already have set item["duplicate"] (one grouping for the
+    dashboard, the resident messages and triage, so they always agree).
+    """
+    spans: dict[str, list] = {}
+    for i in items:
+        g = (i.get("duplicate") or {}).get("group_id")
+        if g:
+            spans.setdefault(g, []).append(ts(i))
     out = []
     for i in items:
-        reasons = [r for r in (road_class_reason(i.get("road_class")),
-                               repeat_reason(i["report_count"], *i.pop("_cluster_span", (None, None))))
-                   if r]
+        dup = i.get("duplicate") or {}
+        times = spans.get(dup.get("group_id"), [])
+        repeat = repeat_reason(dup.get("group_size", 1), min(times), max(times)) if times else None
+        reasons = [r for r in (road_class_reason(i.get("road_class")), repeat) if r]
         out.append({"engine": ENGINE, "reasons": reasons} if reasons else None)
     return out

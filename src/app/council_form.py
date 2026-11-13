@@ -27,7 +27,7 @@ from typing import Any, Callable, Literal
 from langchain_core.tools import BaseTool, StructuredTool
 from pydantic import BaseModel, Field
 
-from .submissions import save_submission
+from .submissions import save_submission, similar_to_reference
 from .triage import safe_triage
 from .urgency import COUNCIL_PHONE
 from .urgency import summary as triage_summary
@@ -300,6 +300,13 @@ class CouncilFormSession:
             for advice in t.pop("tell_user", []):  # P1: phone advice, unless a step already gave it
                 if not any(COUNCIL_PHONE in told for told in self.tell_user):
                     self.tell_user.append(advice)
+            # Others reported this too? Tell the resident in code (tell_user), not via the prompt. Never raises.
+            similar = similar_to_reference(str(record["reference"]))
+            if similar.get("count"):
+                t["similar_reports"] = {k: similar[k] for k in ("count", "nearest_m", "first_at", "message")
+                                        if k in similar}
+                if similar["message"] not in self.tell_user:
+                    self.tell_user.append(similar["message"])
             return self._state(reference=record["reference"], url=f"/reports/{record['reference']}",
                                status="submitted to the mock form (test only: not sent to the council)",
                                record=record, **t)

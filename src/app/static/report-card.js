@@ -113,6 +113,13 @@
     // The problem summary repeats the form fields; show it only when there are none (e.g. hand submissions).
     if (item.problem && !fields.length) rows.push(row("Problem", esc(item.problem)));
     rows.push(...fields);
+    // Duplicate group (dedup.py). Staff see the group; residents only a count, never other reports' details.
+    const dup = item.duplicate && item.duplicate.group_size > 1 ? item.duplicate : null;
+    if (dup && !resident) {
+      rows.push(row("Repeated problem", `${dup.group_size} reports in this group`
+        + (dup.is_first ? " (this is the first)" : ` · first ${esc(dup.first_reference)}`
+          + (dup.distance_m != null ? `, ${esc(dup.distance_m)} m away` : dup.match === "street" ? ", same street (approximate)" : ""))));
+    }
     if (!resident) {
       rows.push(row("Received from", esc(SOURCE_LABEL[item.source] || item.source || "")));
       if (item.anonymous === true || item.anonymous === false) {
@@ -137,6 +144,7 @@
   ${resident || (opts && opts.triage) ? severityHtml(sev, resident) : ""}
   ${rows.length ? `<dl class="rc-fields">${rows.join("")}</dl>` : ""}
   ${item.details ? `<div class="rc-details"><h4>${resident ? "What you told us" : "Details"}</h4><p>${esc(item.details)}</p></div>` : ""}
+  ${resident && dup ? `<p class="rc-note"><strong>You're not the only one.</strong> ${esc(dup.others)} other report${dup.others === 1 ? " has" : "s have"} been made about a similar problem nearby. They're grouped together so the council can see how many people it affects.</p>` : ""}
   ${resident
     ? `<p class="rc-note">Keep the reference number to follow up on this report. <strong>This is an unofficial hackathon prototype: the report has not been sent to Sheffield City Council.</strong> For urgent road hazards, phone the council on 0114 273 4567; if someone is in immediate danger, call 999.</p>`
     : `<details class="rc-raw"><summary>Raw record</summary><pre>${esc(JSON.stringify(item.raw, null, 2))}</pre></details>`}
