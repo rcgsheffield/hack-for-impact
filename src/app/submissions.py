@@ -31,7 +31,8 @@ from fastapi.responses import FileResponse
 
 from . import config
 from .geocode import geocode, le_gis
-from .triage import by_priority, safe_triage
+from .triage import by_priority, combine_signals, safe_triage
+from .triage_llm import cached_signals, enrich_in_background
 
 log = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ def save_submission(record: dict) -> None:
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("a", encoding="utf-8") as f:
                 f.write(line + "\n")
+        enrich_in_background(record.get("reference"), record["fields"].get("txta_details_about_the_location", ""))
     except Exception:  # The dashboard is a nice-to-have; it must not break the submit tool.
         log.exception("could not save mock submission")
 
@@ -212,7 +214,8 @@ def load_submissions() -> dict[str, Any]:
             page = views.setdefault(str(r.get("page", "")).removesuffix(".html"), {"agent": 0, "person": 0})
             page[who] += 1
     for i in items:  # stored when filed; worked out now for older records and browser submissions
-        i["triage"] = (i["raw"] or {}).get("triage") or safe_triage(i)
+        sig = combine_signals(cached_signals(i["reference"]))
+        i["triage"] = safe_triage(i, sig) if sig else (i["raw"] or {}).get("triage") or safe_triage(i)
     items.sort(key=_ts, reverse=True)
     return {"generated_at": _now(), "count": len(items), "by_priority": by_priority(items), "forms": FORM_NAMES,
             "views": views, "submissions": items}
