@@ -227,3 +227,10 @@ data/*
 .env
 .env.*
 !.env.example
+
+# Pitch video: renders and tool caches
+video/out/*
+!video/out/.gitkeep
+video/composition/node_modules/
+video/composition/renders/
+video/composition/.hyperframes/

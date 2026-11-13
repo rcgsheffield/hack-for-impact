@@ -48,6 +48,7 @@ Keep downloaded datasets in `data/`. Raw files are git-ignored by default, so re
 ├── docs/       Challenge brief, design notes, pitch material
 ├── data/       Local datasets (not committed) and their provenance
 ├── src/        Application and agent code
+├── video/      Pitch video, built with HyperFrames (see video/README.md)
 ├── LICENSE
 └── README.md
 ```
