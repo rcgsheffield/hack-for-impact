@@ -14,6 +14,7 @@ import httpx
 
 from . import config
 from .geocode import geocode, le_gis
+from .triage import safe_triage, triage
 
 COUNCIL_PHONE = "0114 273 4567"
 POTHOLE_FORM = "https://forms.sheffield.gov.uk/site/portal/form/report_pothole_crack"
@@ -119,15 +120,22 @@ def assess_pothole(surface: str, depth_mm: float) -> dict:
     if depth_mm < 0:
         raise ValueError("depth_mm must be zero or more")
     threshold = DEPTH_THRESHOLD_MM[surface]
-    deep = depth_mm > threshold
+    depth_band = f"{'Greater' if depth_mm > threshold else 'Less'} than {threshold}mm"
+    depth_field = "rad_road_pothole_depth" if surface == "road" else "rad_path_pothole_depth"
+    # The same rules as the stored triage, so the agent's category and the dashboard's priority always agree.
+    t = triage({"form": "report_pothole_crack", "fields": {"rad_problem_location": FORM_SURFACE[surface],
+                                                           depth_field: depth_band}})
+    urgent = t["priority"] == "P1"
     return {
-        "depth_band": f"{'Greater' if deep else 'Less'} than {threshold}mm",
-        "suggested_category": 1 if deep else 2,
+        "depth_band": depth_band,
+        "suggested_category": 1 if urgent else 2,
         "category_meaning": (
             "Category 1: immediate safety risk, made safe within 24 hours"
-            if deep else
+            if urgent else
             "Category 2: no immediate risk, fixed through planned maintenance"
         ),
+        "priority": f"{t['priority']} {t['label']}",
+        "response_target": t["response_target"],
         "note": "Suggestion only. The council decides the category after inspection.",
     }
 
@@ -271,12 +279,17 @@ def _save_report(record: dict) -> dict:
         geo = geocode(payload.get("txt_find_address_about_the_location"))
     record["geo"] = geo
     payload["le_gis"] = le_gis(geo)
+    record["triage"] = safe_triage({"form": record.get("form") or "report_pothole_crack", "fields": payload,
+                                    "reference": record["reference"]})
     path = Path(config.REPORTS_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
     result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
-              "status": "recorded (prototype: not sent to the council)"}
+              "status": "recorded (prototype: not sent to the council)",
+              "priority": f"{record['triage']['priority']} {record['triage']['label']}",
+              "response_target": record["triage"]["response_target"],
+              "priority_note": "Suggested priority only. The council decides after inspection."}
     if geo:
         result["located_at"] = geo["matched"]
     else:
