@@ -239,3 +239,4 @@ video/composition/.hyperframes/
 
 # Reports filed by the prototype app (src/app/tools.py)
 data/reports.jsonl
+data/usage.jsonl

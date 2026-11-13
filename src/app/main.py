@@ -1,4 +1,4 @@
-"""Web app: FastAPI with a Gradio chat UI at / and a health check at /health.
+"""Web app: FastAPI with a Gradio chat UI at /, a health check at /health and the dummy council site at /mock/.
 
 Run: uvicorn app.main:app --app-dir src --host 0.0.0.0 --port 8000
 """
@@ -11,10 +11,11 @@ import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from . import config
+from . import config, usage
 from .agent import ToolStep, run_agent_events
 
 app = FastAPI(title="CouncilTriagent")
+app.include_router(usage.router)
 
 
 @app.get("/health")
@@ -92,5 +93,5 @@ demo = gr.ChatInterface(
     cache_examples=False,
 )
 
-# Mount last so /health isn't shadowed by Gradio's routes.
+# Mount last so /health and /mock/ aren't shadowed by Gradio's routes.
 app = gr.mount_gradio_app(app, demo, path="/")

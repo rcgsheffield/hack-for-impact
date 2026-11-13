@@ -331,6 +331,7 @@ function render(out, desc, loc) {
       submitted: false
     };
     const ref = "MOCK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    if (location.protocol.startsWith("http")) navigator.sendBeacon("events", new Blob([JSON.stringify({ event: "submit", page: "road-report-agent.html", reference: ref })], { type: "application/json" })); // usage log (src/app/usage.py)
     $("submit").disabled = true;
     const done = $("done");
     done.classList.remove("hidden");

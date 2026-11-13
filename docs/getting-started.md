@@ -5,6 +5,7 @@ Stack: **Python, FastAPI and a [Gradio](https://www.gradio.app/) chat UI, with t
 | Path | What it is |
 |---|---|
 | `src/app/main.py` | FastAPI app: chat UI at `/`, status at `/health` |
+| `src/app/usage.py` | Serves the dummy council site (`src/mock/`) at `/mock/` and logs page loads and submissions to `data/usage.jsonl` |
 | `src/app/agent.py` | System prompt and tool-calling loop |
 | `src/app/tools.py` | Agent tools: `route_report`, `assess_pothole`, `file_report` |
 | `src/app/config.py` | Settings from environment variables |
@@ -22,6 +23,22 @@ uv run pytest
 # Ollama only listens on the Spark's localhost, so tunnel to it:
 ssh -N -L 11434:127.0.0.1:11434 <user>@<spark> &
 uv run uvicorn app.main:app --app-dir src --reload    # http://127.0.0.1:8000
+```
+
+### Dummy council site usage log
+
+The mock council forms are served at `/mock/` (for example `/mock/report_pothole_crack.html`). Every page load and every submission is appended to `data/usage.jsonl` (`USAGE_PATH`), one JSON object per line with a UTC timestamp, the event (`view` or `submit`), the page, the user agent, the referrer and, for submissions, the reference number. No IP addresses or form answers are logged. Pages opened as local files (`file://`) are not logged.
+
+```bash
+tail -f data/usage.jsonl
+# Count events by page and type:
+jq -r '[.event, .page] | @tsv' data/usage.jsonl | sort | uniq -c
+```
+
+To log agent runs too, point the form toolkit at the served copy; they show up with a `HeadlessChrome` user agent:
+
+```bash
+POTHOLE_FORM_URL=http://127.0.0.1:8000/mock/report_pothole_crack.html uv run python -m app.pothole_form_toolkit
 ```
 
 ## Settings
