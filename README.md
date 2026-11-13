@@ -96,7 +96,7 @@ Settings (environment variables):
 
 Filed reports go to `data/reports.jsonl` only. Nothing is sent to the council.
 
-**Check the deployed app:** `src/app/check.sh` (or `curl http://spark12.local:8000/health`). It returns `{"ok": true, ...}` with the deployed commit's short SHA, or HTTP 503 if Ollama is unreachable or the model is missing. The chat UI is at <http://spark12.local:8000>.
+**Check the deployed app:** `src/app/check.sh` (or `curl http://spark12.local:8000/health`). It returns `{"ok": true, ...}` with the deployed commit's short SHA, or HTTP 503 if Ollama is unreachable or the model is missing. The chat UI is at <http://spark12.local> or <https://spark12.local> (self-signed certificate, so accept the browser warning). Port 8000 still works directly.
 
 ### Deployment (DGX Spark)
 
@@ -118,6 +118,17 @@ On each deploy, `deploy.sh` does the following:
 - Syncs `uv.lock` into a venv at `~/.local/share/hack-for-impact/venv`.
 - Restarts the app on port 8000, logging to `~/hack-for-impact.log` (pid in `~/.local/share/hack-for-impact/app.pid`).
 - Fails the deploy if `/health` isn't green within 60 seconds, which includes Ollama being reachable.
+
+**Ports 80 and 443:** the unprivileged runner can't bind them, so a Caddy reverse proxy on the Spark forwards both to the app on `127.0.0.1:8000`. One-time setup, done by a person with sudo on the Spark:
+
+```bash
+sudo ss -ltnp 'sport = :80 or sport = :443'   # check nothing else holds the ports
+sudo apt install caddy
+sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+sudo systemctl enable --now caddy              # starts at boot; reload with: sudo systemctl reload caddy
+```
+
+`deploy/Caddyfile` is the reference copy. `deploy.sh` doesn't install it. Caddy keeps running across app redeploys.
 
 The app is a plain background process: the runner has no systemd user session and no sudo. So it doesn't come back after a reboot: rerun the workflow if that happens. To change the model or the Ollama endpoint without a code change, set the repository variables `APP_MODEL` and `OLLAMA_URL`.
 
