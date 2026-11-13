@@ -4,7 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Submissions dashboard</title>
-<!-- Served at /dashboard by src/app/submissions.py. Polls /api/submissions. No external resources. -->
+<!-- Served at /dashboard by src/app/submissions.py. Polls /api/submissions. The map needs internet access for Leaflet
+     (unpkg.com, same version as the mock forms) and CARTO basemap tiles; everything else works offline. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -80,6 +83,16 @@
   .muted { color: var(--muted); }
   #tip { position: fixed; pointer-events: none; background: var(--text); color: var(--surface); font-size: .8125rem;
          padding: 4px 8px; border-radius: 4px; display: none; z-index: 10; white-space: nowrap; }
+  .map-card { margin-bottom: 12px; }
+  .map-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .map-head .legend { margin-bottom: 0; }
+  #map { height: 380px; border-radius: 6px; border: 1px solid var(--border); margin-top: 8px; background: var(--bg); }
+  @media (max-width: 760px) { #map { height: 300px; } }
+  #map .leaflet-popup-content { font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 10px 12px; }
+  #map .leaflet-popup-content strong { display: block; }
+  .map-note { color: var(--muted); font-size: .8125rem; margin: 8px 0 0; }
+  .map-off { padding: 24px; color: var(--muted); text-align: center; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
@@ -112,6 +125,16 @@
       <h2 id="h-prob">By problem</h2>
       <svg id="c-prob" role="img" aria-labelledby="h-prob" width="100%" height="180"></svg>
     </div>
+  </section>
+
+  <section class="card map-card" aria-labelledby="h-map">
+    <div class="map-head">
+      <h2 id="h-map">Where problems were reported</h2>
+      <div class="legend" id="map-legend"></div>
+      <button type="button" id="map-fit">Fit to reports</button>
+    </div>
+    <div id="map" role="region" aria-labelledby="h-map" aria-describedby="map-note"></div>
+    <p class="map-note" id="map-note"></p>
   </section>
 
   <section class="card" aria-labelledby="h-list">
@@ -241,6 +264,98 @@
     svg.innerHTML = s; bindTips(svg);
   }
 
+  // ---------- map ----------
+  // Circle markers coloured by form (same slots as the charts). Markers are diffed by submission key on each poll,
+  // so an open popup and the user's pan/zoom survive the 5 s refresh. The view only auto-fits on the first load.
+  const SHEFFIELD = [53.3811, -1.4701];
+  // Esri grey canvas basemaps (the mock forms also use Esri tiles; CARTO now needs an API key), base plus labels.
+  const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+  const TILES = {
+    light: [ESRI + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", ESRI + "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"],
+    dark: [ESRI + "World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", ESRI + "World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"],
+  };
+  const CANVAS_MAX_ZOOM = 16; // Esri canvas tiles stop here; Leaflet upscales beyond it.
+  const keyOf = i => i.source + ":" + i.reference + ":" + i.submitted_at;
+  const located = i => Number.isFinite(i.lat) && Number.isFinite(i.lon);
+  const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const isDark = () => {
+    const t = document.documentElement.dataset.theme;
+    return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  };
+  let map = null, tiles = [], layer = null, fitted = false;
+  const markers = new Map(); // key -> L.circleMarker
+
+  function initMap() {
+    if (typeof L === "undefined") {
+      $("map").innerHTML = `<p class="map-off">Map unavailable: no internet access to load Leaflet from unpkg.com. Use the “map” links in the table instead.</p>`;
+      $("map-fit").hidden = true;
+      return;
+    }
+    map = L.map("map", { scrollWheelZoom: false }).setView(SHEFFIELD, 12);
+    const opts = { maxZoom: 19, maxNativeZoom: CANVAS_MAX_ZOOM };
+    tiles = TILES[isDark() ? "dark" : "light"].map((url, n) =>
+      L.tileLayer(url, n ? opts : { ...opts, attribution: "Powered by Esri | Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }).addTo(map));
+    layer = L.featureGroup().addTo(map);
+    map.on("focus", () => map.scrollWheelZoom.enable());
+    map.on("blur", () => map.scrollWheelZoom.disable());
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      TILES[isDark() ? "dark" : "light"].forEach((url, n) => tiles[n].setUrl(url));
+      render(new Set());
+    });
+    $("map-fit").addEventListener("click", fitMap);
+  }
+
+  function fitMap() {
+    if (!map) return;
+    const b = layer.getBounds();
+    if (b.isValid()) map.fitBounds(b, { padding: [24, 24], maxZoom: 16 });
+    else map.setView(SHEFFIELD, 12);
+  }
+
+  function popupHtml(i) {
+    const t = new Date(i.submitted_at);
+    return `<strong>${esc(formName(i.form))}${i.problem ? ` · ${esc(i.problem)}` : ""}</strong>`
+      + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
+      + (i.location ? `<br>${esc(i.location)}` : "")
+      + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "");
+  }
+
+  function drawMap(items, fresh) {
+    const pts = items.filter(located), missing = items.length - pts.length;
+    $("map-note").textContent = !items.length ? "No submissions to map."
+      : `${pts.length} of ${items.length} shown submission${items.length === 1 ? "" : "s"} mapped.`
+        + (missing ? ` ${missing} ha${missing === 1 ? "s" : "ve"} no coordinates (chat-agent reports and hand submissions record only text).` : "");
+    const keys = [...new Set(items.map(i => i.form))];
+    $("map-legend").innerHTML = keys.length < 2 ? "" : keys.map(f =>
+      `<span><span class="sw" style="background:${color(f)};border-radius:50%"></span>${esc(formName(f))}</span>`).join("");
+    if (!map) return;
+    const stroke = cssVar("--surface"), want = new Set(pts.map(keyOf));
+    for (const [k, m] of markers) if (!want.has(k)) { layer.removeLayer(m); markers.delete(k); }
+    // Oldest first so the newest markers are drawn on top.
+    [...pts].reverse().forEach(i => {
+      const k = keyOf(i), style = { radius: fresh.has(k) ? 11 : 7, color: stroke, weight: 2, fillColor: cssVar(slot(i.form)), fillOpacity: 0.9 };
+      let m = markers.get(k);
+      if (!m) {
+        m = L.circleMarker([i.lat, i.lon], style).bindPopup("").addTo(layer);
+        markers.set(k, m);
+        if (fresh.has(k)) setTimeout(() => m.setStyle({ radius: 7 }), 4000);
+      } else if (!fresh.has(k)) {
+        m.setStyle(style);
+      }
+      m.setPopupContent(popupHtml(i));
+      m.bindTooltip(`${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
+    });
+    if (!fitted && pts.length) { fitMap(); fitted = true; }
+  }
+
+  function showOnMap(key) {
+    const m = markers.get(key);
+    if (!m) return;
+    $("h-map").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    map.setView(m.getLatLng(), Math.max(map.getZoom(), 16));
+    m.openPopup();
+  }
+
   // ---------- KPIs ----------
   function drawKpis(all) {
     const hourAgo = Date.now() - 3600e3;
@@ -274,13 +389,15 @@
     $("rows").innerHTML = items.map(i => {
       const key = i.source + ":" + i.reference + ":" + i.submitted_at;
       const t = new Date(i.submitted_at);
-      const map = i.lat != null ? ` <a href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>` : "";
+      const mapLink = !located(i) ? ""
+        : map ? ` <button type="button" class="linkish map-link" data-map-key="${esc(key)}">map</button>`
+        : ` <a href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>`;
       const row = `<tr class="row${fresh.has(key) ? " fresh" : ""}" tabindex="0" data-key="${esc(key)}" aria-expanded="${open.has(key)}">
         <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
         <td class="num">${esc(i.reference)}</td>
         <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
         <td>${esc(i.problem) || '<span class="muted">–</span>'}</td>
-        <td>${esc(i.location) || '<span class="muted">–</span>'}${map}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
+        <td>${esc(i.location) || '<span class="muted">–</span>'}${mapLink}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
         <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
       </tr>`;
       const detail = open.has(key) ? `<tr class="detail"><td colspan="6"><pre>${esc(JSON.stringify(i.raw, null, 2))}</pre></td></tr>` : "";
@@ -294,8 +411,13 @@
     render(new Set());
     document.querySelector(`tr[data-key="${CSS.escape(key)}"]`)?.focus();
   }
-  $("rows").addEventListener("click", e => { const tr = e.target.closest("tr.row"); if (tr) toggle(tr); });
+  $("rows").addEventListener("click", e => {
+    const link = e.target.closest(".map-link");
+    if (link) { showOnMap(link.dataset.mapKey); return; }
+    const tr = e.target.closest("tr.row"); if (tr) toggle(tr);
+  });
   $("rows").addEventListener("keydown", e => {
+    if (e.target.closest(".map-link")) return; // let the button handle Enter/Space itself
     const tr = e.target.closest("tr.row");
     if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(tr); }
   });
@@ -306,6 +428,7 @@
     drawKpis(data.submissions);
     drawTime(items);
     drawProblems(items);
+    drawMap(items, fresh);
     drawTable(items, fresh);
   }
 
@@ -346,7 +469,8 @@
     if (paused) $("updated").textContent = "Paused"; else poll();
   });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) document.title = "Submissions dashboard"; });
-  addEventListener("resize", () => render(new Set()));
+  addEventListener("resize", () => { render(new Set()); map?.invalidateSize(); });
+  initMap();
   poll();
   setInterval(poll, POLL_MS);
 })();

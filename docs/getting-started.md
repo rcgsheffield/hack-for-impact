@@ -50,6 +50,8 @@ POTHOLE_FORM_URL=http://127.0.0.1:8000/mock/report_pothole_crack.html uv run pyt
 - chat-agent reports from `file_report` (`data/reports.jsonl`),
 - forms submitted by hand in a browser at `/mock/` (reference only, from `data/usage.jsonl`), plus page-view counts split into agent (HeadlessChrome) and person.
 
+A map plots every filtered submission that has coordinates (the mock forms' `le_gis`), coloured by form; a row's "map" link zooms to it. Chat-agent and by-hand submissions have no coordinates, so the note under the map counts them instead. The map loads Leaflet from unpkg.com and Esri tiles, so it needs internet access; the rest of the dashboard doesn't.
+
 ## Settings
 
 Environment variables:
