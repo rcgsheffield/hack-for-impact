@@ -236,3 +236,6 @@ video/composition/.hyperframes/
 
 # Windows download metadata (WSL)
 *:Zone.Identifier
+
+# Reports filed by the prototype app (src/app/tools.py)
+data/reports.jsonl
