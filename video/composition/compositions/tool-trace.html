@@ -500,24 +500,24 @@
       // Estimates at ~2.6 spoken words/s with the clip starting at 0.5 s; retime by editing these numbers.
       const CUE = {
         intro: 0.50, // "The model decides what to do next and calls three tools."
-        route: 5.35, // "Route report"
-        council: 8.28, // "council,"
-        highways: 8.84, // "National Highways,"
-        police: 9.74, // "police,"
-        dvla: 10.30, // "DVLA"
-        landowner: 10.98, // "or a private landowner."
-        assess: 12.11, // "Assess pothole"
-        depth: 13.46, // "checks the depth"
-        thresholds: 15.26, // "against the council's thresholds."
-        file: 16.39, // "File report"
-        fields: 18.42, // "fills in the exact fields of the council's pothole form"
-        reference: 22.25, // "and issues a reference."
-        error: 23.60, // "If a tool call goes wrong,"
-        loop: 24.73, // ("goes wrong") file_report bubble collapses, error loop draws
-        backToModel: 26.08, // "the error goes back to the model"
-        correct: 29.24, // "so it can correct itself."
-        logged: 31.72, // "Every step is logged,"
-        why: 34.20, // "so staff can see why a report was routed the way it was."
+        route: 4.51, // "Route report"
+        council: 6.94, // "council,"
+        highways: 7.41, // "National Highways,"
+        police: 8.15, // "police,"
+        dvla: 8.62, // "DVLA"
+        landowner: 9.18, // "or a private landowner."
+        assess: 10.11, // "Assess pothole"
+        depth: 11.24, // "checks the depth"
+        thresholds: 12.73, // "against the council's thresholds."
+        file: 13.66, // "File report"
+        fields: 15.34, // "fills in the exact fields of the council's pothole form"
+        reference: 18.52, // "and issues a reference."
+        error: 19.64, // "If a tool call goes wrong,"
+        loop: 20.57, // ("goes wrong") file_report bubble collapses, error loop draws
+        backToModel: 21.69, // "the error goes back to the model"
+        correct: 24.30, // "so it can correct itself."
+        logged: 26.36, // "Every step is logged,"
+        why: 28.41, // "so staff can see why a report was routed the way it was."
       };
       const tl = gsap.timeline({ paused: true });
       const show = (sel, at, from) =>

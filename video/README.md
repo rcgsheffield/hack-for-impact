@@ -46,7 +46,7 @@ video/
    python3 video/tools/tts.py            # writes composition/assets/voice/s1.mp3 …
    python3 video/tools/tts.py s4         # regenerate a single clip
    ```
-   Set `ELEVENLABS_VOICE_ID` to change the narrator. Character voices live in `VOICES` in `tools/tts.py` (`irene`, `handler`, `worker`, `agent`); give a clip one with `## s5 voice=irene` in `script/voiceover.md`. Check clip lengths with `ffprobe -i <file> -show_entries format=duration -v quiet` and update scene timings to match.
+   Set `ELEVENLABS_VOICE_ID` to change the narrator. Character voices live in `VOICES` in `tools/tts.py` (`irene`, `handler`, `worker`, `agent`, `upbeat`); give a clip one with `## s5 voice=irene` in `script/voiceover.md`. Check clip lengths with `ffprobe -i <file> -show_entries format=duration -v quiet` and update scene timings to match.
 3. **Music.** Suno has no public API: generate tracks in the Suno web app (for example "sombre lo-fi piano, 30 s" for scenes 01–03 and "uplifting electronic, optimistic, 45 s" from scene 04), download the MP3s and save them as `composition/assets/music/sad.mp3` and `composition/assets/music/hopeful.mp3`.
 4. **Build scenes.** Ask Claude Code (with the HyperFrames plugin) to build each scene from the storyboard, e.g. "Using /hyperframes, build scene 03 council-inbox from video/storyboard.md". Audio goes in `index.html` as timed elements:
    ```html

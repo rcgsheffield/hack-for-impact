@@ -65,6 +65,8 @@ The live submissions dashboard is at `/dashboard` (<http://spark12.local/dashboa
 
 ## Team
 
+Team name: **Dependency Hell's Angels**
+
 _Add team members here._
 
 ## Licence

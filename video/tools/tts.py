@@ -51,6 +51,7 @@ VOICES = {
     "handler": "dUercWozs0yhe4xBCgZ0",  # council call handler
     "worker": "7SDkmJ8WpdrhnzoqcT8R",  # overwhelmed council worker
     "agent": "L39mCFEANiRSjBYTGelY",  # the AI agent in the chat
+    "upbeat": "llNlEi50DSCIEuoOIaH7",  # upbeat narrator for the second half (scene 05 onward)
 }
 # Highest-quality general-purpose model for narration.
 DEFAULT_MODEL_ID = "eleven_multilingual_v2"
