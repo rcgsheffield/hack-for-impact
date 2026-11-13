@@ -1,0 +1,198 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #im-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.06) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.06) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #im-kicker {
+      position: absolute;
+      left: 192px;
+      top: 110px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    .im-col {
+      position: absolute;
+      top: 180px;
+      width: 740px;
+      height: 360px;
+      padding: 36px 40px;
+      border-radius: 24px;
+      background: #141c11;
+      border: 2px solid #26321f;
+    }
+    #im-res { left: 192px; }
+    #im-cou { left: 988px; }
+    .im-head {
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 18px;
+    }
+    .im-item {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin-top: 22px;
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .im-dot {
+      flex: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #76b900;
+    }
+    .im-urgent .im-dot {
+      background: #ff8a3d;
+    }
+    #im-strip {
+      position: absolute;
+      left: 192px;
+      top: 610px;
+      width: 1536px;
+      height: 310px;
+    }
+    .im-band {
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+      margin-bottom: 26px;
+    }
+    .im-label {
+      flex: none;
+      width: 150px;
+      padding: 10px 0;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    #im-today .im-label {
+      background: #eef5e6;
+      color: #0b0f0a;
+    }
+    #im-next .im-label {
+      background: #76b900;
+      color: #0b0f0a;
+    }
+    .im-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .im-chip {
+      padding: 10px 22px;
+      border-radius: 12px;
+      border: 2px solid #3a4a30;
+      background: #141c11;
+      font-size: 30px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    #im-nim {
+      border-color: #76b900;
+      color: #76b900;
+    }
+  </style>
+  <div id="root" data-composition-id="impact" data-width="1920" data-height="1080">
+    <div id="im-grid"></div>
+    <div id="im-kicker">Impact</div>
+    <div class="im-col" id="im-res">
+      <div class="im-head">Residents</div>
+      <div class="im-item" id="im-r1"><div class="im-dot"></div>A couple of messages</div>
+      <div class="im-item" id="im-r2"><div class="im-dot"></div>In their own words</div>
+      <div class="im-item" id="im-r3"><div class="im-dot"></div>No forms, no hold music</div>
+    </div>
+    <div class="im-col" id="im-cou">
+      <div class="im-head">Council</div>
+      <div class="im-item" id="im-c1"><div class="im-dot"></div>Reports arrive complete</div>
+      <div class="im-item" id="im-c2"><div class="im-dot"></div>In the right place</div>
+      <div class="im-item im-urgent" id="im-c3"><div class="im-dot"></div>Urgent hazards flagged first</div>
+    </div>
+    <div id="im-strip">
+      <div class="im-band" id="im-today">
+        <div class="im-label">Today</div>
+        <div class="im-chips">
+          <div class="im-chip" id="im-t1">Road &amp; pavement defects</div>
+          <div class="im-chip" id="im-t2">Recorded locally, not sent to the council</div>
+        </div>
+      </div>
+      <div class="im-band" id="im-next">
+        <div class="im-label">Next</div>
+        <div class="im-chips">
+          <div class="im-chip" id="im-n1">Council case system</div>
+          <div class="im-chip" id="im-n2">More services</div>
+          <div class="im-chip" id="im-n3">FixMyStreet duplicate detection</div>
+          <div class="im-chip" id="im-nim">NVIDIA NIM: a one-line change</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // Scene 11, clip 11. Times in seconds from scene start (global 230 s).
+      // NOTE: clip 11 is ~84 words, about 32 s at 2.6 words/s, longer than this 25 s slot.
+      // These cues assume a brisker read (~3.5 words/s); retime by editing these numbers once the clip exists.
+      const CUE = {
+        residents: 0.40, // "For residents,"
+        messages: 2.49, // "reporting a problem takes a couple of messages,"
+        ownWords: 5.28, // "in their own words."
+        council: 7.37, // "For the council,"
+        complete: 8.76, // "reports arrive complete,"
+        rightPlace: 10.51, // "in the right place,"
+        urgent: 11.90, // "with urgent hazards flagged first."
+        today: 15.04, // "Today it handles road and pavement defects,"
+        local: 18.87, // "and it records reports locally rather than sending them to the council."
+        next: 24.79, // "Next, we'd connect it to the council's case system,"
+        services: 27.58, // "add more services,"
+        fixmystreet: 29.32, // "and use FixMyStreet open data to spot duplicate reports."
+        nim: 34.55, // "And because it speaks the standard OpenAI API, moving to NVIDIA NIM is a one-line change."
+      };
+      const tl = gsap.timeline({ paused: true });
+      const pop = (sel, at) =>
+        tl.fromTo(sel, { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.45, ease: "power4.out" }, at);
+
+      tl.fromTo("#im-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.1);
+      tl.fromTo("#im-res", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, CUE.residents);
+      pop("#im-r1", CUE.messages);
+      pop("#im-r2", CUE.ownWords);
+      pop("#im-r3", CUE.ownWords + 0.7);
+
+      tl.fromTo("#im-cou", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "expo.out" }, CUE.council);
+      pop("#im-c1", CUE.complete);
+      pop("#im-c2", CUE.rightPlace);
+      pop("#im-c3", CUE.urgent);
+
+      tl.fromTo("#im-today .im-label", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.today);
+      pop("#im-t1", CUE.today + 0.3);
+      pop("#im-t2", CUE.local);
+
+      tl.fromTo("#im-next .im-label", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.next);
+      pop("#im-n1", CUE.next + 0.4);
+      pop("#im-n2", CUE.services);
+      pop("#im-n3", CUE.fixmystreet);
+      tl.fromTo("#im-nim", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, CUE.nim);
+      tl.fromTo("#im-nim", { backgroundColor: "#141c11", color: "#76b900" }, { backgroundColor: "#76b900", color: "#0b0f0a", duration: 0.4 }, CUE.nim + 1.6);
+      window.__timelines["impact"] = tl;
+    })();
+  </script>
+</template>

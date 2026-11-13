@@ -10,7 +10,7 @@
     }
     #ci-title {
       position: absolute;
-      left: 140px;
+      left: 200px;
       top: 100px;
       width: 640px;
       font-size: 64px;
@@ -20,7 +20,7 @@
     }
     #ci-subtitle {
       position: absolute;
-      left: 142px;
+      left: 202px;
       top: 250px;
       font-size: 36px;
       color: #c9d1dc;
@@ -108,8 +108,8 @@
     #ci-inbox {
       position: absolute;
       left: 860px;
-      top: 110px;
-      width: 920px;
+      top: 120px;
+      width: 860px;
       height: 860px;
       border-radius: 18px;
       background: #f5f6f8;
@@ -117,6 +117,8 @@
       overflow: hidden;
     }
     #ci-bar {
+      position: relative;
+      z-index: 2;
       height: 110px;
       padding: 0 36px;
       display: flex;
@@ -144,7 +146,7 @@
     .ci-mail {
       position: absolute;
       left: 30px;
-      width: 860px;
+      width: 780px;
       height: 96px;
       padding: 14px 26px;
       border-radius: 12px;
@@ -163,11 +165,46 @@
       white-space: nowrap;
       overflow: hidden;
     }
+    .ci-tagged {
+      border: 3px solid #c62828;
+    }
+    .ci-tag {
+      position: absolute;
+      right: 20px;
+      top: 22px;
+      padding: 6px 18px;
+      border-radius: 30px;
+      background: #c62828;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 900;
+    }
+    .ci-mouth-sad {
+      position: absolute;
+      left: 75px;
+      top: 185px;
+      width: 70px;
+      height: 26px;
+      border-top: 8px solid #5a2f22;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+    .ci-lid {
+      position: absolute;
+      top: 110px;
+      width: 32px;
+      height: 16px;
+      background: #c99272;
+      border-bottom: 5px solid #22160f;
+    }
+    #ci-mouth-sad,
+    .ci-lid,
+    #ci-sweat {
+      opacity: 0;
+    }
   </style>
   <div id="root" data-composition-id="council-inbox" data-width="1920" data-height="1080">
     <div id="ci-title">Meanwhile, at the council…</div>
     <div id="ci-subtitle">One shared inbox. Every report.</div>
-    <div id="ci-desk"></div>
     <div id="ci-worker">
       <div class="ci-body"></div>
       <div class="ci-lanyard"></div>
@@ -175,13 +212,17 @@
       <div class="ci-face">
         <div class="ci-eye" style="left: 60px"></div>
         <div class="ci-eye" style="left: 140px"></div>
-        <div class="ci-mouth"></div>
+        <div class="ci-mouth" id="ci-mouth"></div>
+        <div class="ci-mouth-sad" id="ci-mouth-sad"></div>
+        <div class="ci-lid" id="ci-lid-l" style="left: 54px"></div>
+        <div class="ci-lid" id="ci-lid-r" style="left: 134px"></div>
       </div>
     </div>
+    <div id="ci-desk"></div>
     <div id="ci-sweat"></div>
     <div id="ci-inbox" data-layout-allow-occlusion>
       <div id="ci-bar"><span>Inbox · reports@</span><span id="ci-count">12</span></div>
-      <div id="ci-list" data-layout-allow-overflow data-layout-allow-overlap>
+      <div id="ci-list" data-layout-allow-overflow data-layout-allow-overlap data-layout-allow-occlusion>
         <div class="ci-mail" style="top: 20px"><div class="ci-from">resident</div><div class="ci-subj">Pothole outside 42 Abbeydale Rd</div></div>
         <div class="ci-mail" style="top: 135px"><div class="ci-from">resident</div><div class="ci-subj">RE: RE: FW: streetlight still out</div></div>
         <div class="ci-mail" style="top: 250px"><div class="ci-from">resident</div><div class="ci-subj">Bins not collected AGAIN</div></div>
@@ -194,40 +235,77 @@
         <div class="ci-mail" style="top: 520px; left: 70px"><div class="ci-from">resident</div><div class="ci-subj">Graffiti on bus shelter</div></div>
         <div class="ci-mail" style="top: 420px; left: 20px"><div class="ci-from">resident</div><div class="ci-subj">Chasing my report from March</div></div>
         <div class="ci-mail" style="top: 260px; left: 40px"><div class="ci-from">resident</div><div class="ci-subj">Pothole!!!</div></div>
+        <div class="ci-mail ci-tagged" id="ci-t1" style="top: 150px; left: 30px"><div class="ci-from">resident</div><div class="ci-subj">There's a big hole, please fix</div><span class="ci-tag">No location</span></div>
+        <div class="ci-mail ci-tagged" id="ci-t2" style="top: 330px; left: 50px"><div class="ci-from">resident</div><div class="ci-subj">Pothole on Crookes Rd</div><span class="ci-tag">No depth</span></div>
+        <div class="ci-mail ci-tagged" id="ci-t3" style="top: 510px; left: 30px"><div class="ci-from">resident</div><div class="ci-subj">Pothole M1 junction 34</div><span class="ci-tag">M1 – not ours</span></div>
       </div>
     </div>
   </div>
   <script>
     (function () {
+      // Scene-local seconds. Retime by editing these numbers only.
+      const CUE = {
+        c03a: 0.30, //   VO 03a narrator: "Meanwhile, at the council..."
+        mails: 2.02, //  beat: "every report lands in the same inbox", emails start dropping
+        n340: 4.65, //   beat: counter reaches 340 ("Missing details. Wrong department.")
+        n1204: 6.68, //  beat: counter reaches 1,204 ("Hundreds of them, every day.")
+        c03b: 8.69, //   VO 03b worker: "No location. No depth. And this one's on the M1..."
+        tag1: 8.84, //   beat: "No location"
+        tag2: 9.74, //  beat: "No depth"
+        tag3: 10.93, //  beat: "this one's on the M1"
+        slump: 11.68, // beat: "That's not even ours." worker slumps
+      };
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#ci-title", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0);
-      tl.fromTo("#ci-subtitle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.3);
-      tl.fromTo("#ci-worker", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.2);
-      tl.fromTo("#ci-inbox", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.4);
-      // emails drop in, accelerating
-      const mails = gsap.utils.toArray(".ci-mail");
-      let t = 1.0;
+      tl.fromTo("#ci-title", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.c03a - 0.3);
+      tl.fromTo("#ci-subtitle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.mails - 0.4);
+      tl.fromTo("#ci-worker", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, CUE.c03a - 0.1);
+      tl.fromTo("#ci-inbox", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "expo.out" }, CUE.c03a + 0.1);
+
+      // Emails drop in, accelerating, finishing as the counter tops out
+      const mails = gsap.utils.toArray(".ci-mail:not(.ci-tagged)");
+      const span = CUE.n1204 - CUE.mails;
       mails.forEach((m, i) => {
-        tl.fromTo(m, { y: -300, opacity: 0, rotation: 0 }, { y: 0, opacity: 1, rotation: (i % 3) - 1, duration: 0.35, ease: "power2.out" }, t);
-        t += Math.max(0.12, 0.45 - i * 0.04);
+        const at = CUE.mails + span * Math.pow(i / mails.length, 0.7);
+        tl.fromTo(m, { y: -300, opacity: 0, rotation: 0 }, { y: 0, opacity: 1, rotation: (i % 3) - 1, duration: 0.35, ease: "power2.out" }, at);
       });
-      const n = { v: 12 };
+
+      // Counter: holds 12, climbs to 340, then 1,204 (piecewise on one proxy so seeking is exact)
+      const clock = { t: 0 };
+      const ease = gsap.parseEase("power2.inOut");
+      const count = (t) => {
+        if (t < CUE.mails) return 12;
+        if (t < CUE.n340) return 12 + (340 - 12) * ease((t - CUE.mails) / (CUE.n340 - CUE.mails));
+        if (t < CUE.n1204) return 340 + (1204 - 340) * ease((t - CUE.n340) / (CUE.n1204 - CUE.n340));
+        return 1204;
+      };
       tl.fromTo(
-        n,
-        { v: 12 },
+        clock,
+        { t: 0 },
         {
-          v: 1204,
-          duration: 5.2,
-          ease: "power3.in",
+          t: CUE.n1204 + 0.1,
+          duration: CUE.n1204 + 0.1,
+          ease: "none",
           onUpdate: () => {
-            document.querySelector("#ci-count").textContent = Math.round(n.v).toLocaleString("en-GB");
+            document.querySelector("#ci-count").textContent = Math.round(count(clock.t)).toLocaleString("en-GB");
           },
         },
-        1.0,
+        0,
       );
-      tl.fromTo("#ci-count", { scale: 1 }, { scale: 1.25, duration: 0.15, yoyo: true, repeat: 5 }, 5.2);
-      tl.fromTo("#ci-sweat", { opacity: 0, y: 0 }, { opacity: 1, y: 60, duration: 1.2, ease: "power1.in" }, 4.4);
-      tl.fromTo("#ci-worker", { y: 0 }, { y: 20, duration: 1.4, ease: "power2.in" }, 5.0);
+      tl.fromTo("#ci-count", { scale: 1 }, { scale: 1.2, duration: 0.15, yoyo: true, repeat: 1 }, CUE.n340 - 0.15);
+      tl.fromTo("#ci-count", { scale: 1 }, { scale: 1.3, duration: 0.15, yoyo: true, repeat: 1, immediateRender: false }, CUE.n1204 - 0.15);
+      tl.fromTo("#ci-sweat", { opacity: 0, y: 0 }, { opacity: 1, y: 60, duration: 1.2, ease: "power1.in" }, CUE.n1204 - 1.0);
+
+      // 03b: three tagged cards slap on top as the worker names them
+      [["#ci-t1", CUE.tag1], ["#ci-t2", CUE.tag2], ["#ci-t3", CUE.tag3]].forEach(([sel, at], i) => {
+        tl.fromTo(sel, { opacity: 0, scale: 1.25, rotation: 0 }, { opacity: 1, scale: 1, rotation: i === 1 ? 1 : -1, duration: 0.3, ease: "power4.out" }, at);
+        tl.fromTo(sel + " .ci-tag", { scale: 0 }, { scale: 1, duration: 0.3, ease: "back.out(2)" }, at + 0.25);
+      });
+
+      // Worker slumps: heavy lids, frown, sinks behind the desk
+      tl.fromTo(["#ci-lid-l", "#ci-lid-r"], { opacity: 0 }, { opacity: 1, duration: 0.2 }, CUE.c03b);
+      tl.fromTo("#ci-mouth", { opacity: 1 }, { opacity: 0, duration: 0.2 }, CUE.slump);
+      tl.fromTo("#ci-mouth-sad", { opacity: 0 }, { opacity: 1, duration: 0.2 }, CUE.slump);
+      tl.fromTo("#ci-worker", { y: 0, rotation: 0 }, { y: 120, rotation: -6, duration: 1.2, ease: "power2.inOut" }, CUE.slump);
       window.__timelines["council-inbox"] = tl;
     })();
   </script>

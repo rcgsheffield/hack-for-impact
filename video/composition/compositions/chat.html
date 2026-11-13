@@ -13,53 +13,67 @@
       inset: 0;
       background: radial-gradient(circle at 75% 20%, #d6ecb0 0%, #eef3e6 55%);
     }
+    /* side headline: one group per beat, stacked in the same place */
     #ch-side {
       position: absolute;
-      left: 140px;
-      top: 300px;
-      width: 520px;
+      left: 200px;
+      top: 330px;
+      width: 480px;
+      height: 420px;
     }
-    #ch-kicker {
+    .ch-beat {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 480px;
+    }
+    .ch-kicker {
       font-size: 32px;
       font-weight: 700;
       color: #4d7a00;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-    #ch-head {
+    .ch-head {
       margin-top: 16px;
-      font-size: 76px;
+      font-size: 72px;
       font-weight: 900;
       line-height: 1.05;
       letter-spacing: -0.03em;
     }
+    /* chat window */
     #ch-win {
       position: absolute;
-      left: 760px;
-      top: 70px;
-      width: 1020px;
-      height: 940px;
+      left: 740px;
+      top: 100px;
+      width: 980px;
+      height: 880px;
       border-radius: 28px;
       background: #ffffff;
       box-shadow: 0 30px 80px rgba(30, 60, 0, 0.18);
       overflow: hidden;
     }
     #ch-bar {
-      position: relative;
+      position: absolute;
+      left: 0;
+      top: 0;
       z-index: 2;
-      height: 110px;
-      padding: 0 40px;
+      width: 980px;
+      height: 100px;
+      padding: 0 36px;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       gap: 22px;
       background: #13200f;
       color: #ffffff;
-      font-size: 36px;
+      font-size: 34px;
       font-weight: 700;
+      line-height: 1.15;
     }
     #ch-avatar {
-      width: 60px;
-      height: 60px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
       background: #76b900;
     }
@@ -68,15 +82,27 @@
       font-weight: 400;
       color: #b9e07a;
     }
-    #ch-body {
-      position: relative;
-      padding: 30px 40px;
+    #ch-view {
+      position: absolute;
+      left: 0;
+      top: 100px;
+      width: 980px;
+      height: 684px;
+      overflow: hidden;
+    }
+    #ch-feed {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 980px;
+      padding: 28px 36px;
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       gap: 22px;
     }
     .ch-msg {
-      max-width: 760px;
+      max-width: 700px;
       padding: 22px 30px;
       border-radius: 26px;
       font-size: 32px;
@@ -94,33 +120,7 @@
       color: #13200f;
       border-bottom-left-radius: 6px;
     }
-    #ch-photo {
-      align-self: flex-end;
-      width: 380px;
-      height: 210px;
-      border-radius: 20px;
-      background: #4a4f57;
-      position: relative;
-      overflow: hidden;
-    }
-    #ch-photo-hole {
-      position: absolute;
-      left: 70px;
-      top: 60px;
-      width: 240px;
-      height: 100px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse at 50% 40%, #0d0f12 0%, #1c1f24 60%, #4a4f57 100%);
-    }
-    #ch-photo-line {
-      position: absolute;
-      left: 0;
-      top: 20px;
-      width: 380px;
-      height: 10px;
-      background: #d9d2a0;
-    }
-    #ch-slot {
+    .ch-slot {
       position: relative;
       align-self: flex-start;
     }
@@ -140,89 +140,230 @@
       border-radius: 50%;
       background: #6b7a60;
     }
+    #ch-tools {
+      align-self: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .ch-chip {
+      align-self: flex-start;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 22px;
+      border-radius: 16px;
+      border: 2px solid #c9d8b4;
+      background: #f7faf2;
+      color: #2d4a12;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      line-height: 1.3;
+    }
+    .ch-chip b {
+      color: #13200f;
+    }
+    .ch-chip svg {
+      flex: none;
+      width: 30px;
+      height: 30px;
+    }
     #ch-done {
       align-self: flex-start;
-      max-width: 820px;
+      max-width: 860px;
       padding: 26px 30px;
       border-radius: 22px;
-      background: #76b900;
-      color: #0d1a05;
+      background: #eef3e6;
+      border-left: 10px solid #76b900;
+      color: #13200f;
       font-size: 32px;
       line-height: 1.35;
-      display: flex;
-      gap: 22px;
-      align-items: flex-start;
-    }
-    #ch-tick {
-      flex: none;
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: #0d1a05;
-      position: relative;
-    }
-    #ch-tick::after {
-      content: "";
-      position: absolute;
-      left: 19px;
-      top: 10px;
-      width: 12px;
-      height: 24px;
-      border-right: 6px solid #76b900;
-      border-bottom: 6px solid #76b900;
-      transform: rotate(45deg);
     }
     #ch-ref {
       font-family: "JetBrains Mono", monospace;
       font-weight: 700;
     }
+    #ch-badge {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 10px 22px;
+      border-radius: 14px;
+      background: #c62828;
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    #ch-note {
+      margin-top: 14px;
+      font-size: 28px;
+      color: #5d6b52;
+    }
+    #ch-composer {
+      position: absolute;
+      left: 0;
+      top: 784px;
+      width: 980px;
+      height: 96px;
+      padding: 0 28px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border-top: 2px solid #e3e9da;
+      background: #ffffff;
+    }
+    #ch-input {
+      flex: 1;
+      height: 60px;
+      padding: 0 24px;
+      border-radius: 30px;
+      background: #f2f5ee;
+      color: #6f7a65;
+      font-size: 28px;
+      line-height: 60px;
+    }
+    #ch-send {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #76b900;
+    }
   </style>
   <div id="root" data-composition-id="chat" data-width="1920" data-height="1080">
     <div id="ch-glow"></div>
-    <div id="ch-side">
-      <div id="ch-kicker">Another way</div>
-      <div id="ch-head">Just say what's wrong.</div>
+    <div id="ch-side" data-layout-allow-overlap>
+      <div class="ch-beat" id="ch-b1">
+        <div class="ch-kicker">Another way</div>
+        <div class="ch-head">Just say what's wrong.</div>
+      </div>
+      <div class="ch-beat" id="ch-b2">
+        <div class="ch-kicker">Behind the scenes</div>
+        <div class="ch-head">Who owns it?<br />How bad is it?</div>
+      </div>
+      <div class="ch-beat" id="ch-b3">
+        <div class="ch-kicker">Filed</div>
+        <div class="ch-head">Right place.<br />Right priority.</div>
+      </div>
+      <div class="ch-beat" id="ch-b4">
+        <div class="ch-kicker">Two messages</div>
+        <div class="ch-head">No forms.<br />No hold music.</div>
+      </div>
     </div>
-    <div id="ch-win">
+    <div id="ch-win" data-hold>
       <div id="ch-bar">
         <div id="ch-avatar"></div>
         <div>CouncilTriagent<br /><span id="ch-online">Sheffield · online</span></div>
       </div>
-      <div id="ch-body">
-        <div class="ch-msg ch-me" id="ch-m1">There's a huge pothole outside 42 Abbeydale Road. Nearly came off my bike.</div>
-        <div id="ch-photo"><div id="ch-photo-line"></div><div id="ch-photo-hole"></div></div>
-        <div id="ch-slot" data-layout-allow-overlap>
-          <div class="ch-typing" id="ch-t1"><div class="ch-dot"></div><div class="ch-dot"></div><div class="ch-dot"></div></div>
-          <div class="ch-msg ch-bot" id="ch-m2">Sorry to hear that, Irene. Is it in the road or on the pavement, and roughly how deep?</div>
+      <div id="ch-view" data-layout-allow-overflow>
+        <div id="ch-feed">
+          <div class="ch-msg ch-me" id="ch-m1">There's a big pothole in the road outside number twelve, Crookes Road. Someone's going to break their ankle.</div>
+          <div class="ch-slot" data-layout-allow-overlap>
+            <div class="ch-typing" id="ch-t1"><div class="ch-dot"></div><div class="ch-dot"></div><div class="ch-dot"></div></div>
+            <div class="ch-msg ch-bot" id="ch-m2">Sorry to hear that, Irene. Roughly how deep is it?</div>
+          </div>
+          <div class="ch-msg ch-me" id="ch-m3">About ten centimetres.</div>
+          <div id="ch-tools">
+            <div class="ch-chip" id="ch-c1">
+              <svg viewBox="0 0 24 24"><path fill="#4d7a00" d="M22.7 19.3l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3l4.3 4.3-3 3-4.4-4.3C.4 7.4.9 10.4 2.9 12.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+              <span>route_report → <b>Sheffield City Council</b></span>
+            </div>
+            <div class="ch-chip" id="ch-c2">
+              <svg viewBox="0 0 24 24"><path fill="#4d7a00" d="M22.7 19.3l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3l4.3 4.3-3 3-4.4-4.3C.4 7.4.9 10.4 2.9 12.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+              <span>assess_pothole → <b>&gt;40 mm · Cat 1</b></span>
+            </div>
+            <div class="ch-chip" id="ch-c3">
+              <svg viewBox="0 0 24 24"><path fill="#4d7a00" d="M22.7 19.3l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3l4.3 4.3-3 3-4.4-4.3C.4 7.4.9 10.4 2.9 12.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+              <span>file_report</span>
+            </div>
+          </div>
+          <div class="ch-slot" data-layout-allow-overlap>
+            <div class="ch-typing" id="ch-t2"><div class="ch-dot"></div><div class="ch-dot"></div><div class="ch-dot"></div></div>
+            <div id="ch-done">
+              <div>Thanks, Irene. I've reported it to <b>Sheffield City Council</b>. Ref <span id="ch-ref">SCC-20261113-500D</span>.</div>
+              <div id="ch-badge">Urgent · Category 1 — made safe within 24 hours</div>
+              <div id="ch-note">Prototype: not sent to the council</div>
+            </div>
+          </div>
         </div>
-        <div class="ch-msg ch-me" id="ch-m3">In the road, by the bus stop. About a hand deep.</div>
-        <div id="ch-done">
-          <div id="ch-tick"></div>
-          <div>Reported to <b>Highways</b>. Ref <span id="ch-ref">SHF-24817</span>.<br />I'll let you know when it's inspected.</div>
-        </div>
+      </div>
+      <div id="ch-composer">
+        <div id="ch-input">Describe the problem…</div>
+        <div id="ch-send"></div>
       </div>
     </div>
   </div>
   <script>
     (function () {
+      // Seconds from scene start. Voice clips are estimates (~2.6 words/s); retime by editing these.
+      const CUE = {
+        enter: 0.00, // window slides in
+        vo06a: 0.60, // 06a narrator: "Now Irene just tells the agent what's wrong."
+        vo06b: 3.59, // 06b Irene: her message appears
+        think1: 9.33, // agent typing dots
+        vo06c: 10.13, // 06c agent: "Sorry to hear that, Irene. Roughly how deep is it?"
+        vo06d: 14.34, // 06d Irene: "About ten centimetres."
+        vo06e: 16.63, // 06e narrator: "Behind the scenes…"
+        toolRoute: 17.88, // 06e "…checks who's responsible for the road"
+        toolAssess: 21.16, // 06e "…measures the depth against the council's own criteria"
+        toolFile: 23.86, // file_report chip, then typing dots
+        vo06f: 25.35, // 06f agent: confirmation with reference
+        ref: 30.09, // 06f "Your reference is S C C…"
+        urgent: 44.05, // 06f "…so I've flagged it as urgent"
+        vo06g: 49.97, // 06g narrator: "No forms. No hold music…"
+      };
+      // Feed scroll offsets (px) so the newest item stays above the composer.
+      const SCROLL = { tools: -150, file: -230, done: -370 };
+
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#ch-side", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 0.1);
-      tl.fromTo("#ch-win", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.2);
+      tl.fromTo("#ch-b1", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, CUE.enter + 0.1);
+      tl.fromTo("#ch-win", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, CUE.enter + 0.2);
+      tl.set(["#ch-b2", "#ch-b3", "#ch-b4", "#ch-m1", "#ch-t1", "#ch-m2", "#ch-m3", "#ch-c1", "#ch-c2", "#ch-c3", "#ch-t2", "#ch-done", "#ch-badge"], { opacity: 0 }, 0);
+
       const pop = (sel, at) =>
-        tl.fromTo(sel, { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, at);
-      // hidden until popped
-      tl.set(["#ch-m1", "#ch-photo", "#ch-t1", "#ch-m2", "#ch-m3", "#ch-done"], { opacity: 0 }, 0);
-      pop("#ch-m1", 1.0);
-      pop("#ch-photo", 1.8);
-      pop("#ch-t1", 2.6);
-      tl.fromTo("#ch-t1 .ch-dot", { y: 0 }, { y: -10, duration: 0.2, yoyo: true, repeat: 3, stagger: 0.1 }, 2.7);
-      tl.fromTo("#ch-t1", { opacity: 1 }, { opacity: 0, duration: 0.15 }, 3.6);
-      pop("#ch-m2", 3.7);
-      pop("#ch-m3", 5.6);
-      tl.fromTo("#ch-body", { y: 0 }, { y: -60, duration: 0.5, ease: "power2.inOut" }, 7.0);
-      pop("#ch-done", 7.2);
-      tl.fromTo("#ch-tick", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2)" }, 7.4);
-      tl.fromTo("#ch-done", { boxShadow: "0 0 0 0 rgba(118,185,0,0.6)" }, { boxShadow: "0 0 0 24px rgba(118,185,0,0)", duration: 0.9 }, 7.6);
+        tl.fromTo(sel, { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out" }, at);
+      const send = (at) => tl.fromTo("#ch-send", { scale: 1 }, { scale: 0.85, duration: 0.1, yoyo: true, repeat: 1 }, at);
+      const swap = (from, to, at) => {
+        tl.fromTo(from, { opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(8px)", duration: 0.18 }, at);
+        tl.fromTo(to, { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, at + 0.15);
+      };
+      const typing = (sel, from, to) => {
+        pop(sel, from);
+        const n = Math.max(1, Math.floor((to - from - 0.3) / 0.5));
+        tl.fromTo(sel + " .ch-dot", { y: 0 }, { y: -10, duration: 0.25, yoyo: true, repeat: n * 2 - 1, stagger: 0.1, ease: "sine.inOut" }, from + 0.2);
+        tl.fromTo(sel, { opacity: 1 }, { opacity: 0, duration: 0.12 }, to - 0.1);
+      };
+      let feedY = 0;
+      const scroll = (y, at) => {
+        tl.fromTo("#ch-feed", { y: feedY }, { y, duration: 0.6, ease: "power2.inOut", immediateRender: false }, at);
+        feedY = y;
+      };
+
+      // 06b Irene's message
+      send(CUE.vo06b);
+      pop("#ch-m1", CUE.vo06b + 0.1);
+      // 06c agent asks for depth
+      typing("#ch-t1", CUE.think1, CUE.vo06c);
+      pop("#ch-m2", CUE.vo06c);
+      // 06d Irene answers
+      send(CUE.vo06d);
+      pop("#ch-m3", CUE.vo06d + 0.1);
+      // 06e tools run
+      swap("#ch-b1", "#ch-b2", CUE.vo06e);
+      scroll(SCROLL.tools, CUE.toolRoute - 0.3);
+      pop("#ch-c1", CUE.toolRoute);
+      pop("#ch-c2", CUE.toolAssess);
+      scroll(SCROLL.file, CUE.toolFile - 0.3);
+      pop("#ch-c3", CUE.toolFile);
+      typing("#ch-t2", CUE.toolFile + 0.4, CUE.vo06f);
+      // 06f confirmation
+      scroll(SCROLL.done, CUE.vo06f - 0.3);
+      pop("#ch-done", CUE.vo06f);
+      swap("#ch-b2", "#ch-b3", CUE.vo06f);
+      tl.fromTo("#ch-done", { boxShadow: "0 0 0 0 rgba(118,185,0,0.6)" }, { boxShadow: "0 0 0 24px rgba(118,185,0,0)", duration: 0.9 }, CUE.vo06f + 0.3);
+      tl.fromTo("#ch-ref", { backgroundColor: "rgba(118,185,0,0)" }, { backgroundColor: "rgba(118,185,0,0.35)", duration: 0.3, ease: "power2.out" }, CUE.ref);
+      tl.fromTo("#ch-badge", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.6)" }, CUE.urgent);
+      // 06g caption
+      swap("#ch-b3", "#ch-b4", CUE.vo06g);
       window.__timelines["chat"] = tl;
     })();
   </script>

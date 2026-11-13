@@ -1,0 +1,151 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #f4f7f0;
+    }
+    #in-glow {
+      position: absolute;
+      left: 360px;
+      top: 40px;
+      width: 1200px;
+      height: 1000px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(118, 185, 0, 0.32) 0%, rgba(118, 185, 0, 0) 65%);
+    }
+    #in-stack {
+      position: absolute;
+      left: 200px;
+      right: 200px;
+      top: 230px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    #in-kicker {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #b9e07a;
+    }
+    #in-title {
+      margin-top: 18px;
+      font-size: 170px;
+      font-weight: 900;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    #in-title .in-ch {
+      display: inline-block;
+    }
+    #in-title .in-acc {
+      color: #76b900;
+    }
+    #in-rule {
+      margin-top: 34px;
+      width: 760px;
+      height: 8px;
+      border-radius: 4px;
+      background: #76b900;
+      transform-origin: 0 50%;
+    }
+    #in-tag {
+      margin-top: 44px;
+      font-size: 50px;
+      font-weight: 400;
+      line-height: 1.3;
+      color: #dfe6d8;
+    }
+    #in-tag .in-w {
+      display: inline-block;
+    }
+    #in-badges {
+      margin-top: 70px;
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+    }
+    .in-badge {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 20px 34px;
+      border-radius: 60px;
+      font-size: 36px;
+      font-weight: 700;
+    }
+    #in-b1 {
+      background: #f4f7f0;
+      color: #0b0f0a;
+    }
+    #in-b2 {
+      background: #76b900;
+      color: #0b0f0a;
+    }
+    .in-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #0b0f0a;
+    }
+  </style>
+  <div id="root" data-composition-id="intro" data-width="1920" data-height="1080">
+    <div id="in-glow"></div>
+    <div id="in-stack">
+      <div id="in-kicker">Meet</div>
+      <div id="in-title">
+        <span class="in-ch">C</span><span class="in-ch">o</span><span class="in-ch">u</span><span class="in-ch">n</span><span class="in-ch">c</span><span class="in-ch">i</span><span class="in-ch">l</span><span class="in-ch in-acc">T</span><span class="in-ch in-acc">r</span><span class="in-ch in-acc">i</span><span class="in-ch in-acc">a</span><span class="in-ch in-acc">g</span><span class="in-ch in-acc">e</span><span class="in-ch in-acc">n</span><span class="in-ch in-acc">t</span>
+      </div>
+      <div id="in-rule"></div>
+      <div id="in-tag">
+        <span class="in-w">Report it in your own words.</span>
+        <span class="in-w">We'll get it to the right place.</span>
+      </div>
+      <div id="in-badges">
+        <div class="in-badge" id="in-b1"><span class="in-dot"></span>Public Services track</div>
+        <div class="in-badge" id="in-b2"><span class="in-dot"></span>Runs locally on NVIDIA DGX Spark</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // Scene-local seconds. Retime by editing these numbers only.
+      // Clip 05 is ~44 words: at ~2.6 words/s it runs ~17 s, longer than this 14 s slot.
+      const CUE = {
+        c05: 0.30, //      VO 05 narrator: "Meet CouncilTriagent: ..."
+        title: 0.68, //    beat: "CouncilTriagent"
+        tag1: 4.47, //     beat: "...a resident's report in their own words"
+        tag2: 6.99, //     beat: "works out who should fix it"
+        badge1: 13.30, //  beat: "built for the Public Services track"
+        badge2: 15.07, //  beat: "runs entirely on local compute"
+      };
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#in-glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 1.4, ease: "power2.out" }, 0);
+      tl.fromTo("#in-kicker", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, CUE.c05);
+      // Name: per letter, 0.04 s apart, opacity + slight blur and lift
+      tl.fromTo(
+        "#in-title .in-ch",
+        { opacity: 0, y: 40, filter: "blur(6px)" },
+        { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.4, ease: "expo.out", stagger: 0.04 },
+        CUE.title,
+      );
+      tl.fromTo("#in-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: "expo.out" }, CUE.title + 0.6);
+      // Tagline: two halves, each blurs in on its spoken phrase
+      tl.fromTo("#in-tag .in-w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out", stagger: CUE.tag2 - CUE.tag1 }, CUE.tag1);
+      // Badges land with a small spring
+      tl.fromTo("#in-b1", { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, CUE.badge1);
+      tl.fromTo("#in-b2", { opacity: 0, y: 40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, CUE.badge2);
+      tl.fromTo("#in-b2", { boxShadow: "0 0 0 0 rgba(118,185,0,0.7)" }, { boxShadow: "0 0 0 26px rgba(118,185,0,0)", duration: 0.9, immediateRender: false }, CUE.badge2 + 0.4);
+      // The world behind the landed title moves, the title stays still
+      tl.fromTo("#in-glow", { x: -120 }, { x: 120, duration: 13.6, ease: "none" }, 0);
+      window.__timelines["intro"] = tl;
+    })();
+  </script>
+</template>
