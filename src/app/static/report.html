@@ -1,69 +1,89 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" class="ct">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your report</title>
-<link rel="stylesheet" href="/static/report-card.css">
+<title>Your report · CouncilTriagent</title>
+<link rel="icon" href="/ui/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/ui/ui.css">
+<link rel="stylesheet" href="/ui/report-card.css">
 <style>
-  :root {
-    color-scheme: light;
-    --bg: #f4f4f2; --surface: #fcfcfb; --border: #e2e1dc;
-    --text: #0b0b0b; --text-2: #52514e; --muted: #6f6e69;
-    --accent: #2a78d6; --warn-bg: #fdf1e7; --warn-text: #7a3412;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --bg: #121211; --surface: #1a1a19; --border: #2f2f2d;
-      --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
-      --accent: #3987e5; --warn-bg: #33241a; --warn-text: #f4c9a8;
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #121211; --surface: #1a1a19; --border: #2f2f2d;
-    --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
-    --accent: #3987e5; --warn-bg: #33241a; --warn-text: #f4c9a8;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 680px; margin: 0 auto; padding: 24px 16px 48px; display: grid; gap: 16px; }
-  h1 { font-size: 1.5rem; margin: 0; }
-  p { margin: 0; }
-  a { color: var(--accent); }
-  .lead { color: var(--text-2); }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rp-stack { display: grid; gap: var(--ct-space-4); }
+  .rp-actions { display: flex; flex-wrap: wrap; gap: var(--ct-space-2); align-items: center; justify-content: center; padding-top: var(--ct-space-6); }
+  .rp-state { background: var(--ct-surface); border: 1px solid var(--ct-border); border-radius: var(--ct-radius-xl); }
+  .rp-state .ct-empty { padding-block: var(--ct-space-12); }
+  .rp-state .ct-empty p { max-width: 30rem; }
+  .rp-state .ct-ref__value { font-size: var(--ct-text-base); }
 </style>
 </head>
 <body>
-<main>
-  <div>
-    <h1 id="heading">Your report</h1>
-    <p class="lead" id="lead">Loading…</p>
+<a class="ct-skip" href="#main">Skip to main content</a>
+<header class="ct-header">
+  <div class="ct-header__inner">
+    <a class="ct-brand" href="/" aria-label="CouncilTriagent home">
+      <img class="ct-brand__mark" src="/ui/logo-mark.svg" alt="" width="32" height="32">
+      <span class="ct-brand__text"><span class="ct-brand__name">Council<b>Triagent</b></span><span class="ct-brand__sub">Sheffield street problems</span></span>
+    </a>
+    <nav class="ct-nav" aria-label="Main">
+      <a href="/">Chat</a>
+      <a href="/dashboard">Dashboard</a>
+    </nav>
+    <div class="ct-header__meta">
+      <span class="ct-badge ct-pill ct-pill--prototype">Prototype</span>
+    </div>
   </div>
-  <div id="card" aria-live="polite"></div>
-  <p><a href="/">Report another problem</a></p>
+</header>
+<div class="ct-strip"><div class="ct-strip__inner"><strong>Unofficial hackathon prototype.</strong> Nothing is sent to Sheffield City Council.</div></div>
+
+<main id="main" class="ct-container ct-container--narrow ct-main">
+  <div class="rp-stack" id="content" aria-live="polite">
+    <div class="ct-card ct-card--flat" aria-busy="true">
+      <span class="ct-visually-hidden">Loading your report…</span>
+      <span class="ct-skeleton ct-skeleton--title"></span><span class="ct-skeleton ct-skeleton--text"></span><span class="ct-skeleton ct-skeleton--text" style="width:70%"></span>
+    </div>
+  </div>
+  <div class="rp-actions"><a class="ct-btn ct-btn--primary ct-btn--lg" href="/">Report another problem</a></div>
 </main>
-<script src="/static/report-card.js"></script>
+<footer class="ct-footer"><div class="ct-footer__inner"><span>CouncilTriagent · NVIDIA Hack for Impact, Sheffield · unofficial prototype</span><span>Local LLM on DGX Spark</span></div></footer>
+
+<script src="/ui/report-card.js"></script>
 <script>
 (async () => {
   const ref = decodeURIComponent(location.pathname.split("/").filter(Boolean).pop() || "");
-  const lead = document.getElementById("lead"), card = document.getElementById("card");
+  const content = document.getElementById("content");
+  const esc = s => String(s ?? "").replace(/[&<>"']/g,
+    c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const state = (icon, title, body) => {
+    content.innerHTML = `<section class="rp-state"><div class="ct-empty">
+      <span class="ct-empty__icon" aria-hidden="true">${icon}</span>
+      <h1 class="ct-empty__title">${title}</h1>${body}</div></section>`;
+  };
   try {
     const r = await fetch(`/api/reports/${encodeURIComponent(ref)}`, { cache: "no-store" });
     if (r.status === 404) {
-      lead.textContent = "We couldn't find a report with that reference. Check the reference number and try again.";
+      document.title = "Report not found · CouncilTriagent";
+      state(`<img src="/ui/logo-mark.svg" alt="">`, "We couldn't find that report",
+        `<p>No report has the reference</p><span class="ct-ref__value">${esc(ref) || "–"}</span>
+         <p>Check the reference number and try again. References look like <span class="ct-nowrap">SCC-20261113-7F3A</span>.</p>`);
       return;
     }
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
-    document.title = `Report ${data.report.reference}`;
-    lead.textContent = "Thank you. This is what was recorded.";
-    card.innerHTML = ReportCard.render(data.report, { audience: "resident", forms: data.forms });
+    document.title = `Report ${data.report.reference} · CouncilTriagent`;
+    content.innerHTML = ReportCard.hero(data.report, { forms: data.forms })
+      + ReportCard.render(data.report, { audience: "resident", forms: data.forms, hero: true });
+    content.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy); }
+      catch { const s = getSelection(), rg = document.createRange();
+              rg.selectNodeContents(b.previousElementSibling); s.removeAllRanges(); s.addRange(rg);
+              document.execCommand("copy"); }
+      b.textContent = "Copied"; b.dataset.copied = "";
+      setTimeout(() => { b.textContent = "Copy"; delete b.dataset.copied; }, 2000);
+    }));
   } catch (e) {
-    lead.textContent = "The report couldn't be loaded just now. Please refresh the page to try again.";
+    state("✕", "Your report couldn't be loaded just now",
+      `<p>Something went wrong on our side. Please refresh the page to try again.</p>
+       <button class="ct-btn ct-btn--secondary" type="button" onclick="location.reload()">Try again</button>`);
   }
 })();
 </script>

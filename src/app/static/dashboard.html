@@ -1,280 +1,217 @@
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" class="ct">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Submissions dashboard</title>
+<title>Submissions dashboard · CouncilTriagent</title>
 <!-- Served at /dashboard by src/app/submissions.py. Polls /api/submissions. The map needs internet access for Leaflet
-     (unpkg.com, same version as the mock forms) and CARTO basemap tiles; everything else works offline. -->
+     (unpkg.com, same version as the mock forms) and Esri basemap tiles; everything else works offline.
+     Styles: the shared design system (/ui/ui.css, see /ui/styleguide.html); page layout only below. -->
+<link rel="icon" href="/ui/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="/static/report-card.css">
-<script src="/static/report-card.js"></script>
+<link rel="stylesheet" href="/ui/ui.css">
+<link rel="stylesheet" href="/ui/report-card.css">
+<script src="/ui/report-card.js"></script>
 <style>
-  :root {
-    color-scheme: light;
-    --bg: #f4f4f2; --surface: #fcfcfb; --border: #e2e1dc; --grid: #ecebe7;
-    --text: #0b0b0b; --text-2: #52514e; --muted: #6f6e69;
-    --accent: #2a78d6; --accent-soft: #e5effb;
-    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
-    --new: #fff4d6; --warn-bg: #fdf1e7; --warn-text: #7a3412;
-    --p1: #c8102e; --p2: #d9690f; --p3: #2a78d6; --p4: #8a8984; --alert-bg: #fde8eb; --alert-text: #8a0b20;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --bg: #121211; --surface: #1a1a19; --border: #2f2f2d; --grid: #262624;
-      --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
-      --accent: #3987e5; --accent-soft: #1d2b3d;
-      --s1: #3987e5; --s2: #d95926; --s3: #199e70;
-      --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
-      --p1: #f0555f; --p2: #f08a3c; --p3: #3987e5; --p4: #8f8e86; --alert-bg: #3b1a1e; --alert-text: #ffc2c8;
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #121211; --surface: #1a1a19; --border: #2f2f2d; --grid: #262624;
-    --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
-    --accent: #3987e5; --accent-soft: #1d2b3d;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
-    --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
-    --p1: #f0555f; --p2: #f08a3c; --p3: #3987e5; --p4: #8f8e86; --alert-bg: #3b1a1e; --alert-text: #ffc2c8;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
-  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; justify-content: space-between; }
-  h1 { font-size: 1.5rem; margin: 0; }
-  h2 { font-size: 1rem; margin: 0 0 12px; }
-  a { color: var(--accent); }
-  .status { color: var(--text-2); font-size: .875rem; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--s3); margin-right: 6px; }
-  .dot.off { background: var(--muted); } .dot.err { background: #e34948; }
-  button, select, input { font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--border);
-                          border-radius: 6px; padding: 6px 10px; }
-  button { cursor: pointer; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .banner { margin: 12px 0 20px; padding: 8px 12px; border-radius: 6px; background: var(--warn-bg);
-            color: var(--warn-text); font-size: .875rem; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px; }
-  .kpi .label { color: var(--text-2); font-size: .8125rem; }
-  .kpi .value { font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
-  .kpi .sub { color: var(--muted); font-size: .8125rem; }
-  .charts { display: grid; grid-template-columns: 3fr 2fr; gap: 12px; margin-bottom: 12px; }
-  @media (max-width: 760px) { .charts { grid-template-columns: 1fr; } }
-  svg text { fill: var(--text-2); font-size: 11px; }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .8125rem; color: var(--text-2); margin-bottom: 8px; }
-  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
-  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
-  .filters input { flex: 1 1 200px; min-width: 0; }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
-  th { color: var(--text-2); font-weight: 600; white-space: nowrap; }
-  tbody tr.row { cursor: pointer; }
-  tbody tr.row:hover { background: var(--accent-soft); }
-  tr.fresh { animation: fresh 4s ease-out; }
-  @keyframes fresh { from { background: var(--new); } to { background: transparent; } }
-  @media (prefers-reduced-motion: reduce) { tr.fresh { animation: none; background: var(--new); } }
-  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem; border: 1px solid var(--border);
-         white-space: nowrap; }
-  .tag .sw { width: 8px; height: 8px; margin-right: 5px; }
-  pre { margin: 0; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); border-radius: 6px; overflow-x: auto; font-size: .8125rem; }
-  .detail td { background: var(--bg); }
-  .empty { color: var(--muted); padding: 24px; text-align: center; }
-  .muted { color: var(--muted); }
-  #tip { position: fixed; pointer-events: none; background: var(--text); color: var(--surface); font-size: .8125rem;
-         padding: 4px 8px; border-radius: 4px; display: none; z-index: 10; white-space: nowrap; }
-  .map-card { margin-bottom: 12px; }
-  .map-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
-  .map-head .legend { margin-bottom: 0; }
-  #map { height: 380px; border-radius: 6px; border: 1px solid var(--border); margin-top: 8px; background: var(--bg); }
-  @media (max-width: 760px) { #map { height: 300px; } }
-  #map .leaflet-popup-content { font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 10px 12px; }
-  #map .leaflet-popup-content strong { display: block; }
-  .map-note { color: var(--muted); font-size: .8125rem; margin: 8px 0 0; }
-  .map-off { padding: 24px; color: var(--muted); text-align: center; }
-  .linkish { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font-size: inherit; }
-  /* Priority: icon and text as well as colour (WCAG 1.4.1). */
-  .prio { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-weight: 600; font-size: .8125rem;
-          padding: 1px 8px 1px 6px; border-radius: 999px; border: 1px solid var(--pc); }
-  .prio .ic { color: var(--pc); font-size: .9em; }
-  .prio-P1 { --pc: var(--p1); background: var(--alert-bg); } .prio-P2 { --pc: var(--p2); }
-  .prio-P3 { --pc: var(--p3); } .prio-P4 { --pc: var(--p4); font-weight: 400; }
-  .kpi.urgent { border-color: var(--p1); }
-  .kpi.urgent .value { color: var(--p1); }
-  .alert { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 0 0 12px;
-           padding: 10px 14px; border-radius: 8px; border: 1px solid var(--p1); background: var(--alert-bg); color: var(--alert-text); }
-  .alert[hidden] { display: none; }
-  .triage { margin: 0 0 12px; padding: 10px 12px; border-left: 4px solid var(--pc); background: var(--surface); border-radius: 6px; }
-  .triage ul { margin: 6px 0 0; padding-left: 20px; }
-  .triage .muted { font-size: .8125rem; }
-  .pulse { animation: pulse 1.6s ease-out 3; }
-  @keyframes pulse { 0% { stroke-width: 2; } 50% { stroke-width: 10; stroke-opacity: .4; } 100% { stroke-width: 2; } }
+  /* Page layout only: colours, type and components come from /ui/ui.css (--ct-* tokens, ct-* classes). */
+  .db-kpis { display: grid; gap: var(--ct-space-3); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 900px) { .db-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .db-kpis--secondary .ct-kpi__value { font-size: 1.5rem; }
+  .db-kpis .ct-kpi__sub { overflow-wrap: anywhere; }
+  .db-charts { display: grid; gap: var(--ct-space-4); grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+  @media (max-width: 860px) { .db-charts { grid-template-columns: 1fr; } }
+  .db-head-actions { display: flex; flex-wrap: wrap; gap: var(--ct-space-2); align-items: center; }
+  .db-count { margin-left: auto; }
+  .db-groupchip { display: inline-flex; align-items: center; gap: 8px; }
+  .db-groupchip[hidden] { display: none; }
+  .ct-row { cursor: pointer; }
+  .ct-row .ct-cell-sub.ct-mono { font-size: var(--ct-text-xs); }
+  .db-details { color: var(--ct-muted); font-size: var(--ct-text-sm); margin-top: 2px; overflow-wrap: anywhere; }
+  .db-detail-side { display: grid; gap: var(--ct-space-3); align-content: start; }
+  .db-detail-side .rc-link { margin: 0; font-size: var(--ct-text-sm); }
+  #map { margin-top: 0; }
+  .db-map-off { padding: var(--ct-space-6); color: var(--ct-muted); text-align: center; }
+  .db-map-note { margin-top: var(--ct-space-3); font-size: var(--ct-text-sm); color: var(--ct-muted); }
+  .ct-map .leaflet-popup-content .ct-prio { margin: 4px 0; }
+  .pulse { animation: db-pulse 1.6s ease-out 3; }
+  @keyframes db-pulse { 0% { stroke-width: 2; } 50% { stroke-width: 10; stroke-opacity: .4; } 100% { stroke-width: 2; } }
   @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
-  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .tag.dup { background: var(--warn-bg); color: var(--warn-text); border-color: transparent; margin-left: 6px; }
-  .groups-card { margin-bottom: 12px; }
-  .groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  .group { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: start; padding: 10px 12px;
-           border: 1px solid var(--border); border-radius: 8px; }
-  .group.active { border-color: var(--accent); background: var(--accent-soft); }
-  .group .count { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 2.5em; }
-  .group .actions { display: flex; gap: 10px; white-space: nowrap; }
-  .group-filter { display: inline-flex; gap: 6px; align-items: center; }
+  @media (max-width: 640px) {
+    .db-count { margin-left: 0; width: 100%; }
+    .ct-table--stack tr.ct-row > td:first-child { grid-row: 1 / span 6; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Submissions dashboard</h1>
-    <div class="status" aria-live="polite">
-      <span><span class="dot" id="dot"></span><span id="updated">Loading…</span></span>
-      <button type="button" id="pause" aria-pressed="false">Pause</button>
-      <a href="/">Chat</a> <a href="/mock/">Mock forms</a>
+<a class="ct-skip" href="#main">Skip to main content</a>
+<header class="ct-header">
+  <div class="ct-header__inner">
+    <a class="ct-brand" href="/" aria-label="CouncilTriagent home">
+      <img class="ct-brand__mark" src="/ui/logo-mark.svg" alt="" width="32" height="32">
+      <span class="ct-brand__text"><span class="ct-brand__name">Council<b>Triagent</b></span><span class="ct-brand__sub">Triage console</span></span>
+    </a>
+    <nav class="ct-nav" aria-label="Main">
+      <a href="/">Chat</a>
+      <a href="/dashboard" aria-current="page">Dashboard</a>
+    </nav>
+    <div class="ct-header__meta" aria-live="polite">
+      <span class="ct-status"><span class="ct-dot ct-dot--live" id="dot"></span><span id="updated">Loading…</span></span>
+      <button class="ct-btn ct-btn--sm" type="button" id="pause" aria-pressed="false">Pause</button>
+      <span class="ct-badge ct-pill ct-pill--prototype">Prototype</span>
     </div>
-  </header>
-  <p class="banner">Unofficial hackathon prototype. These are submissions to the <strong>mock</strong> council forms: nothing is sent to the council. Reporter names and contact details are not stored.</p>
+  </div>
+</header>
+<div class="ct-strip"><div class="ct-strip__inner"><strong>Unofficial hackathon prototype.</strong> Nothing is sent to Sheffield City Council.</div></div>
 
-  <div class="alert" id="p1-alert" role="status" aria-live="polite" hidden>
-    <span id="p1-alert-text"></span>
-    <button type="button" id="p1-alert-close">Dismiss</button>
+<main id="main" class="ct-container ct-main ct-stack">
+  <div class="ct-page-head" style="margin-bottom:0">
+    <div>
+      <h1 class="ct-page-title">Submissions dashboard</h1>
+      <p class="ct-page-lead">Reports to the <strong>mock</strong> council forms, triaged by priority. Priorities are suggestions; the council decides after inspection.</p>
+    </div>
+    <a class="ct-btn ct-btn--sm ct-btn--ghost" href="/mock/">Mock forms</a>
+  </div>
+  <div class="ct-notice ct-notice--prototype ct-notice--compact"><span class="ct-notice__icon" aria-hidden="true">!</span><div><strong>Mock forms only:</strong> nothing is sent to the council. Reporter names and contact details are not stored.</div></div>
+
+  <div class="ct-alert" id="p1-alert" role="status" aria-live="polite" hidden>
+    <span class="ct-alert__icon" aria-hidden="true">⚠</span>
+    <div class="ct-alert__body"><strong class="ct-alert__title" id="p1-alert-title">New P1 emergency</strong><span id="p1-alert-text"></span></div>
+    <div class="ct-alert__actions">
+      <button class="ct-btn ct-btn--danger ct-btn--sm" type="button" id="p1-alert-show">Show P1s</button>
+      <button class="ct-btn ct-btn--ghost ct-btn--sm" type="button" id="p1-alert-close">Dismiss</button>
+    </div>
   </div>
 
-  <section class="kpis" aria-label="Summary">
-    <div class="card kpi urgent"><div class="label">P1 emergencies awaiting action</div><div class="value" id="k-p1">–</div><div class="sub" id="k-p1-sub"></div></div>
-    <div class="card kpi"><div class="label">P2 high priority</div><div class="value" id="k-p2">–</div><div class="sub" id="k-p2-sub"></div></div>
-    <div class="card kpi"><div class="label">Submissions</div><div class="value" id="k-total">–</div><div class="sub" id="k-total-sub"></div></div>
-    <div class="card kpi"><div class="label">Last hour</div><div class="value" id="k-hour">–</div><div class="sub" id="k-hour-sub"></div></div>
-    <div class="card kpi"><div class="label">By agents</div><div class="value" id="k-agent">–</div><div class="sub" id="k-agent-sub"></div></div>
-    <div class="card kpi"><div class="label">Form page views</div><div class="value" id="k-views">–</div><div class="sub" id="k-views-sub"></div></div>
-    <div class="card kpi"><div class="label">Repeated problems</div><div class="value" id="k-dup">–</div><div class="sub" id="k-dup-sub"></div></div>
-  </section>
-
-  <section class="charts">
-    <div class="card">
-      <h2 id="h-time">Submissions per hour, last 24 hours</h2>
-      <div class="legend" id="legend"></div>
-      <svg id="c-time" role="img" aria-labelledby="h-time" width="100%" height="180"></svg>
-    </div>
-    <div class="card">
-      <h2 id="h-prob">By problem</h2>
-      <svg id="c-prob" role="img" aria-labelledby="h-prob" width="100%" height="180"></svg>
+  <section aria-label="Summary" class="ct-stack ct-stack--sm" style="--ct-stack-gap:var(--ct-space-3)">
+    <div class="db-kpis" id="prio-kpis"></div>
+    <div class="db-kpis db-kpis--secondary">
+      <div class="ct-kpi"><div class="ct-kpi__label"><span aria-hidden="true">⧉</span>Repeated problems</div><div class="ct-kpi__value" id="k-dup">–</div><div class="ct-kpi__sub" id="k-dup-sub"></div></div>
+      <div class="ct-kpi"><div class="ct-kpi__label">Submissions</div><div class="ct-kpi__value" id="k-total">–</div><div class="ct-kpi__sub" id="k-total-sub"></div></div>
+      <div class="ct-kpi"><div class="ct-kpi__label">By agents</div><div class="ct-kpi__value" id="k-agent">–</div><div class="ct-kpi__sub" id="k-agent-sub"></div></div>
+      <div class="ct-kpi"><div class="ct-kpi__label">Form page views</div><div class="ct-kpi__value" id="k-views">–</div><div class="ct-kpi__sub" id="k-views-sub"></div></div>
     </div>
   </section>
 
-  <section class="card map-card" aria-labelledby="h-map">
-    <div class="map-head">
-      <h2 id="h-map">Where problems were reported</h2>
-      <div class="legend" id="map-legend"></div>
-      <button type="button" id="map-fit">Fit to reports</button>
+  <section class="db-charts">
+    <div class="ct-card">
+      <div class="ct-card__head"><h2 class="ct-card__title" id="h-time">Submissions per hour, last 24 hours</h2><ul class="ct-legend" id="legend"></ul></div>
+      <svg class="ct-chart" id="c-time" role="img" aria-labelledby="h-time" width="100%" height="180"></svg>
     </div>
-    <div id="map" role="region" aria-labelledby="h-map" aria-describedby="map-note"></div>
-    <p class="map-note" id="map-note"></p>
+    <div class="ct-card">
+      <div class="ct-card__head"><h2 class="ct-card__title" id="h-prob">By problem</h2></div>
+      <svg class="ct-chart" id="c-prob" role="img" aria-labelledby="h-prob" width="100%" height="180"></svg>
+    </div>
   </section>
 
-  <section class="card groups-card" aria-labelledby="h-groups">
-    <h2 id="h-groups">Repeated problems</h2>
-    <p class="muted" id="groups-note" style="margin:-6px 0 10px"></p>
-    <ul class="groups" id="groups"></ul>
+  <section class="ct-card" aria-labelledby="h-map">
+    <div class="ct-card__head">
+      <h2 class="ct-card__title" id="h-map">Where problems were reported</h2>
+      <div class="db-head-actions"><ul class="ct-legend" id="map-legend"></ul><button class="ct-btn ct-btn--sm" type="button" id="map-fit">Fit to reports</button></div>
+    </div>
+    <div class="ct-map" id="map" role="region" aria-labelledby="h-map" aria-describedby="map-note"></div>
+    <p class="db-map-note" id="map-note"></p>
   </section>
 
-  <section class="card" aria-labelledby="h-list">
-    <h2 id="h-list">Triage queue</h2>
-    <div class="filters">
-      <label class="sr-only" for="f-sort">Sort</label>
-      <select id="f-sort">
+  <section class="ct-card" aria-labelledby="h-groups">
+    <div class="ct-card__head"><div><h2 class="ct-card__title" id="h-groups">Repeated problems <span class="ct-count" id="groups-count">0</span></h2><p class="ct-card__sub" id="groups-note"></p></div></div>
+    <ul class="ct-groups" id="groups"></ul>
+  </section>
+
+  <section class="ct-card" aria-labelledby="h-list">
+    <div class="ct-card__head"><h2 class="ct-card__title" id="h-list">Triage queue <span class="ct-count" id="list-count">0</span></h2><span class="ct-small ct-muted">Click a row for triage reasons and the full report</span></div>
+    <div class="ct-toolbar" style="margin-bottom:var(--ct-space-3)">
+      <label class="ct-visually-hidden" for="f-sort">Sort</label>
+      <select class="ct-select ct-select--sm" id="f-sort">
         <option value="priority">Priority first</option>
         <option value="time">Newest first</option>
       </select>
-      <label class="sr-only" for="f-prio">Priority</label>
-      <select id="f-prio">
+      <label class="ct-visually-hidden" for="f-prio">Priority</label>
+      <select class="ct-select ct-select--sm" id="f-prio">
         <option value="">All priorities</option>
         <option value="P1">P1 Emergency</option>
         <option value="P2">P2 High</option>
         <option value="P3">P3 Routine</option>
         <option value="P4">P4 Low</option>
       </select>
-      <label class="sr-only" for="f-form">Form</label>
-      <select id="f-form"><option value="">All forms</option></select>
-      <label class="sr-only" for="f-source">Source</label>
-      <select id="f-source">
+      <label class="ct-visually-hidden" for="f-form">Form</label>
+      <select class="ct-select ct-select--sm" id="f-form"><option value="">All forms</option></select>
+      <label class="ct-visually-hidden" for="f-source">Source</label>
+      <select class="ct-select ct-select--sm" id="f-source">
         <option value="">All sources</option>
         <option value="form_agent">Form agent</option>
         <option value="chat_agent">Chat agent</option>
         <option value="browser">Browser (by hand)</option>
       </select>
-      <label class="sr-only" for="f-q">Search</label>
-      <input id="f-q" type="search" placeholder="Search reference, location, details…">
-      <label class="group-filter"><input type="checkbox" id="f-dup"> Repeated only</label>
-      <span class="group-filter" id="group-chip" hidden></span>
-      <span class="muted" id="shown"></span>
+      <div class="ct-search"><label class="ct-visually-hidden" for="f-q">Search</label><input class="ct-input ct-input--sm" id="f-q" type="search" placeholder="Search reference, location, details…"></div>
+      <label class="ct-check"><input type="checkbox" id="f-dup"> Repeated only</label>
+      <span class="db-groupchip" id="group-chip" hidden></span>
+      <span class="ct-small ct-muted db-count" id="shown"></span>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th scope="col">Priority</th><th scope="col">Time</th><th scope="col">Reference</th><th scope="col">Form</th><th scope="col">Problem</th>
-          <th scope="col">Location</th><th scope="col">Source</th></tr></thead>
-        <tbody id="rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
+    <div class="ct-table-wrap">
+      <table class="ct-table ct-table--stack">
+        <thead><tr><th scope="col" class="ct-shrink"><span class="ct-visually-hidden">Details</span></th><th scope="col">Priority</th><th scope="col">Problem</th>
+          <th scope="col">Location</th><th scope="col">Form and source</th><th scope="col" class="ct-num">Time</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="6"><div class="ct-empty"><span class="ct-spinner"></span>Loading…</div></td></tr></tbody>
       </table>
     </div>
   </section>
 </main>
-<div id="tip" role="tooltip"></div>
+<footer class="ct-footer"><div class="ct-footer__inner"><span>CouncilTriagent · NVIDIA Hack for Impact, Sheffield · unofficial prototype, nothing is sent to the council</span><span>Local LLM on DGX Spark</span></div></footer>
+<div id="tip" class="ct-tooltip" role="tooltip" hidden></div>
 
 <script>
 (() => {
   const POLL_MS = 5000;
-  // Categorical slots in fixed order (dataviz reference palette, first three: validated all-pairs).
-  const FORM_SLOTS = { report_pothole_crack: "--s1", report_tree: "--s2" };
-  const OTHER_SLOT = "--s3";
+  const TITLE = document.title;
   const SOURCE_LABEL = { form_agent: "Form agent", chat_agent: "Chat agent", browser: "Browser" };
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const slot = form => FORM_SLOTS[form] || OTHER_SLOT;
-  const color = form => `var(${slot(form)})`;
+  const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Triage priority (src/app/triage.py). Icon and text carry the meaning; colour only reinforces it.
+  // Triage priority (src/app/triage.py). Colour means priority, always with icon and text (WCAG 1.4.1).
   const PRIO = {
     P1: { icon: "⚠", label: "Emergency", rank: 0, radius: 10 },
     P2: { icon: "▲", label: "High", rank: 1, radius: 8 },
     P3: { icon: "●", label: "Routine", rank: 2, radius: 7 },
     P4: { icon: "↪", label: "Low", rank: 3, radius: 6 },
   };
+  const PKEYS = Object.keys(PRIO);
+  const pcls = p => "ct-" + p.toLowerCase();
   const prioOf = i => (i.triage && PRIO[i.triage.priority]) ? i.triage.priority : "P3";
-  const badge = i => { const p = prioOf(i); return `<span class="prio prio-${p}"><span class="ic" aria-hidden="true">${PRIO[p].icon}</span>${p} ${PRIO[p].label}</span>`; };
+  const chip = (p, text) => `<span class="ct-prio ${pcls(p)}"><span class="ct-prio__icon" aria-hidden="true">${PRIO[p].icon}</span>${text ?? `${p} ${PRIO[p].label}`}</span>`;
+  const badge = i => chip(prioOf(i));
   const ago = ms => { const m = Math.max(0, Math.round(ms / 60000)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 1440)} d ${Math.floor(m % 1440 / 60)} h`; };
   function engineLabel(engine) {
-  if (engine === "fallback") return "a fallback (triage failed)";
-  const extra = { llm: "the local AI model", context: "map context" };
-  const parts = String(engine || "rules").split("+").slice(1).map(p => extra[p]).filter(Boolean);
-  return parts.length ? "rules plus " + parts.join(" and ") : "rules";
-}
-function triageHtml(i) {
+    if (engine === "fallback") return "a fallback (triage failed)";
+    const extra = { llm: "the local AI model", context: "map context" };
+    const parts = String(engine || "rules").split("+").slice(1).map(p => extra[p]).filter(Boolean);
+    return parts.length ? "rules plus " + parts.join(" and ") : "rules";
+  }
+  function triageHtml(i) {
     const t = i.triage; if (!t) return "";
-    const p = prioOf(i);
-    return `<div class="triage" style="--pc:var(--${p.toLowerCase()})"><div>${badge(i)} <strong>${esc(t.response_target)}</strong></div>`
-      + `<ul>${(t.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>`
-      + `<div class="muted">Suggested by ${engineLabel(t.engine)}`
-      + ` · score ${esc(t.score)} · the council decides after inspection</div></div>`;
+    const p = prioOf(i), score = Number(t.score);
+    const meter = Number.isFinite(score) ? ` <span class="ct-meter" aria-hidden="true"><span style="--ct-meter:${Math.max(0, Math.min(100, score))}%"></span></span>` : "";
+    return `<section class="ct-triage ${pcls(p)}" aria-label="Suggested triage">`
+      + `<div class="ct-triage__head">${badge(i)}<span class="ct-triage__target">${esc(t.response_target)}</span><span class="ct-triage__score">Score ${esc(t.score)}${meter}</span></div>`
+      + `<ul class="ct-triage__reasons">${(t.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>`
+      + `<p class="ct-triage__foot">Suggested by ${engineLabel(t.engine)} · the council decides after inspection</p></section>`;
   }
 
   let data = null, seen = null, paused = false, open = new Set(), forms = {};
   let groupFilter = null; // id of the duplicate group the table is filtered to, or null
   const formName = f => forms[f] || f || "Unknown";
   const dupOf = i => i.duplicate && i.duplicate.group_size > 1 ? i.duplicate : null;
-  const dupBadge = i => { const d = dupOf(i); return d ? `<span class="tag dup" title="Probably the same problem as ${d.others} other report${d.others === 1 ? "" : "s"} (first ${esc(d.first_reference)})">×${d.group_size} similar</span>` : ""; };
+  const dupBadge = i => { const d = dupOf(i); return d ? ` <span class="ct-dup" title="Probably the same problem as ${d.others} other report${d.others === 1 ? "" : "s"} (first ${esc(d.first_reference)})"><span class="ct-dup__icon" aria-hidden="true">⧉</span>×${d.group_size} similar</span>` : ""; };
 
   // ---------- tooltip ----------
   const tip = $("tip");
   function showTip(e, text) {
-    tip.textContent = text; tip.style.display = "block";
+    tip.textContent = text; tip.hidden = false;
     const x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8);
-    tip.style.left = x + "px"; tip.style.top = (e.clientY - 32) + "px";
+    tip.style.left = x + "px"; tip.style.top = (e.clientY - 36) + "px";
   }
-  const hideTip = () => (tip.style.display = "none");
+  const hideTip = () => (tip.hidden = true);
   function bindTips(svg) {
     svg.querySelectorAll("[data-tip]").forEach(el => {
       el.addEventListener("pointermove", e => showTip(e, el.dataset.tip));
@@ -282,79 +219,93 @@ function triageHtml(i) {
     });
   }
 
-  // ---------- charts ----------
+  // ---------- charts (stacked by priority: same colours as the chips and map pins) ----------
   const fmtTime = d => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   const fmtDateTime = d => d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
-
+  const fill = p => `var(--ct-${p.toLowerCase()})`;
   function niceMax(n) { if (n <= 4) return 4; const p = 10 ** Math.floor(Math.log10(n)); return Math.ceil(n / p) * p; }
+  const legendHtml = (dot, long) => PKEYS.map(p =>
+    `<li class="${pcls(p)}"><span class="ct-swatch${dot ? " ct-swatch--dot" : ""}"></span>${PRIO[p].icon} ${p}${long ? " " + PRIO[p].label : ""}</li>`).join("");
+
+  // One stacked bar (P1 at the base), rounded top. Returns SVG for a vertical (horiz=false) or horizontal bar.
+  function stack(counts, horiz, x0, base, thick, scale) {
+    const keys = PKEYS.filter(p => counts[p]);
+    let s = "", at = 0;
+    keys.forEach((p, j) => {
+      const len = Math.max(1, counts[p] * scale - (j < keys.length - 1 ? 2 : 0)); // 2px gap between segments
+      const last = j === keys.length - 1, r = last ? Math.min(4, len / 2) : 0;
+      if (horiz) {
+        const x = base + at;
+        s += r ? `<path d="M${x},${x0} H${x + len - r} q${r},0 ${r},${r} V${x0 + thick - r} q0,${r} -${r},${r} H${x} Z" fill="${fill(p)}"/>`
+               : `<rect x="${x}" y="${x0}" width="${len}" height="${thick}" fill="${fill(p)}"/>`;
+      } else {
+        const y = base - at;
+        s += r ? `<path d="M${x0},${y} V${y - len + r} q0,-${r} ${r},-${r} H${x0 + thick - r} q${r},0 ${r},${r} V${y} Z" fill="${fill(p)}"/>`
+               : `<rect x="${x0}" y="${y - len}" width="${thick}" height="${len}" fill="${fill(p)}"/>`;
+      }
+      at += counts[p] * scale;
+    });
+    return s;
+  }
+  const breakdown = c => PKEYS.filter(p => c[p]).map(p => ` · ${p} ${c[p]}`).join("");
 
   function drawTime(items) {
     const svg = $("c-time"), W = svg.clientWidth || 600, H = 180, L = 28, R = 8, T = 8, B = 22;
     const now = new Date(); now.setMinutes(0, 0, 0);
-    const hours = Array.from({ length: 24 }, (_, i) => new Date(now.getTime() - (23 - i) * 3600e3));
-    const keys = [...new Set(items.map(i => i.form))].sort((a, b) => (FORM_SLOTS[a] ? 0 : 1) - (FORM_SLOTS[b] ? 0 : 1) || a.localeCompare(b));
-    const stackKeys = []; // pothole, tree, then everything else folded into "Other"
-    keys.forEach(k => { const key = FORM_SLOTS[k] ? k : "_other"; if (!stackKeys.includes(key)) stackKeys.push(key); });
-    const bins = hours.map(h => { const o = {}; stackKeys.forEach(k => (o[k] = 0)); o._t = h; return o; });
+    const bins = Array.from({ length: 24 }, (_, i) => ({ _t: new Date(now.getTime() - (23 - i) * 3600e3), P1: 0, P2: 0, P3: 0, P4: 0 }));
     items.forEach(i => {
       const t = new Date(i.submitted_at); const idx = 23 - Math.floor((now.getTime() + 3600e3 - 1 - t.getTime()) / 3600e3);
-      if (idx >= 0 && idx < 24) bins[idx][FORM_SLOTS[i.form] ? i.form : "_other"]++;
+      if (idx >= 0 && idx < 24) bins[idx][prioOf(i)]++;
     });
-    const max = niceMax(Math.max(0, ...bins.map(b => stackKeys.reduce((s, k) => s + b[k], 0))));
-    const bw = (W - L - R) / 24, y = v => T + (H - T - B) * (1 - v / max);
+    const tot = b => PKEYS.reduce((s, p) => s + b[p], 0);
+    const max = niceMax(Math.max(0, ...bins.map(tot)));
+    const bw = (W - L - R) / 24, y = v => T + (H - T - B) * (1 - v / max), scale = (H - T - B) / max;
     let s = "";
     [0, max / 2, max].forEach(v => {
-      s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/>`;
+      s += `<line class="ct-chart__grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/>`;
       s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
     });
     bins.forEach((b, i) => {
-      const x = L + i * bw + 2, w = Math.max(2, bw - 4);
-      let base = 0;
-      const total = stackKeys.reduce((s, k) => s + b[k], 0);
-      const label = `${fmtTime(b._t)}–${fmtTime(new Date(b._t.getTime() + 3600e3))}: ${total} submission${total === 1 ? "" : "s"}`
-        + stackKeys.filter(k => b[k]).map(k => ` · ${k === "_other" ? "Other" : formName(k)} ${b[k]}`).join("");
-      stackKeys.forEach((k, j) => {
-        if (!b[k]) return;
-        const y0 = y(base), y1 = y(base + b[k]); base += b[k];
-        const top = j === stackKeys.length - 1 || stackKeys.slice(j + 1).every(kk => !b[kk]);
-        const h = Math.max(1, y0 - y1 - (base < total ? 2 : 0)); // 2px surface gap between stacked segments
-        s += top
-          ? `<path d="M${x},${y0} V${y0 - h + 4} q0,-4 4,-4 H${x + w - 4} q4,0 4,4 V${y0} Z" fill="${k === "_other" ? `var(${OTHER_SLOT})` : color(k)}"/>`
-          : `<rect x="${x}" y="${y0 - h}" width="${w}" height="${h}" fill="${k === "_other" ? `var(${OTHER_SLOT})` : color(k)}"/>`;
-      });
+      const x = L + i * bw + 2, w = Math.max(2, bw - 4), total = tot(b);
+      s += stack(b, false, x, y(0), w, scale);
+      const label = `${fmtTime(b._t)}–${fmtTime(new Date(b._t.getTime() + 3600e3))}: ${total} submission${total === 1 ? "" : "s"}${breakdown(b)}`;
       s += `<rect x="${L + i * bw}" y="${T}" width="${bw}" height="${H - T - B}" fill="transparent" data-tip="${esc(label)}"/>`;
       if (i % 4 === 3) s += `<text x="${x + w / 2}" y="${H - 6}" text-anchor="middle">${fmtTime(b._t)}</text>`;
     });
     svg.innerHTML = s; bindTips(svg);
-    $("legend").innerHTML = stackKeys.length < 2 ? "" : stackKeys.map(k =>
-      `<span><span class="sw" style="background:${k === "_other" ? `var(${OTHER_SLOT})` : color(k)}"></span>${esc(k === "_other" ? "Other" : formName(k))}</span>`).join("");
+    $("legend").innerHTML = legendHtml(false, false);
   }
 
   function drawProblems(items) {
     const svg = $("c-prob"), W = svg.clientWidth || 400;
     const counts = {};
-    items.forEach(i => { const k = i.problem || "Not recorded"; counts[k] = (counts[k] || 0) + 1; });
-    let rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    if (rows.length > 7) rows = [...rows.slice(0, 6), ["Other", rows.slice(6).reduce((s, r) => s + r[1], 0)]];
-    const rowH = 24, H = Math.max(60, rows.length * rowH + 8), labelW = Math.min(170, W * 0.45), max = Math.max(1, ...rows.map(r => r[1]));
+    items.forEach(i => { const k = i.problem || "Not recorded"; (counts[k] ||= { n: 0, P1: 0, P2: 0, P3: 0, P4: 0 }); counts[k].n++; counts[k][prioOf(i)]++; });
+    let rows = Object.entries(counts).sort((a, b) => b[1].n - a[1].n);
+    if (rows.length > 7) {
+      const other = { n: 0, P1: 0, P2: 0, P3: 0, P4: 0 };
+      rows.slice(6).forEach(([, c]) => ["n", ...PKEYS].forEach(k => (other[k] += c[k])));
+      rows = [...rows.slice(0, 6), ["Other", other]];
+    }
+    const rowH = 26, H = Math.max(60, rows.length * rowH + 8), labelW = Math.min(170, W * 0.45), max = Math.max(1, ...rows.map(r => r[1].n));
     svg.setAttribute("height", H);
     if (!rows.length) { svg.innerHTML = `<text x="0" y="20">No submissions yet</text>`; return; }
+    const scale = (W - labelW - 40) / max;
     let s = "";
-    rows.forEach(([k, v], i) => {
-      const y = 4 + i * rowH, w = Math.max(4, (W - labelW - 40) * v / max);
+    rows.forEach(([k, c], i) => {
+      const y = 4 + i * rowH;
       const maxChars = Math.floor((labelW - 8) / 6.2); // ~6px per character at 11px
       const name = k.length > maxChars ? k.slice(0, maxChars - 1) + "…" : k;
-      s += `<text x="${labelW - 8}" y="${y + 15}" text-anchor="end">${esc(name)}</text>`;
-      s += `<path d="M${labelW},${y + 4} H${labelW + w - 4} q4,0 4,4 V${y + 16} q0,4 -4,4 H${labelW} Z" fill="var(--s1)"/>`;
-      s += `<text x="${labelW + w + 6}" y="${y + 15}">${v}</text>`;
-      s += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="transparent" data-tip="${esc(k)}: ${v}"/>`;
+      s += `<text class="ct-chart__label" x="${labelW - 8}" y="${y + 15}" text-anchor="end">${esc(name)}</text>`;
+      s += stack(c, true, y + 4, labelW, 16, scale);
+      s += `<text class="ct-chart__value" x="${labelW + c.n * scale + 6}" y="${y + 15}">${c.n}</text>`;
+      s += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="transparent" data-tip="${esc(k)}: ${c.n}${breakdown(c)}"/>`;
     });
     svg.innerHTML = s; bindTips(svg);
   }
 
   // ---------- map ----------
-  // Circle markers coloured by form (same slots as the charts). Markers are diffed by submission key on each poll,
-  // so an open popup and the user's pan/zoom survive the 5 s refresh. The view only auto-fits on the first load.
+  // Circle markers coloured by priority (same as the chips and charts). Markers are diffed by submission key on each
+  // poll, so an open popup and the user's pan/zoom survive the 5 s refresh. The view only auto-fits on the first load.
   const SHEFFIELD = [53.3811, -1.4701];
   // Esri grey canvas basemaps (the mock forms also use Esri tiles; CARTO now needs an API key), base plus labels.
   const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
@@ -375,7 +326,7 @@ function triageHtml(i) {
 
   function initMap() {
     if (typeof L === "undefined") {
-      $("map").innerHTML = `<p class="map-off">Map unavailable: no internet access to load Leaflet from unpkg.com. Use the “map” links in the table instead.</p>`;
+      $("map").innerHTML = `<p class="db-map-off">Map unavailable: no internet access to load Leaflet from unpkg.com. Use the “map” links in the table instead.</p>`;
       $("map-fit").hidden = true;
       return;
     }
@@ -404,11 +355,11 @@ function triageHtml(i) {
     const t = new Date(i.submitted_at);
     return `<strong>${esc(formName(i.form))}${i.problem ? ` · ${esc(i.problem)}` : ""}</strong>`
       + `${badge(i)}<br>`
-      + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
+      + `<span class="ct-mono">${esc(i.reference)}</span>${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
       + (i.location ? `<br>${esc(i.location)}` : "")
-      + (i.geo_source && !["form", "device"].includes(i.geo_source) ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
-      + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "")
-      + (dupOf(i) ? `<br><strong>Repeated problem: ${dupOf(i).group_size} reports</strong> (first ${esc(dupOf(i).first_reference)})` : "");
+      + (i.geo_source && !["form", "device"].includes(i.geo_source) ? `<br><span class="ct-muted">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
+      + (i.details ? `<br><span class="ct-muted">${esc(i.details)}</span>` : "")
+      + (dupOf(i) ? `<br><span class="ct-dup" style="margin-top:4px"><span class="ct-dup__icon" aria-hidden="true">⧉</span>Repeated problem: ${dupOf(i).group_size} reports</span> <span class="ct-muted">(first ${esc(dupOf(i).first_reference)})</span>` : "");
   }
 
   function drawMap(items, fresh) {
@@ -416,26 +367,25 @@ function triageHtml(i) {
     $("map-note").textContent = !items.length ? "No submissions to map."
       : `${pts.length} of ${items.length} shown submission${items.length === 1 ? "" : "s"} mapped.`
         + (missing ? ` ${missing} ha${missing === 1 ? "s" : "ve"} no coordinates (the location couldn't be found from what was typed).` : "");
-    $("map-legend").innerHTML = Object.entries(PRIO).map(([p, v]) =>
-      `<span><span class="sw" style="background:var(--${p.toLowerCase()});border-radius:50%"></span>${v.icon} ${p} ${v.label}</span>`).join("");
+    $("map-legend").innerHTML = legendHtml(true, true);
     if (!map) return;
-    const stroke = cssVar("--surface"), want = new Set(pts.map(keyOf));
+    const stroke = cssVar("--ct-pin-stroke") || "#fff", want = new Set(pts.map(keyOf));
     for (const [k, m] of markers) if (!want.has(k)) { layer.removeLayer(m); markers.delete(k); }
     // Lowest priority first, then oldest, so P1 and the newest markers are drawn on top.
     [...pts].reverse().sort((a, b) => PRIO[prioOf(b)].rank - PRIO[prioOf(a)].rank).forEach(i => {
-      const k = keyOf(i), r = PRIO[prioOf(i)].radius;
-      const style = { radius: fresh.has(k) ? r + 4 : r, color: stroke, weight: 2, fillColor: cssVar("--" + prioOf(i).toLowerCase()), fillOpacity: 0.9 };
+      const k = keyOf(i), p = prioOf(i), r = PRIO[p].radius;
+      const style = { radius: fresh.has(k) ? r + 4 : r, color: stroke, weight: 2, fillColor: cssVar("--ct-" + p.toLowerCase()), fillOpacity: 0.95 };
       let m = markers.get(k);
       if (!m) {
         m = L.circleMarker([i.lat, i.lon], style).bindPopup("").addTo(layer);
         markers.set(k, m);
         if (fresh.has(k)) setTimeout(() => m.setStyle({ radius: r }), 4000);
-        if (fresh.has(k) && prioOf(i) === "P1") m.getElement()?.classList.add("pulse");
+        if (fresh.has(k) && p === "P1") m.getElement()?.classList.add("pulse");
       } else if (!fresh.has(k)) {
         m.setStyle(style);
       }
       m.setPopupContent(popupHtml(i));
-      m.bindTooltip(`${prioOf(i)} ${PRIO[prioOf(i)].label} · ${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
+      m.bindTooltip(`${PRIO[p].icon} ${p} ${PRIO[p].label} · ${formName(i.form)} · ${i.reference}`, { direction: "top", offset: [0, -6] });
     });
     if (!fitted && pts.length) { fitMap(); fitted = true; }
   }
@@ -443,27 +393,33 @@ function triageHtml(i) {
   function showOnMap(key) {
     const m = markers.get(key);
     if (!m) return;
-    $("h-map").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    $("h-map").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
     map.setView(m.getLatLng(), Math.max(map.getZoom(), 16));
     m.openPopup();
   }
 
   // ---------- KPIs ----------
+  // Priority tiles are buttons that filter the triage queue (same as the Priority select).
   function drawKpis(all) {
-    const hourAgo = Date.now() - 3600e3;
+    const hourAgo = Date.now() - 3600e3, cur = $("f-prio").value;
     const bySource = s => all.filter(i => i.source === s).length;
-    const p1 = all.filter(i => prioOf(i) === "P1"), count = p => all.filter(i => prioOf(i) === p).length;
-    $("k-p1").textContent = p1.length;
-    const oldest = Math.min(...p1.map(i => new Date(i.submitted_at).getTime()).filter(Number.isFinite));
-    $("k-p1-sub").textContent = p1.length ? (Number.isFinite(oldest) ? `Oldest waiting ${ago(Date.now() - oldest)}` : "") : "None waiting";
-    $("k-p2").textContent = count("P2");
-    $("k-p2-sub").textContent = `Routine ${count("P3")} · Low ${count("P4")}`;
+    $("prio-kpis").innerHTML = PKEYS.map(p => {
+      const its = all.filter(i => prioOf(i) === p), n = its.length;
+      let sub = "None waiting";
+      if (n && p === "P1") {
+        const oldest = Math.min(...its.map(i => new Date(i.submitted_at).getTime()).filter(Number.isFinite));
+        sub = Number.isFinite(oldest) ? `Oldest waiting ${ago(Date.now() - oldest)}` : "";
+      } else if (n) sub = (its[0].triage && its[0].triage.response_target) || "";
+      if (cur === p) sub = "Filtering the queue · click to clear";
+      const cls = ["ct-kpi", "ct-kpi--button", pcls(p), p === "P1" && n ? "ct-kpi--urgent" : "", n ? "" : "ct-kpi--zero"].join(" ");
+      return `<button type="button" class="${cls}" data-prio="${p}" aria-pressed="${cur === p}">`
+        + `<span class="ct-kpi__label"><span class="ct-prio__icon" aria-hidden="true">${PRIO[p].icon}</span>${p} ${PRIO[p].label}</span>`
+        + `<span class="ct-kpi__value" id="k-${p.toLowerCase()}">${n}</span><span class="ct-kpi__sub">${esc(sub)}</span></button>`;
+    }).join("");
     $("k-total").textContent = all.length;
-    $("k-total-sub").textContent = Object.entries(all.reduce((o, i) => (o[i.form] = (o[i.form] || 0) + 1, o), {}))
-      .map(([f, n]) => `${formName(f)} ${n}`).join(" · ") || "None yet";
     const lastHour = all.filter(i => new Date(i.submitted_at).getTime() >= hourAgo).length;
-    $("k-hour").textContent = lastHour;
-    $("k-hour-sub").textContent = all[0] ? `Latest ${fmtDateTime(new Date(all[0].submitted_at))}` : "";
+    $("k-total-sub").textContent = [`${lastHour} in the last hour`, ...Object.entries(all.reduce((o, i) => (o[i.form] = (o[i.form] || 0) + 1, o), {}))
+      .map(([f, n]) => `${formName(f)} ${n}`)].join(" · ");
     $("k-agent").textContent = bySource("form_agent") + bySource("chat_agent");
     $("k-agent-sub").textContent = `Form ${bySource("form_agent")} · Chat ${bySource("chat_agent")} · By hand ${bySource("browser")}`;
     const v = Object.values(data.views || {}).reduce((o, p) => (o.agent += p.agent, o.person += p.person, o), { agent: 0, person: 0 });
@@ -475,29 +431,40 @@ function triageHtml(i) {
     $("k-dup-sub").textContent = groups.length
       ? `${inGroups} reports in groups · biggest ×${groups[0].size}` : "No duplicates detected";
   }
+  $("prio-kpis").addEventListener("click", e => {
+    const b = e.target.closest("[data-prio]"); if (!b) return;
+    $("f-prio").value = $("f-prio").value === b.dataset.prio ? "" : b.dataset.prio;
+    render(new Set());
+    $("prio-kpis").querySelector(`[data-prio="${b.dataset.prio}"]`)?.focus();
+  });
 
   // ---------- duplicate groups ----------
   function drawGroups() {
     const groups = data.groups || [], cfg = data.dedup || {};
+    const byKey = new Map(data.submissions.map(i => [keyOf(i), i]));
+    $("groups-count").textContent = groups.length;
     $("groups-note").textContent = `Reports of the same kind of problem within ${Math.round(cfg.radius_m ?? 60)} m and ${Math.round(cfg.window_days ?? 30)} days of each other, `
       + "or on the same street when one has no map position (marked approximate).";
-    if (!groups.length) { $("groups").innerHTML = `<li class="empty">No repeated problems yet.</li>`; return; }
+    if (!groups.length) { $("groups").innerHTML = `<li class="ct-empty"><span class="ct-empty__icon" aria-hidden="true">⧉</span>No repeated problems yet.</li>`; return; }
     $("groups").innerHTML = groups.map(g => {
       const first = new Date(g.first_at), last = new Date(g.last_at);
       const span = isNaN(first) ? "" : `${fmtDateTime(first)}${isNaN(last) || +last === +first ? "" : ` – ${fmtDateTime(last)}`}`;
       const srcs = Object.entries(g.sources || {}).map(([s, n]) => `${esc(SOURCE_LABEL[s] || s)} ${n}`).join(" · ");
       const firstKey = g.members[g.members.length - 1]?.key || "";
-      return `<li class="group${groupFilter === g.id ? " active" : ""}">
-        <span class="count">×${g.size}</span>
-        <div>
-          <span class="tag"><span class="sw" style="background:${color(g.form)}"></span>${esc(formName(g.form))}</span>
-          ${g.problem ? ` <strong>${esc(g.problem)}</strong>` : ""}
-          <div>${esc(g.location) || '<span class="muted">Location not recorded</span>'}${g.approximate ? ' <span class="muted">(approximate: matched by street)</span>' : ""}</div>
-          <div class="muted">First ${esc(g.id)} · ${esc(span)}${srcs ? ` · ${srcs}` : ""}</div>
+      // Highest suggested priority among the group's reports.
+      const prios = (g.members || []).map(m => byKey.get(m.key)).filter(Boolean).map(prioOf);
+      const top = prios.length ? prios.sort((a, b) => PRIO[a].rank - PRIO[b].rank)[0] : null;
+      const active = groupFilter === g.id;
+      return `<li class="ct-group${active ? " is-active" : ""}">
+        <span class="ct-group__count">×${g.size}</span>
+        <div class="ct-group__body">
+          <span class="ct-group__title">${top ? chip(top, top) : ""}${esc(g.problem || formName(g.form))}</span>
+          <span class="ct-group__where">${esc(g.location) || '<span class="ct-muted">Location not recorded</span>'}${g.approximate ? ' <span class="ct-muted">(approximate: matched by street)</span>' : ""}</span>
+          <span class="ct-group__meta">${esc(formName(g.form))} · First <span class="ct-mono">${esc(g.id)}</span> · ${esc(span)}${srcs ? ` · ${srcs}` : ""}</span>
         </div>
-        <div class="actions">
-          <button type="button" class="linkish" data-group="${esc(g.id)}">${groupFilter === g.id ? "Show all" : "Show reports"}</button>
-          ${map && markers.has(firstKey) ? `<button type="button" class="linkish map-link" data-map-key="${esc(firstKey)}">map</button>` : ""}
+        <div class="ct-group__actions">
+          <button type="button" class="ct-btn ct-btn--sm ct-btn--ghost" data-group="${esc(g.id)}" aria-pressed="${active}">${active ? "Show all" : "Show reports"}</button>
+          ${map && markers.has(firstKey) ? `<button type="button" class="ct-btn ct-btn--sm ct-btn--ghost map-link" data-map-key="${esc(firstKey)}">Map</button>` : ""}
         </div>
       </li>`;
     }).join("");
@@ -509,7 +476,7 @@ function triageHtml(i) {
     if (!b) return;
     groupFilter = groupFilter === b.dataset.group ? null : b.dataset.group;
     render(new Set());
-    if (groupFilter) $("h-list").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    if (groupFilter) $("h-list").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
   });
 
   // ---------- table ----------
@@ -517,9 +484,9 @@ function triageHtml(i) {
     const f = $("f-form").value, src = $("f-source").value, pr = $("f-prio").value, q = $("f-q").value.trim().toLowerCase();
     const dupOnly = $("f-dup").checked;
     if (groupFilter && !(data.groups || []).some(g => g.id === groupFilter)) groupFilter = null;
-    const chip = $("group-chip");
-    chip.hidden = !groupFilter;
-    chip.innerHTML = groupFilter ? `Group ${esc(groupFilter)} <button type="button" class="linkish" id="clear-group">clear</button>` : "";
+    const gchip = $("group-chip");
+    gchip.hidden = !groupFilter;
+    gchip.innerHTML = groupFilter ? `<span class="ct-dup"><span class="ct-dup__icon" aria-hidden="true">⧉</span>Group ${esc(groupFilter)}</span><button type="button" class="ct-linkish ct-small" id="clear-group">clear</button>` : "";
     const items = data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) && (!pr || prioOf(i) === pr) &&
       (!dupOnly || dupOf(i)) && (!groupFilter || (i.duplicate && i.duplicate.group_id === groupFilter)) &&
       (!q || [i.reference, i.location, i.details, i.problem, i.title, ...((i.triage || {}).reasons || [])].join(" ").toLowerCase().includes(q)));
@@ -528,31 +495,33 @@ function triageHtml(i) {
   }
   $("group-chip").addEventListener("click", e => { if (e.target.id === "clear-group") { groupFilter = null; render(new Set()); } });
 
+  const detailId = key => "d-" + key.replace(/[^A-Za-z0-9_-]/g, "_");
   function drawTable(items, fresh) {
+    $("list-count").textContent = items.length;
     $("shown").textContent = items.length === data.submissions.length ? "" : `${items.length} of ${data.submissions.length} shown`;
     if (!items.length) {
-      $("rows").innerHTML = `<tr><td colspan="7" class="empty">${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</td></tr>`;
+      $("rows").innerHTML = `<tr><td colspan="6"><div class="ct-empty"><span class="ct-empty__icon"><img src="/ui/logo-mark.svg" alt=""></span>${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</div></td></tr>`;
       return;
     }
     $("rows").innerHTML = items.map(i => {
-      const key = i.source + ":" + i.reference + ":" + i.submitted_at;
+      const key = keyOf(i), p = prioOf(i), isOpen = open.has(key), did = detailId(key);
       const t = new Date(i.submitted_at);
       const mapLink = !located(i) ? ""
-        : map ? ` <button type="button" class="linkish map-link" data-map-key="${esc(key)}">map</button>`
-        : ` <a href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>`;
-      const row = `<tr class="row${fresh.has(key) ? " fresh" : ""}" tabindex="0" data-key="${esc(key)}" aria-expanded="${open.has(key)}">
-        <td>${badge(i)}</td>
-        <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
-        <td class="num">${esc(i.reference)}</td>
-        <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
-        <td>${esc(i.problem) || '<span class="muted">–</span>'}${dupBadge(i)}</td>
-        <td>${esc(i.location) || '<span class="muted">–</span>'}${mapLink}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
-        <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
+        : map ? ` <button type="button" class="ct-linkish ct-small map-link" data-map-key="${esc(key)}">map</button>`
+        : ` <a class="ct-small" href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>`;
+      const who = i.anonymous === true ? " · anonymous" : i.anonymous === false ? " · named" : "";
+      const row = `<tr class="ct-row ${pcls(p)}${fresh.has(key) ? " is-fresh" : ""}${isOpen ? " is-open" : ""}" data-key="${esc(key)}">
+        <td><button type="button" class="ct-disclosure" aria-expanded="${isOpen}" aria-controls="${did}"><span class="ct-visually-hidden">Details for ${esc(i.reference)}</span></button></td>
+        <td data-label="Priority">${badge(i)}</td>
+        <td data-label="Problem"><span class="ct-cell-title">${esc(i.problem) || '<span class="ct-muted">–</span>'}</span>${dupBadge(i)}<span class="ct-cell-sub ct-mono">${esc(i.reference)}</span></td>
+        <td data-label="Location">${esc(i.location) || '<span class="ct-muted">–</span>'}${mapLink}${i.details ? `<div class="db-details">${esc(i.details)}</div>` : ""}</td>
+        <td data-label="Form and source">${esc(formName(i.form))}<span class="ct-cell-sub">${esc(SOURCE_LABEL[i.source] || i.source)}${who}</span></td>
+        <td data-label="Time" class="ct-num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
       </tr>`;
       const residentLink = i.reference
-        ? `<p class="rc-link"><a href="/reports/${encodeURIComponent(i.reference)}" target="_blank" rel="noopener">Open resident view</a></p>` : "";
-      const detail = open.has(key)
-        ? `<tr class="detail"><td colspan="7">${triageHtml(i)}${ReportCard.render(i, { audience: "staff", forms })}${residentLink}</td></tr>` : "";
+        ? `<p class="rc-link"><a class="ct-link" href="/reports/${encodeURIComponent(i.reference)}" target="_blank" rel="noopener">Open resident view ↗</a></p>` : "";
+      const detail = isOpen
+        ? `<tr class="ct-row-detail" id="${did}"><td colspan="6"><div class="ct-row-detail__grid"><div class="db-detail-side">${triageHtml(i) || '<p class="ct-muted ct-small">No triage recorded.</p>'}${residentLink}</div><div>${ReportCard.render(i, { audience: "staff", forms })}</div></div></td></tr>` : "";
       return row + detail;
     }).join("");
   }
@@ -561,17 +530,14 @@ function triageHtml(i) {
     const key = tr.dataset.key;
     open.has(key) ? open.delete(key) : open.add(key);
     render(new Set());
-    document.querySelector(`tr[data-key="${CSS.escape(key)}"]`)?.focus();
+    document.querySelector(`tr[data-key="${CSS.escape(key)}"] .ct-disclosure`)?.focus();
   }
+  // The disclosure button gives keyboard access; a click anywhere on the row also toggles it.
   $("rows").addEventListener("click", e => {
     const link = e.target.closest(".map-link");
     if (link) { showOnMap(link.dataset.mapKey); return; }
-    const tr = e.target.closest("tr.row"); if (tr) toggle(tr);
-  });
-  $("rows").addEventListener("keydown", e => {
-    if (e.target.closest(".map-link")) return; // let the button handle Enter/Space itself
-    const tr = e.target.closest("tr.row");
-    if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(tr); }
+    if (e.target.closest("a")) return;
+    const tr = e.target.closest("tr.ct-row"); if (tr) toggle(tr);
   });
 
   function render(fresh) {
@@ -599,36 +565,40 @@ function triageHtml(i) {
       if (!r.ok) throw new Error(r.status);
       data = await r.json();
       forms = data.forms || {};
-      const keys = new Set(data.submissions.map(i => i.source + ":" + i.reference + ":" + i.submitted_at));
+      const keys = new Set(data.submissions.map(keyOf));
       const fresh = seen ? new Set([...keys].filter(k => !seen.has(k))) : new Set();
       seen = keys;
       syncFormFilter();
       render(fresh);
-      const newP1 = data.submissions.filter(i => fresh.has(i.source + ":" + i.reference + ":" + i.submitted_at) && prioOf(i) === "P1");
+      const newP1 = data.submissions.filter(i => fresh.has(keyOf(i)) && prioOf(i) === "P1");
       if (newP1.length) {
-        $("p1-alert-text").textContent = `New emergency report${newP1.length > 1 ? "s" : ""}: `
-          + newP1.map(i => `${i.reference}${i.location ? ` at ${i.location}` : ""} (${(i.triage.reasons || [])[0] || "P1"})`).join("; ");
+        $("p1-alert-title").textContent = `New P1 emergenc${newP1.length > 1 ? "ies" : "y"}`;
+        $("p1-alert-text").textContent = newP1.map(i => `${i.reference}${i.location ? ` at ${i.location}` : ""} (${(i.triage.reasons || [])[0] || "P1"})`).join("; ");
         $("p1-alert").hidden = false;
       }
-      $("dot").className = "dot";
-      $("updated").textContent = `Live · updated ${fmtTime(new Date())}${fresh.size ? ` · ${fresh.size} new` : ""}`;
-      if (fresh.size) document.title = `(${fresh.size} new) Submissions dashboard`;
+      $("dot").className = "ct-dot ct-dot--live";
+      $("updated").textContent = `Live · ${fmtTime(new Date())}${fresh.size ? ` · ${fresh.size} new` : ""}`;
+      if (fresh.size) document.title = `(${fresh.size} new) ${TITLE}`;
     } catch (e) {
-      $("dot").className = "dot err";
+      $("dot").className = "ct-dot ct-dot--error";
       $("updated").textContent = `Can't reach the app (${e.message}); retrying`;
     }
   }
 
   $("p1-alert-close").addEventListener("click", () => ($("p1-alert").hidden = true));
+  $("p1-alert-show").addEventListener("click", () => {
+    $("f-prio").value = "P1"; $("p1-alert").hidden = true; render(new Set());
+    $("h-list").scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth" });
+  });
   ["f-sort", "f-prio", "f-form", "f-source", "f-q", "f-dup"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
   $("pause").addEventListener("click", () => {
     paused = !paused;
     $("pause").textContent = paused ? "Resume" : "Pause";
     $("pause").setAttribute("aria-pressed", paused);
-    $("dot").className = paused ? "dot off" : "dot";
+    $("dot").className = paused ? "ct-dot ct-dot--off" : "ct-dot ct-dot--live";
     if (paused) $("updated").textContent = "Paused"; else poll();
   });
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) document.title = "Submissions dashboard"; });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) document.title = TITLE; });
   addEventListener("resize", () => { render(new Set()); map?.invalidateSize(); });
   initMap();
   poll();

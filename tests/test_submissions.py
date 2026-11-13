@@ -107,11 +107,11 @@ def test_report_page_and_library_are_served(logs):
     client = TestClient(main.app)
     page = client.get("/reports/SCC-20261113-ABCD")
     assert page.status_code == 200
-    assert "/static/report-card.js" in page.text
+    assert "/ui/report-card.js" in page.text
     # Mounted before Gradio, so not shadowed by its catch-all routes.
-    js = client.get("/static/report-card.js")
+    js = client.get("/ui/report-card.js")
     assert js.status_code == 200 and "ReportCard" in js.text
-    assert client.get("/static/report-card.css").status_code == 200
+    assert client.get("/ui/report-card.css").status_code == 200
 
 
 def test_chat_agent_tree_report_keeps_its_form(logs):

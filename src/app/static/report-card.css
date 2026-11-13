@@ -1,52 +1,40 @@
-/* Styles for ReportCard (report-card.js). Uses the dashboard's colour tokens, with fallbacks for pages without them. */
+/* Styles for ReportCard (report-card.js). Builds on /ui/ui.css: --ct-* tokens and ct-* components. */
 .report-card {
-  --rc-surface: var(--surface, #fcfcfb); --rc-border: var(--border, #e2e1dc); --rc-text: var(--text, #0b0b0b);
-  --rc-text-2: var(--text-2, #52514e); --rc-muted: var(--muted, #6f6e69); --rc-accent: var(--accent, #2a78d6);
-  --rc-bg: var(--bg, #f4f4f2); --rc-warn-bg: var(--warn-bg, #fdf1e7); --rc-warn-text: var(--warn-text, #7a3412);
-  --rc-high-bg: #fde8e8; --rc-high-text: #8a1c1c; --rc-low-bg: #e6f5ee; --rc-low-text: #0f5c3f;
-  background: var(--rc-surface); color: var(--rc-text); border: 1px solid var(--rc-border); border-radius: 10px;
-  padding: 16px; display: grid; gap: 12px; text-align: left; font-size: .9375rem; line-height: 1.5; min-width: 0;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .report-card {
-    --rc-high-bg: #3b1d1d; --rc-high-text: #f6c4c4; --rc-low-bg: #16302a; --rc-low-text: #a8e3c8;
-  }
-}
-:root[data-theme="dark"] .report-card {
-  --rc-high-bg: #3b1d1d; --rc-high-text: #f6c4c4; --rc-low-bg: #16302a; --rc-low-text: #a8e3c8;
+  background: var(--ct-surface); color: var(--ct-text); border: 1px solid var(--ct-border);
+  border-radius: var(--ct-radius-lg); padding: var(--ct-space-5); display: grid; gap: var(--ct-space-4);
+  text-align: left; font: var(--ct-text-md)/var(--ct-leading) var(--ct-font-sans); min-width: 0;
 }
 .report-card p { margin: 0; }
-.report-card a { color: var(--rc-accent); }
+.report-card a:not(.ct-btn) { color: var(--ct-brand-text); }
 .rc-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: flex-start; }
-.rc-form { color: var(--rc-text-2); font-size: .8125rem; text-transform: uppercase; letter-spacing: .04em; }
-.rc-title { margin: 2px 0 0; font-size: 1.125rem; }
-.rc-when { color: var(--rc-muted); font-size: .8125rem; }
-.rc-ref { display: grid; text-align: right; }
-.rc-ref-label { color: var(--rc-text-2); font-size: .75rem; }
-.rc-ref-value { font: 600 1.125rem/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-                user-select: all; overflow-wrap: anywhere; }
-.rc-resident .rc-ref-value { font-size: 1.5rem; }
-.rc-sev { padding: 8px 12px; border-radius: 6px; background: var(--rc-bg); }
-.rc-sev { display: grid; gap: 4px; }
-.rc-sev span { color: inherit; opacity: .85; }
-.rc-sev .rc-why { font-size: .875rem; }
-.rc-sev .rc-urgent { font-size: .9375rem; }
-.rc-sev-high { background: var(--rc-high-bg); color: var(--rc-high-text); }
-.rc-sev-low { background: var(--rc-low-bg); color: var(--rc-low-text); }
-.rc-fields { margin: 0; display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 6px 16px; }
+.rc-head-text { display: grid; gap: 2px; min-width: 0; }
+.rc-title { margin: 0; font-size: var(--ct-text-lg); font-weight: 700; letter-spacing: var(--ct-tracking-tight);
+            line-height: var(--ct-leading-tight); color: var(--ct-text); }
+.rc-when { color: var(--ct-muted); font-size: var(--ct-text-sm); }
+.rc-ref { display: grid; gap: 2px; text-align: right; }
+.rc-ref-value { font: 700 var(--ct-text-lg)/1.25 var(--ct-font-mono); color: var(--ct-text); user-select: all; overflow-wrap: anywhere; }
+.rc-why-label { font-size: var(--ct-text-xs); font-weight: 700; letter-spacing: var(--ct-tracking-caps);
+                text-transform: uppercase; color: var(--ct-muted); }
+.rc-urgent { padding: 8px 12px; border-radius: var(--ct-radius-sm); background: var(--ct-pc-soft);
+             border: 1px solid var(--ct-pc-border); color: var(--ct-pc-text); font-size: var(--ct-text-md); }
+.rc-fields { padding-top: var(--ct-space-4); border-top: 1px solid var(--ct-grid); }
 .rc-row { display: contents; }
-.rc-fields dt { color: var(--rc-text-2); }
-.rc-fields dd { margin: 0; overflow-wrap: anywhere; }
-.rc-details h4 { margin: 0 0 4px; font-size: .875rem; color: var(--rc-text-2); font-weight: 600; }
-.rc-details p { white-space: pre-wrap; overflow-wrap: anywhere; }
-.rc-note { padding: 8px 12px; border-radius: 6px; background: var(--rc-warn-bg); color: var(--rc-warn-text); font-size: .875rem; }
-.rc-raw summary { cursor: pointer; color: var(--rc-text-2); font-size: .875rem; }
-.rc-raw pre { margin: 8px 0 0; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--rc-bg);
-              border-radius: 6px; font-size: .8125rem; }
+.rc-details { padding: var(--ct-space-3) var(--ct-space-4); border-radius: var(--ct-radius); background: var(--ct-surface-2); }
+.rc-details h4 { margin: 0 0 4px; font-size: var(--ct-text-xs); font-weight: 700; letter-spacing: var(--ct-tracking-caps);
+                 text-transform: uppercase; color: var(--ct-muted); }
+.rc-details p { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ct-text); }
+.rc-raw summary { cursor: pointer; color: var(--ct-text-2); font-size: var(--ct-text-sm); font-weight: 600; }
+.rc-raw pre { margin: 8px 0 0; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--ct-surface-2);
+              color: var(--ct-text); border-radius: var(--ct-radius-sm); font: var(--ct-text-sm)/1.45 var(--ct-font-mono);
+              max-height: 320px; overflow: auto; }
+.rc-link { margin: 8px 0 0; font-size: var(--ct-text-md); }
+.rc-muted { color: var(--ct-muted); font-size: var(--ct-text-sm); }
+/* Staff view: compact, sits inside the dashboard's expanded rows. */
+.rc-staff { padding: var(--ct-space-4); gap: var(--ct-space-3); box-shadow: none; }
+.rc-staff .rc-fields { gap: 6px 16px; }
+/* Resident view */
+.rc-resident { box-shadow: var(--ct-shadow-sm); }
 @media (max-width: 480px) {
-  .rc-fields { grid-template-columns: 1fr; gap: 0; }
-  .rc-fields dd { margin-bottom: 6px; }
+  .report-card { padding: var(--ct-space-4); }
   .rc-ref { text-align: left; }
 }
-.rc-link { margin: 8px 0 0; font-size: .875rem; }
-.rc-muted { color: var(--rc-muted); font-size: .8125rem; }

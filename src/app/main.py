@@ -32,8 +32,9 @@ from .tool_display import describe as describe_tool
 app = FastAPI(title="CouncilTriagent")
 app.include_router(usage.router)
 app.include_router(submissions.router)
-# Report-card library and page assets (static/report-card.js); mounted before Gradio so it isn't shadowed.
-app.mount("/static", StaticFiles(directory=submissions.STATIC_DIR), name="static")
+# Our page assets (src/app/static: report-card.js, ...) at /ui. Not /static: that's Gradio's own asset path,
+# and mounting over it broke Gradio's fonts. Mounted before Gradio so it isn't shadowed.
+app.mount("/ui", StaticFiles(directory=submissions.STATIC_DIR), name="ui")
 
 
 @app.get("/health")
@@ -106,14 +107,18 @@ location_pin = gr.HTML(
   <p class="lp-status" role="status" aria-live="polite">Loading map…</p>
 </section>""",
     css_template="""
-.lp-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .5rem; }
-.lp button { font: inherit; padding: .4rem .8rem; border-radius: 6px; cursor: pointer;
-             border: 1px solid var(--border-color-primary); background: var(--button-secondary-background-fill);
-             color: var(--button-secondary-text-color); }
+.lp-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.lp button { font: 600 var(--ct-text-md)/1.2 var(--ct-font-sans); min-height: 36px; padding: 0 14px; cursor: pointer;
+             border-radius: var(--ct-radius-pill); border: 1px solid var(--ct-border-strong); background: var(--ct-surface);
+             color: var(--ct-text); transition: background var(--ct-dur-fast) var(--ct-ease), border-color var(--ct-dur-fast) var(--ct-ease); }
+.lp button.lp-use { background: var(--ct-brand); border-color: var(--ct-brand); color: var(--ct-on-brand); }
+.lp button.lp-use:hover:not(:disabled) { background: var(--ct-brand-hover); }
+.lp button.lp-clear:hover:not(:disabled) { background: var(--ct-surface-2); }
 .lp button:disabled { opacity: .5; cursor: not-allowed; }
-.lp button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
-.lp-map { height: 300px; border-radius: 8px; border: 1px solid var(--border-color-primary); }
-.lp-status { margin: .5rem 0 0; font-size: .9rem; }""",
+.lp button:focus-visible { outline: 3px solid var(--ct-focus); outline-offset: 2px; }
+.lp-map { height: 300px; border-radius: var(--ct-radius); border: 1px solid var(--ct-border); overflow: hidden; }
+.lp-status { margin: 8px 0 0; font-size: var(--ct-text-sm); color: var(--ct-text-2); }
+@media (max-width: 720px) { .lp-map { height: 240px; } }""",
     js_on_load=(submissions.STATIC_DIR / "location-pin.js").read_text(encoding="utf-8"),
     head=f'<link rel="stylesheet" href="{LEAFLET}leaflet.css"><script src="{LEAFLET}leaflet.js"></script>',
 )
@@ -261,79 +266,200 @@ EXAMPLES = [
 FIRST_PLACEHOLDER = "Describe the problem and where it is…"
 REPLY_PLACEHOLDER = "Reply, or describe another problem…"
 
-WELCOME = """### Tell us what's wrong and where
-Describe a pothole, damaged pavement or street tree problem in your own words. The assistant checks who's \
-responsible, asks for anything missing, and files the report. You can add a location on the map below."""
+WELCOME = """<div class="ct-intro">
+<img class="ct-intro__mark" src="/ui/logo-mark.svg" alt="" width="72" height="72">
+<h2 class="ct-intro__title">Tell us what's wrong and where</h2>
+<p class="ct-intro__lead">Describe a pothole, damaged pavement or street tree problem in your own words. The assistant \
+checks who's responsible, asks for anything missing, and files the report. You can add a location on the map below.</p>
+</div>"""
 
-THEME = gr.themes.Soft(
-    primary_hue="teal",
+# Map Gradio's theme onto the design system's tokens (src/app/static/ui.css). The tokens switch themselves for dark
+# mode (OS setting or Gradio's .dark class), so the light and *_dark values are the same var(--ct-*).
+_THEME_TOKENS = {
+    "body_background_fill": "var(--ct-bg)",
+    "body_text_color": "var(--ct-text)",
+    "body_text_color_subdued": "var(--ct-muted)",
+    "color_accent_soft": "var(--ct-brand-soft)",
+    "background_fill_primary": "var(--ct-surface)",
+    "background_fill_secondary": "var(--ct-surface-2)",
+    "border_color_primary": "var(--ct-border)",
+    "border_color_accent": "var(--ct-leaf)",
+    "border_color_accent_subdued": "var(--ct-brand-soft-2)",
+    "link_text_color": "var(--ct-brand-text)",
+    "link_text_color_hover": "var(--ct-brand-text)",
+    "link_text_color_visited": "var(--ct-brand-text)",
+    "link_text_color_active": "var(--ct-brand-text)",
+    "block_background_fill": "var(--ct-surface)",
+    "block_border_color": "var(--ct-border)",
+    "block_info_text_color": "var(--ct-muted)",
+    "block_label_background_fill": "var(--ct-surface)",
+    "block_label_text_color": "var(--ct-text-2)",
+    "block_title_text_color": "var(--ct-text)",
+    "panel_background_fill": "var(--ct-surface-2)",
+    "panel_border_color": "var(--ct-border)",
+    "accordion_text_color": "var(--ct-text)",
+    "code_background_fill": "var(--ct-surface-2)",
+    "input_background_fill": "var(--ct-surface)",
+    "input_background_fill_focus": "var(--ct-surface)",
+    "input_border_color": "var(--ct-input-border)",
+    "input_border_color_hover": "var(--ct-brand)",
+    "input_border_color_focus": "var(--ct-brand)",
+    "input_placeholder_color": "var(--ct-muted)",
+    "input_shadow_focus": "0 0 0 3px var(--ct-focus-halo)",
+    "button_primary_background_fill": "var(--ct-brand)",
+    "button_primary_background_fill_hover": "var(--ct-brand-hover)",
+    "button_primary_border_color": "var(--ct-brand)",
+    "button_primary_text_color": "var(--ct-on-brand)",
+    "button_secondary_background_fill": "var(--ct-surface)",
+    "button_secondary_background_fill_hover": "var(--ct-surface-2)",
+    "button_secondary_border_color": "var(--ct-border-strong)",
+    "button_secondary_text_color": "var(--ct-text)",
+    "checkbox_label_background_fill": "var(--ct-surface)",
+    "checkbox_label_background_fill_hover": "var(--ct-surface-2)",
+    "checkbox_label_background_fill_selected": "var(--ct-brand-soft)",
+    "checkbox_label_border_color": "var(--ct-border)",
+    "checkbox_label_border_color_hover": "var(--ct-border-strong)",
+    "checkbox_label_border_color_selected": "var(--ct-leaf)",
+    "checkbox_label_text_color": "var(--ct-text-2)",
+    "checkbox_label_text_color_selected": "var(--ct-brand-text)",
+    "checkbox_border_color": "var(--ct-input-border)",
+    "checkbox_border_color_selected": "var(--ct-brand)",
+    "checkbox_border_color_focus": "var(--ct-brand)",
+    "table_border_color": "var(--ct-border)",
+    "error_background_fill": "var(--ct-danger-soft)",
+    "error_border_color": "var(--ct-danger-border)",
+    "error_text_color": "var(--ct-danger-text)",
+}
+THEME = gr.themes.Base(
+    primary_hue="green",
     neutral_hue="slate",
-    text_size=gr.themes.sizes.text_lg,
+    text_size=gr.themes.sizes.text_md,
     radius_size=gr.themes.sizes.radius_lg,
     font=["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
-    # System fonts: Gradio's bundled mono font is served from /static, which our StaticFiles mount shadows.
     font_mono=["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+).set(
+    color_accent="var(--ct-brand)",
+    block_radius="var(--ct-radius-lg)",
+    block_shadow="var(--ct-shadow-xs)",
+    button_primary_shadow="var(--ct-shadow-sm)",
+    **{k: v for key, v in _THEME_TOKENS.items() for k in (key, f"{key}_dark")},
 )
 
+# The shared site header from the design system (see /ui/styleguide.html), above the tabs.
+SITE_HEADER = f"""<header class="ct-header ct-header--wide">
+  <div class="ct-header__inner">
+    <a class="ct-brand" href="/" aria-label="CouncilTriagent home">
+      <img class="ct-brand__mark" src="/ui/logo-mark.svg" alt="" width="32" height="32">
+      <span class="ct-brand__text"><span class="ct-brand__name">Council<b>Triagent</b></span><span class="ct-brand__sub">Report a Sheffield street problem</span></span>
+    </a>
+    <nav class="ct-nav" aria-label="Main">
+      <a href="/" aria-current="page">Chat</a>
+      <a href="/dashboard">Dashboard</a>
+    </nav>
+    <div class="ct-header__meta">
+      <span class="ct-badge ct-pill ct-pill--local" title="Model: {config.OLLAMA_MODEL}">Runs locally on DGX Spark</span>
+      <span class="ct-badge ct-pill ct-pill--prototype">Prototype</span>
+    </div>
+  </div>
+</header>
+<div class="ct-strip"><div class="ct-strip__inner"><strong>Unofficial hackathon prototype.</strong> \
+Nothing is sent to Sheffield City Council.</div></div>"""
+
+HEAD = '<link rel="stylesheet" href="/ui/ui.css">'
+
 CSS = """
-.gradio-container { max-width: 920px !important; margin: 0 auto !important; }
-#ct-header { align-items: center; gap: 1rem; }
-#ct-header h1 { font-size: 1.9rem; margin: 0; letter-spacing: -0.01em; }
-#ct-header p { margin: .25rem 0 0; color: var(--body-text-color-subdued); }
-.ct-badges { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
-.ct-badge { font-size: .8rem; padding: .15rem .6rem; border-radius: 999px; border: 1px solid var(--border-color-primary);
-            color: var(--body-text-color-subdued); background: var(--background-fill-secondary); }
-.ct-badge.warn { color: var(--body-text-color); border-color: var(--color-accent); }
-#ct-links { text-align: right; }
-.ct-button { display: inline-block; white-space: nowrap; font-weight: 600; text-decoration: none; padding: .45rem 1rem;
-             border-radius: 999px; border: 1px solid var(--border-color-primary); background: var(--background-fill-primary);
-             color: var(--body-text-color) !important; }
-.ct-button:hover { border-color: var(--color-accent); }
-.ct-button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
-#ct-mode { padding: 0 !important; }
-#ct-mode .wrap { gap: .4rem; }
-#ct-mode label { padding: .35rem .8rem !important; font-size: .95rem; }
-#ct-tools { gap: .75rem; align-items: flex-start; }
-#ct-chat .placeholder { text-align: center; max-width: 36rem; margin: 0 auto; padding: 0 1rem; }
-#ct-chat .placeholder h3 { margin-bottom: .4rem; }
-#ct-chat .examples { display: flex !important; flex-wrap: wrap; justify-content: center; gap: .5rem !important;
-                     padding: 0 1rem; }
-#ct-chat button.example { border: 1px solid var(--border-color-primary) !important; border-radius: 999px !important;
-                          padding: .45rem 1rem !important; background: var(--background-fill-secondary) !important;
-                          width: auto !important; flex: 0 0 auto; }
-#ct-chat button.example:hover { border-color: var(--color-accent) !important; }
+/* Page-specific styling for the chat page; tokens and ct-* components come from /ui/ui.css. */
+body, gradio-app { background: var(--ct-bg) !important; }
+.gradio-container { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+.gradio-container > .main, .gradio-container .main.app { padding: 0 !important; max-width: none !important; margin: 0 !important; }
+#ct-site .html-container { padding: 0 !important; }
+.ct-brand__text { text-align: left; }
+.gradio-container .contain { padding: 0 !important; gap: 0 !important; }
+#ct-site { padding: 0 !important; margin: 0 !important; border: 0 !important; background: none !important; }
+#ct-site > div, #ct-site .prose { max-width: none !important; }
+.ct-header--wide .ct-header__inner, .ct-header--wide + .ct-strip .ct-strip__inner { max-width: 1120px; }
+.ct-brand, .ct-brand:hover, .ct-nav a { text-decoration: none !important; }
+.ct-brand__name, .ct-nav a { color: inherit; }
+
+/* Tabs: underline style, aligned with the header */
+#ct-tabs { max-width: 1120px; margin: 0 auto; padding: 12px 16px 24px !important; width: 100%; box-sizing: border-box;
+           background: none !important; border: 0 !important; }
+#ct-tabs .tab-wrapper { border-bottom: 1px solid var(--ct-border); margin-bottom: 16px; }
+#ct-tabs button[role="tab"] { font-weight: 600; color: var(--ct-text-2); font-size: var(--ct-text-md); }
+#ct-tabs button[role="tab"][aria-selected="true"] { color: var(--ct-brand-text); }
+#ct-tabs button[role="tab"][aria-selected="true"]::after { background: var(--ct-brand) !important; height: 3px !important; }
+#ct-tabs > .tabitem, #ct-tabs .tabitem { padding: 0 !important; border: 0 !important; background: none !important; }
+#ct-chat-tab { max-width: var(--ct-container-chat); margin: 0 auto; width: 100%; }
+
+/* Chat */
+#ct-chat { border-radius: var(--ct-radius-lg) !important; border: 1px solid var(--ct-border) !important;
+           background: var(--ct-surface) !important; box-shadow: var(--ct-shadow-sm) !important; }
+#ct-chat .placeholder { max-width: 38rem; margin: 0 auto; padding: 0 1rem; }
+#ct-chat .placeholder .ct-intro { padding-bottom: var(--ct-space-2); }
+#ct-chat .placeholder .ct-intro__title { border: 0; }
+#ct-chat .examples { display: flex !important; flex-wrap: wrap; justify-content: center; gap: 8px !important;
+                     padding: 0 1rem 1rem; }
+#ct-chat button.example { border: 1px solid var(--ct-border) !important; border-radius: var(--ct-radius-pill) !important;
+                          padding: 9px 16px !important; background: var(--ct-surface) !important; color: var(--ct-text) !important;
+                          width: auto !important; flex: 0 0 auto; box-shadow: var(--ct-shadow-xs);
+                          font-size: var(--ct-text-md) !important; font-weight: 500;
+                          transition: border-color var(--ct-dur-fast) var(--ct-ease), background var(--ct-dur-fast) var(--ct-ease); }
+#ct-chat button.example:hover { border-color: var(--ct-leaf) !important; background: var(--ct-brand-soft) !important; }
+#ct-chat button.example .example-text, #ct-chat button.example span { color: inherit !important; }
+#ct-chat .message.user, #ct-chat .user .message { background: var(--ct-brand) !important; color: var(--ct-on-brand) !important;
+                          border-color: var(--ct-brand) !important; border-radius: 18px 18px 4px 18px !important; }
+#ct-chat .message.user *, #ct-chat .user .message * { color: inherit !important; }
+#ct-chat .message.bot, #ct-chat .bot .message { background: var(--ct-surface-2) !important; color: var(--ct-text) !important;
+                          border: 1px solid var(--ct-border) !important; border-radius: 18px 18px 18px 4px !important; }
+/* Tool steps: compact cards with a gold "local AI" dot */
+#ct-chat .thought-group, #ct-chat .message.bot:has(.thought) { background: var(--ct-surface) !important;
+                          border: 1px dashed var(--ct-border-strong) !important; border-radius: var(--ct-radius) !important; }
+#ct-chat .thought .title, #ct-chat .message-content .title { font-size: var(--ct-text-sm); font-weight: 650; color: var(--ct-text-2); }
+#ct-chat pre, #ct-chat code { background: var(--ct-surface-2) !important; font-size: var(--ct-text-sm); }
+
+/* Message box */
+.gradio-container textarea { font-size: var(--ct-text-base) !important; }
+.gradio-container button.submit-button { background: var(--ct-brand) !important; color: var(--ct-on-brand) !important;
+                                         border-radius: var(--ct-radius-pill) !important; }
+.gradio-container button.submit-button:hover { background: var(--ct-brand-hover) !important; }
+
+/* Location panel and mode control */
+#ct-tools { gap: 12px; align-items: stretch; margin-top: 4px; }
+#ct-tools > .column { min-width: 0; }
+#ct-location { border-radius: var(--ct-radius-lg) !important; box-shadow: var(--ct-shadow-xs); }
+#ct-location > button span, #ct-location .label-wrap span { font-weight: 650; font-size: var(--ct-text-md); }
+#ct-mode-box { background: var(--ct-surface); border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg);
+               padding: 12px 14px !important; box-shadow: var(--ct-shadow-xs); gap: 8px !important; }
+#ct-mode-box .prose p, #ct-mode-box p { margin: 0; font-size: var(--ct-text-md); }
+#ct-mode { padding: 0 0 0 2px !important; background: none !important; border: 0 !important; }
+#ct-mode .wrap { gap: 6px; }
+#ct-mode label { padding: 6px 12px !important; font-size: var(--ct-text-md); border-radius: var(--ct-radius-pill) !important; }
+#ct-mode label.selected { font-weight: 650; }
+#ct-mode [data-testid="block-info"], #ct-mode .info { font-size: var(--ct-text-sm); color: var(--ct-muted); }
+
+/* Browser-mode tab */
+#ct-browser-intro { font-size: var(--ct-text-md); }
 footer { display: none !important; }
-@media (max-width: 640px) {
-  #ct-header { gap: .25rem; }
-  #ct-links { text-align: left; }
-  #ct-header h1 { font-size: 1.5rem; }
+@media (max-width: 720px) {
+  #ct-tabs { padding: 8px 12px 16px !important; }
+  #ct-tabs button[role="tab"] { font-size: var(--ct-text-sm); padding-inline: 8px; }
+  #ct-chat .placeholder .ct-intro { padding: var(--ct-space-3) 0 var(--ct-space-1); gap: 4px; }
+  #ct-chat .ct-intro__mark { display: none; }
+  .ct-intro__title { font-size: var(--ct-text-lg) !important; }
+  .ct-intro__lead { font-size: var(--ct-text-md) !important; }
+  #ct-chat button.example { padding: 7px 12px !important; font-size: var(--ct-text-sm) !important; }
 }
 """
 
 with gr.Blocks(title="CouncilTriagent") as demo:
-    with gr.Row(elem_id="ct-header"):
-        with gr.Column(scale=4, min_width=280):
-            gr.HTML(
-                "<h1>CouncilTriagent</h1>"
-                "<p>Report a road, pavement or street tree problem in Sheffield, in your own words. "
-                "To watch the agent fill in the council's own form, open the "
-                "<em>Watch the agent fill in the form</em> tab.</p>"
-                "<div class='ct-badges'>"
-                f"<span class='ct-badge' title='Model: {config.OLLAMA_MODEL}'>Runs locally on NVIDIA DGX Spark</span>"
-                "<span class='ct-badge warn'>Prototype: nothing is sent to the council</span>"
-                "</div>"
-            )
-        with gr.Column(scale=1, min_width=160, elem_id="ct-links"):
-            gr.HTML("<a class='ct-button' href='/dashboard'>📊 Dashboard</a>")
-
     thread_state = gr.State(None)
     # The controls go under the chat, but ChatInterface needs its extra inputs to exist already (otherwise it
     # renders them in its own accordion). So build the row now without placing it, and place it after the chat.
     with gr.Row(elem_id="ct-tools", equal_height=False, render=False) as tools_row:
         with gr.Column(scale=3, min_width=300):
-            with gr.Accordion(location_label(None), open=False) as location_panel:
+            with gr.Accordion(location_label(None), open=False, elem_id="ct-location") as location_panel:
                 location_pin.render()
-        with gr.Column(scale=2, min_width=240):
+        with gr.Column(scale=2, min_width=240, elem_id="ct-mode-box"):
             gr.Markdown("**How should reports be filed?**")
             mode_radio = gr.Radio(
                 [("💬 Chat", "chat"), ("🖥️ Web form", "form")], value="chat", show_label=False, container=False,
@@ -344,7 +470,7 @@ with gr.Blocks(title="CouncilTriagent") as demo:
     chat = gr.ChatInterface(
         respond,
         # Fill the screen, leaving room for the header, message box and controls (all visible at 1280x800).
-        chatbot=gr.Chatbot(height="calc(100vh - 370px)", min_height=360, show_label=False, placeholder=WELCOME, elem_id="ct-chat",
+        chatbot=gr.Chatbot(height="calc(100vh - 400px)", min_height=360, show_label=False, placeholder=WELCOME, elem_id="ct-chat",
                            layout="bubble", group_consecutive_messages=True),
         textbox=gr.Textbox(placeholder=FIRST_PLACEHOLDER, show_label=False, lines=1,
                            max_lines=6, submit_btn=True, autofocus=True),
@@ -366,7 +492,7 @@ with gr.Blocks(title="CouncilTriagent") as demo:
 
 
 with gr.Blocks() as browser_mode:
-    gr.Markdown(
+    gr.Markdown(elem_id="ct-browser-intro", value=
         "The agent opens the council's report form in a browser and fills it in itself, page by page, like a "
         f"person would. The browser runs on NVIDIA DGX Spark with the model ({config.OLLAMA_MODEL}); the picture "
         "on the right updates after every step. It asks you to confirm before it submits. "
@@ -389,11 +515,16 @@ with gr.Blocks() as browser_mode:
         with gr.Column(scale=6):
             live.render()
 
-# No title= here: it would add a second heading above the chat page's own header.
-ui = gr.TabbedInterface([demo, browser_mode], ["Report a problem", "Watch the agent fill in the form"])
-ui.title = "CouncilTriagent"  # browser tab title
-with ui:
+# The page: the shared site header, then one tab per mode.
+with gr.Blocks(title="CouncilTriagent") as ui:
+    gr.HTML(SITE_HEADER, elem_id="ct-site", container=False, padding=False)
+    with gr.Tabs(elem_id="ct-tabs"):
+        with gr.Tab("Report a problem", elem_id="ct-chat-tab"):
+            demo.render()
+        with gr.Tab("Watch the agent fill in the form"):
+            browser_mode.render()
     ui.unload(_on_tab_closed)  # Close this visitor's browser when they close the page.
 
 # Mount last so /health and /mock/ aren't shadowed by Gradio's routes.
-app = gr.mount_gradio_app(app, ui, path="/", theme=THEME, css=CSS, footer_links=[])
+app = gr.mount_gradio_app(app, ui, path="/", theme=THEME, css=CSS, head=HEAD, footer_links=[],
+                          favicon_path=submissions.STATIC_DIR / "favicon.svg")
