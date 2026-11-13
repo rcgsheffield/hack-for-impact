@@ -241,3 +241,8 @@ video/composition/.hyperframes/
 data/reports.jsonl
 data/usage.jsonl
 data/mock_submissions.jsonl
+data/triage_signals.jsonl
+data/uploads/
+
+# Playwright MCP screenshots and page snapshots
+.playwright-mcp/

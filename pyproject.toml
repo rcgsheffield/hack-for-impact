@@ -1,7 +1,7 @@
 [project]
 name = "hack-for-impact"
 version = "0.1.0"
-description = "Add your description here"
+description = "CouncilTriagent: a local AI agent that routes, files and triages Sheffield street-problem reports"
 readme = "README.md"
 authors = [
     { name = "Shaun Donnelly", email = "shaun.t.e.donnelly@gmail.com" }
