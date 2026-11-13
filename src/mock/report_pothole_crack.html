@@ -703,7 +703,7 @@
     try { localStorage.setItem("mock_submissions", JSON.stringify(all)); } catch {}
     window.mockSubmissions = all;
     window.dispatchEvent(new CustomEvent("mock:submitted", { detail: record }));
-    if (location.protocol.startsWith("http")) navigator.sendBeacon("events", new Blob([JSON.stringify({ event: "submit", page: "report_pothole_crack.html", reference: ref })], { type: "application/json" })); // usage log (src/app/usage.py)
+    if (location.protocol.startsWith("http")) navigator.sendBeacon("events", new Blob([JSON.stringify({ event: "submit", page: "report_pothole_crack.html", reference: ref, lat: fields.le_gis_lat ? +fields.le_gis_lat : null, lon: fields.le_gis_lon ? +fields.le_gis_lon : null, location: (fields.txt_full_address_about_the_location || fields.txt_find_address_about_the_location || "").slice(0, 200) })], { type: "application/json" })); // usage log and dashboard map (src/app/usage.py)
     console.log("[mock] report_pothole_crack submitted", record);
     $("#ref_out").textContent = ref;
     $("#conf_email").hidden = state.anonymous;

@@ -46,10 +46,12 @@ class TreeFormSession(CouncilFormSession):
 
     def next_step(self, page: str) -> str:
         if page == "page_about_the_problem":
-            return ("Call set_tree_problem now. For a tree in a park or woodland, on a council housing estate, or in a "
-                    "private or neighbour's garden, pass only tree_location (Park, Housing or Private): the form will "
-                    "say where to report it instead. Otherwise pass tree_location Highway, the problem and, for "
-                    "Fallen, Dangerous or Obstruction, whether it is blocking the way.")
+            return ("Call set_tree_problem now; don't ask the user to pick a category. Use tree_location Highway "
+                    "unless the user clearly said park or woodland (Park), council housing estate (Housing) or a "
+                    "private or neighbour's garden (Private); a named street or road, or 'don't know', means Highway. "
+                    "For Park, Housing or Private pass only tree_location. For Highway pass the problem (fallen means "
+                    "Fallen) and, for Fallen, Dangerous or Obstruction, blocking: true unless the user said it isn't "
+                    "in the way.")
         return super().next_step(page)
 
     def set_problem(self, tree_location: str, problem: str | None = None, blocking: bool | None = None,
@@ -90,8 +92,9 @@ class TreeFormSession(CouncilFormSession):
 
 class TreeProblemArgs(BaseModel):
     tree_location: TreeLocation = Field(description=(
-        "Highway: on or next to a road or pavement. Park: park, woodland or green space. "
-        "Housing: council housing estate. Private: private garden or land."))
+        "Highway: on or next to a road, street or pavement; also use Highway if the user named a street or "
+        "doesn't know. Park: park, woodland or green space. Housing: council housing estate. "
+        "Private: private or neighbour's garden or land."))
     problem: TreeProblem | None = Field(None, description=(
         "Only for Highway. Fallen: tree or large branch has fallen. Dangerous: leaning, split, hanging branch, "
         "dead or diseased. Obstruction: overhanging or blocking road, pavement, sign or street light. "
@@ -125,8 +128,11 @@ then submit_tree_form once the user agrees the answers are right.
 - Use everything the user has already said: a tree on or by a road, pavement or street is tree_location Highway,
   "has fallen" or "branch came down" is problem Fallen, "across the pavement" means blocking true, and any street
   or address is the location. Keep going through the steps without asking again for things you already know.
-- Only ask one short question if where the tree is, what the problem is, whether it is blocking the way,
-  or the location is really missing.
+- Use tree_location Highway unless the user clearly said park, housing estate or private garden; a named street
+  or "don't know" means Highway. Never make the user pick a category.
+- Only ask one short question if the problem or the location is really missing. If the user says they don't know,
+  don't ask again: use the defaults and carry on.
+- If a tool says the online form isn't available, don't mention technical details: give the council phone number.
 - Before submitting, tell the user the answers from review_tree_form and ask them to confirm.
 - For a tree in a park or woodland, on a council housing estate, or in a private or neighbour's garden, call
   set_tree_problem with just tree_location (Park, Housing or Private). Don't ask what the problem is first.

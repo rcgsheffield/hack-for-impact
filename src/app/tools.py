@@ -13,6 +13,7 @@ from pathlib import Path
 import httpx
 
 from . import config
+from .geocode import geocode, le_gis
 
 COUNCIL_PHONE = "0114 273 4567"
 POTHOLE_FORM = "https://forms.sheffield.gov.uk/site/portal/form/report_pothole_crack"
@@ -42,8 +43,21 @@ def _matches(patterns: list[str], text: str) -> bool:
     return any(re.search(p, text, re.IGNORECASE) for p in patterns)
 
 
-def route_report(problem_type: str, road_or_place: str) -> dict:
-    """Work out who is responsible for a problem and whether this agent can file it."""
+COUNCIL_URGENT_ADVICE = (
+    f"If the tree is blocking a road or putting anyone in danger, phone the council now on {COUNCIL_PHONE}, "
+    "or 999 if anyone is hurt. Don't wait for the online form."
+)
+# Words that suggest a tree is an emergency now, not something for planned maintenance.
+TREE_URGENT_PATTERNS = [r"\bfall(en|ing)?\b", r"\bfell\b", r"\b(come|came|blown|is|are) down\b",
+                        r"\bblock", r"\bcollaps", r"\bsnapped\b", r"\babout to\b", r"\blean", r"\bdanger",
+                        r"\bhanging\b", r"\bcrack"]
+
+
+def route_report(problem_type: str, road_or_place: str, description: str = "") -> dict:
+    """Work out who is responsible for a problem and whether this agent can file it.
+
+    description is the user's own words; for trees it is used to give urgent safety advice straight away.
+    """
     if problem_type not in PROBLEM_TYPES:
         raise ValueError(f"problem_type must be one of {PROBLEM_TYPES}")
 
@@ -63,11 +77,20 @@ def route_report(problem_type: str, road_or_place: str) -> dict:
         }
     if problem_type == "tree":
         # The tree form itself redirects park, housing and private trees, so don't pre-judge the place here.
-        return {
+        result = {
             "owner": TREE_OWNER,
             "can_file": True,
-            "next_step": "Carry on with the tree steps.",
+            "next_step": (
+                "Carry on with the tree steps. If the user named a street or road and doesn't know more, "
+                "use tree_location Highway: don't ask them to choose a category."
+            ),
         }
+        if _matches(TREE_URGENT_PATTERNS, f"{description} {road_or_place}"):
+            # Safety first, in code: the model gets this before any form step can fail.
+            result["urgent_advice"] = COUNCIL_URGENT_ADVICE
+            result["tell_user"] = [COUNCIL_URGENT_ADVICE]
+            result["next_step"] = "First tell the user the urgent_advice. Then " + result["next_step"][0].lower() + result["next_step"][1:]
+        return result
     if _matches(PRIVATE_PATTERNS, road_or_place):
         return {
             "owner": "The landowner (private)",
@@ -235,12 +258,30 @@ def file_report(surface: str, depth_band: str, location: str, description: str, 
 
 
 def _save_report(record: dict) -> dict:
+    """Geocode the report's location, append it to REPORTS_PATH and return the tool result.
+
+    Uses the user's shared device location when given (le_gis_lat/lon), else geocodes the typed text.
+    The report is filed whether or not its location can be placed on the map (geo is then null).
+    """
+    payload = record["form_payload"]
+    if payload.get("le_gis_lat"):  # the user's shared device location beats geocoding the typed text
+        lat, lon = float(payload["le_gis_lat"]), float(payload["le_gis_lon"])
+        geo = {"lat": lat, "lon": lon, "matched": "your shared location", "source": "device"}
+    else:
+        geo = geocode(payload.get("txt_find_address_about_the_location"))
+    record["geo"] = geo
+    payload["le_gis"] = le_gis(geo)
     path = Path(config.REPORTS_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    return {"reference": record["reference"], "url": f"/reports/{record['reference']}",
-            "status": "recorded (prototype: not sent to the council)"}
+    result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
+              "status": "recorded (prototype: not sent to the council)"}
+    if geo:
+        result["located_at"] = geo["matched"]
+    else:
+        result["location_note"] = "Couldn't place this on the map; the inspector will use the description."
+    return result
 
 
 # The council's tree form (src/mock/report_tree.html): option values, and the advice it shows instead of
@@ -362,6 +403,7 @@ SCHEMAS = [
                 "properties": {
                     "problem_type": {"type": "string", "enum": PROBLEM_TYPES},
                     "road_or_place": {"type": "string", "description": "Street, road name or place, as the user described it"},
+                    "description": {"type": "string", "description": "The problem in the user's own words, e.g. 'tree has fallen across the road'"},
                 },
                 "required": ["problem_type", "road_or_place"],
             },
@@ -386,7 +428,7 @@ SCHEMAS = [
         "type": "function",
         "function": {
             "name": "file_report",
-            "description": "File the road or pavement defect report. Only call after route_report returned can_file=true and assess_pothole gave a depth_band.",
+            "description": "File the road or pavement defect report. Only call after route_report returned can_file=true and assess_pothole gave a depth_band. The result's located_at is where the report was placed on the map.",
             "parameters": {
                 "type": "object",
                 "properties": {

@@ -64,7 +64,19 @@ def test_file_report_writes_form_payload(reports_path):
         "rad_road_pothole_depth": "Greater than 40mm",
         "txt_find_address_about_the_location": "10 Fargate",
         "txta_details_about_the_location": "Deep pothole",
+        "le_gis": "",
     }
+    assert record["geo"] is None  # not a sample address and no live lookups in tests: still filed
+    assert "location_note" in result
+
+
+def test_file_report_records_coordinates(reports_path):
+    result = tools.file_report("road", "Less than 40mm", "outside 120 Abbeydale Road", "Pothole", 2)
+    record = json.loads(reports_path.read_text().strip())
+    assert record["geo"] == {"lat": 53.3631, "lon": -1.4876, "matched": "120 Abbeydale Road, Sheffield, S7 1FL",
+                             "source": "sample"}
+    assert record["form_payload"]["le_gis"] == "53.3631,-1.4876"
+    assert result["located_at"] == "120 Abbeydale Road, Sheffield, S7 1FL"
 
 
 def test_file_report_rejects_band_for_wrong_surface(reports_path):
@@ -129,6 +141,17 @@ def test_file_tree_report_records_the_form_fields(reports_path):
     record = json.loads(reports_path.read_text().splitlines()[-1])
     assert record["form"] == "report_tree"
     assert record["form_payload"]["rad_tree_blocking"] == "Yes"
+    assert (record["geo"]["lat"], record["geo"]["lon"]) == (53.346, -1.479)
+    assert record["form_payload"]["le_gis"] == "53.346,-1.479"
+    assert result["located_at"] == "12 Derbyshire Lane, Sheffield, S8 9EH"
+
+
+def test_tree_report_is_mapped_as_a_tree(reports_path, monkeypatch):
+    from app.submissions import load_submissions
+    monkeypatch.setattr(config, "USAGE_PATH", reports_path.parent / "usage.jsonl")
+    tools.file_tree_report("Highway", "Fallen", "12 Derbyshire Lane", "Across the pavement", blocking=True)
+    [item] = [i for i in load_submissions()["submissions"] if i["source"] == "chat_agent"]
+    assert (item["form"], item["title"], item["lat"]) == ("report_tree", "Problem with a tree", 53.346)
 
 
 def test_file_tree_report_refuses_redirected_trees():
@@ -143,6 +166,19 @@ def test_filing_tools_record_the_map_point(reports_path):
     assert (pothole["le_gis_lat"], pothole["le_gis_lon"]) == ("53.381100", "-1.470100")
     assert tree["le_gis_lat"] == "53.346000"
 
+
+
+def test_shared_device_location_beats_geocoding_the_typed_text(reports_path, monkeypatch):
+    from app.submissions import load_submissions
+    monkeypatch.setattr(config, "USAGE_PATH", reports_path.parent / "usage.jsonl")
+    result = tools.file_report("road", "Greater than 40mm", "120 Abbeydale Road", "Deep pothole",
+                               lat=53.3811, lon=-1.4701)
+    record = json.loads(reports_path.read_text())
+    assert record["geo"]["source"] == "device"
+    assert record["form_payload"]["le_gis"] == "53.3811,-1.4701"
+    assert result["located_at"] == "your shared location"
+    [item] = [i for i in load_submissions()["submissions"] if i["source"] == "chat_agent"]
+    assert (item["lat"], item["lon"], item["geo_source"]) == (53.3811, -1.4701, "device")
 
 def test_map_point_is_optional_but_must_be_complete_and_valid(reports_path):
     tools.file_report("road", "Less than 40mm", "Fargate", "Small pothole")

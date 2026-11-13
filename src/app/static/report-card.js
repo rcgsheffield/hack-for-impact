@@ -87,7 +87,7 @@
     if (where) {
       rows.push(row("Location", esc(where) + (located(item)
         ? ` <a href="${osm(item)}" target="_blank" rel="noopener">view on map</a>` : "")
-        + (located(item) && item.geo_source && item.geo_source !== "form"
+        + (located(item) && item.geo_source && !["form", "device"].includes(item.geo_source)
           ? ` <span class="rc-muted">(map position approximate, from the address as typed)</span>` : "")));
     }
     const fields = fieldRows(item, audience);
