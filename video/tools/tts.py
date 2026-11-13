@@ -4,6 +4,10 @@
 Each "## <id>" section of the script becomes composition/assets/voice/<id>.mp3.
 Lines starting with ">" are direction notes and are not spoken.
 
+To give a clip a different character's voice, name it on the heading:
+    ## s5 voice=irene
+Names come from VOICES below; clips with no voice= use the narrator.
+
 Usage:
     export ELEVENLABS_API_KEY=...        # never commit this
     python3 video/tools/tts.py            # generate all clips (skips existing ones)
@@ -12,7 +16,7 @@ Usage:
     python3 video/tools/tts.py --dry-run  # print what would be spoken, no API calls
 
 Optional environment variables:
-    ELEVENLABS_VOICE_ID  voice to use (default: DEFAULT_VOICE_ID below)
+    ELEVENLABS_VOICE_ID  narrator voice (default: DEFAULT_VOICE_ID below)
     ELEVENLABS_MODEL_ID  model to use (default: DEFAULT_MODEL_ID below)
 """
 
@@ -33,18 +37,27 @@ API_URL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
 # "George": a premade British male narrator voice. Swap for any voice ID from
 # your ElevenLabs voice library via ELEVENLABS_VOICE_ID.
 DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"
+# Character voices, selectable per clip with "## <id> voice=<name>".
+# "narrator" is the default voice (or ELEVENLABS_VOICE_ID if set).
+VOICES = {
+    "irene": "19BPXgl533Nfs4mHE2Bc",  # the old lady
+    "handler": "dUercWozs0yhe4xBCgZ0",  # council call handler
+    "worker": "7SDkmJ8WpdrhnzoqcT8R",  # overwhelmed council worker
+    "agent": "L39mCFEANiRSjBYTGelY",  # the AI agent in the chat
+}
 # Highest-quality general-purpose model for narration.
 DEFAULT_MODEL_ID = "eleven_multilingual_v2"
 # 44.1 kHz, 128 kbps MP3: available on all paid plans.
 OUTPUT_FORMAT = "mp3_44100_128"
 REQUEST_TIMEOUT_SECONDS = 120
 
-HEADING = re.compile(r"^##\s+(\S+)\s*$")
+HEADING = re.compile(r"^##\s+(\S+)(?:\s+voice=(\S+))?\s*$")
 
 
-def parse_script(path: Path) -> dict[str, str]:
-    """Return {clip_id: spoken text} from the voiceover markdown."""
+def parse_script(path: Path) -> tuple[dict[str, str], dict[str, str]]:
+    """Return ({clip_id: spoken text}, {clip_id: voice name}) from the voiceover markdown."""
     clips: dict[str, list[str]] = {}
+    voices: dict[str, str] = {}
     current = None
     for line in path.read_text(encoding="utf-8").splitlines():
         match = HEADING.match(line)
@@ -53,13 +66,16 @@ def parse_script(path: Path) -> dict[str, str]:
             if current in clips:
                 sys.exit(f"error: duplicate clip id '{current}' in {path}")
             clips[current] = []
+            voices[current] = match.group(2) or "narrator"
+            if voices[current] != "narrator" and voices[current] not in VOICES:
+                sys.exit(f"error: clip '{current}' uses unknown voice '{voices[current]}' (known: narrator, {', '.join(VOICES)})")
         elif current and line.strip() and not line.lstrip().startswith(">"):
             clips[current].append(line.strip())
     result = {cid: " ".join(lines) for cid, lines in clips.items()}
     empty = [cid for cid, text in result.items() if not text]
     if empty:
         sys.exit(f"error: clips with no text: {', '.join(empty)}")
-    return result
+    return result, voices
 
 
 def synthesise(text: str, api_key: str, voice_id: str, model_id: str) -> bytes:
@@ -94,7 +110,7 @@ def main() -> None:
 
     if not SCRIPT_PATH.exists():
         sys.exit(f"error: script not found: {SCRIPT_PATH}")
-    clips = parse_script(SCRIPT_PATH)
+    clips, clip_voices = parse_script(SCRIPT_PATH)
 
     unknown = [cid for cid in args.ids if cid not in clips]
     if unknown:
@@ -103,13 +119,13 @@ def main() -> None:
 
     if args.dry_run:
         for cid, text in selected.items():
-            print(f"{cid}: {text}")
+            print(f"{cid} [{clip_voices[cid]}]: {text}")
         return
 
     api_key = os.environ.get("ELEVENLABS_API_KEY")
     if not api_key:
         sys.exit("error: set ELEVENLABS_API_KEY (see https://elevenlabs.io/app/settings/api-keys)")
-    voice_id = os.environ.get("ELEVENLABS_VOICE_ID", DEFAULT_VOICE_ID)
+    narrator_id = os.environ.get("ELEVENLABS_VOICE_ID", DEFAULT_VOICE_ID)
     model_id = os.environ.get("ELEVENLABS_MODEL_ID", DEFAULT_MODEL_ID)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -119,6 +135,7 @@ def main() -> None:
             print(f"skip {cid} (exists; use --force or name it to regenerate)")
             continue
         print(f"generating {cid} ...", flush=True)
+        voice_id = VOICES.get(clip_voices[cid], narrator_id)
         out.write_bytes(synthesise(text, api_key, voice_id, model_id))
         print(f"  wrote {out.relative_to(VIDEO_DIR)}")
 

@@ -45,7 +45,7 @@
       const tl = gsap.timeline({ paused: true });
       // freeze frame of the chaos, jolts, then cuts to black
       tl.fromTo("#aw-flash", { opacity: 1, x: 0 }, { x: 24, duration: 0.05, yoyo: true, repeat: 3 }, 0);
-      tl.fromTo("#aw-flash", { opacity: 1 }, { opacity: 0, duration: 0.5, ease: "power2.in" }, 0.25);
+      tl.fromTo("#aw-flash", { opacity: 1 }, { opacity: 0, duration: 0.5, ease: "power2.in", immediateRender: false }, 0.25);
       tl.fromTo("#aw-l1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.0);
       tl.fromTo("#aw-l2", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" }, 1.8);
       tl.fromTo("#aw-text", { scale: 1 }, { scale: 1.06, duration: 3.5, ease: "none" }, 1.0);
