@@ -44,6 +44,7 @@ The live submissions dashboard is at `/dashboard` (<http://spark12.local/dashboa
 |---|---|
 | [`docs/challenge.md`](docs/challenge.md) | Hackathon brief, tracks and judging criteria |
 | [`docs/getting-started.md`](docs/getting-started.md) | Stack, code map, local run, settings, checking the deployed app |
+| [`docs/browser-agent.md`](docs/browser-agent.md) | The browser agent at `/browser`: fills in forms by reading the page and clicking |
 | [`docs/deployment.md`](docs/deployment.md) | Self-hosted runner, `deploy.sh`, Caddy on ports 80 and 443 |
 | [`docs/smoke-test.md`](docs/smoke-test.md) | GPU and Ollama smoke test |
 | [`docs/spark-ollama.md`](docs/spark-ollama.md) | The organisers' shared Ollama on the Spark |

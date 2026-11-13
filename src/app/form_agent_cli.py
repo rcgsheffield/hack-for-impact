@@ -2,7 +2,9 @@
 
     uv run python -m app.form_agent_cli pothole --headed
     uv run python -m app.form_agent_cli tree -m "A tree has fallen across the pavement on Derbyshire Lane"
+    uv run python -m app.form_agent_cli browser --headed     # general browser agent, any of the mock forms
 
+The browser agent (browser_agent.py) opens the forms at BROWSER_FORMS_URL, the running app's /mock/ by default.
 Model and server come from OLLAMA_MODEL and OLLAMA_URL (see config.py), or --model.
 Each tool call and its result is printed, so you can see what the agent did.
 """
@@ -13,15 +15,18 @@ import argparse
 import json
 
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from langgraph.errors import GraphRecursionError
 
 from . import config
+from .browser_agent import BrowserSession, make_browser_agent
 from .council_form import unverified_references
 from .pothole_form_toolkit import PotholeFormSession
 from .pothole_form_toolkit import make_form_agent as make_pothole_agent
 from .tree_form_toolkit import TreeFormSession
 from .tree_form_toolkit import make_form_agent as make_tree_agent
 
-FORMS = {"pothole": (PotholeFormSession, make_pothole_agent), "tree": (TreeFormSession, make_tree_agent)}
+FORMS = {"pothole": (PotholeFormSession, make_pothole_agent), "tree": (TreeFormSession, make_tree_agent),
+         "browser": (BrowserSession, make_browser_agent)}
 
 
 def _short(text: str, limit: int = 400) -> str:
@@ -31,6 +36,14 @@ def _short(text: str, limit: int = 400) -> str:
 def chat_turn(agent, messages: list, user_text: str) -> list:
     """Send one user message, print the tool calls and the reply, and return the updated message list."""
     messages = messages + [HumanMessage(user_text)]
+    try:
+        return _stream_turn(agent, messages)
+    except GraphRecursionError:  # The step limit (MAX_AGENT_STEPS / BROWSER_MAX_AGENT_STEPS) stopped a looping model.
+        print("\nAgent: (stopped: too many steps for one message)\n", flush=True)
+        return messages
+
+
+def _stream_turn(agent, messages: list) -> list:
     seen = len(messages)
     for update in agent.stream({"messages": messages}, stream_mode="values"):
         new = update["messages"][seen:]
@@ -60,14 +73,17 @@ def main() -> None:
     parser.add_argument("--headed", action="store_true", help="show the browser window")
     parser.add_argument("--slow-mo", type=int, default=0, metavar="MS")
     parser.add_argument("--think", action="store_true", help="let a reasoning model think (slower)")
-    parser.add_argument("--num-ctx", type=int, default=16384, help="model context window in tokens")
+    parser.add_argument("--num-ctx", type=int, default=None,
+                        help=f"model context window in tokens (default 16384; {config.BROWSER_NUM_CTX} for browser)")
     parser.add_argument("-m", "--message", action="append", help="send this message instead of prompting (repeatable)")
     args = parser.parse_args()
 
     session_cls, make = FORMS[args.form]
     session = session_cls(headless=not args.headed, slow_mo_ms=args.slow_mo)
     # Ollama's default 4096-token context truncates the tool schemas plus a few form steps; 16k fits a whole report.
-    agent, session = make(session=session, model=args.model, reasoning=args.think, num_ctx=args.num_ctx)
+    # The browser agent gets a whole page back from every action, so it needs much more.
+    num_ctx = args.num_ctx or (config.BROWSER_NUM_CTX if args.form == "browser" else 16384)
+    agent, session = make(session=session, model=args.model, reasoning=args.think, num_ctx=num_ctx)
     print(f"{args.form} form agent on {args.model or config.OLLAMA_MODEL} at {config.OLLAMA_URL}. Ctrl+C to quit.\n")
 
     messages: list = []

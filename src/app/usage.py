@@ -4,7 +4,8 @@ Each page load and each form submission is appended to config.USAGE_PATH as one 
     {"ts": "...", "event": "view" | "submit", "page": "report_pothole_crack.html", "user_agent": "...", "referrer": "...", ...}
 Submit events also carry where the problem is: lat/lon from the form's address search or map, and the location text.
 If only text is sent, it is geocoded here (geocode.py). No IP addresses or other form field values (and never the
-reporter's details) are logged. Agent runs show up with a HeadlessChrome user agent.
+reporter's details) are logged. Form toolkit runs show up with a HeadlessChrome user agent,
+browser agent runs (/browser) with Firefox.
 """
 
 import json

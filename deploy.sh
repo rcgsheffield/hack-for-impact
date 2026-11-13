@@ -45,6 +45,41 @@ else
   echo "  Fix: sudo $VENV/bin/playwright install-deps chromium   (then redeploy)" >&2
 fi
 
+# Browser agent (/browser, src/app/browser_agent.py): Node.js for npx, and the Playwright MCP server's Firefox.
+# Optional: if this fails the rest of the app still deploys, and /browser says the browser couldn't start.
+# No sudo here, so Node.js goes in STATE_DIR. Firefox may also need system libraries (`npx playwright install-deps`
+# with sudo, once) if the Spark lacks them.
+NODE_VERSION="24.22.2"                     # LTS
+PLAYWRIGHT_MCP="@playwright/mcp@0.0.83"    # Keep in step with BROWSER_MCP_PACKAGE in src/app/config.py.
+NODE_DIR="$STATE_DIR/node-v$NODE_VERSION"
+install_node() {
+  local arch name tmp status
+  case "$(uname -m)" in
+    aarch64|arm64) arch=arm64 ;;
+    x86_64) arch=x64 ;;
+    *) echo "No Node.js build for $(uname -m)" >&2; return 1 ;;
+  esac
+  name="node-v$NODE_VERSION-linux-$arch.tar.xz"
+  tmp="$(mktemp -d)"
+  echo "Installing Node.js $NODE_VERSION into $NODE_DIR"
+  curl -fsSL "https://nodejs.org/dist/v$NODE_VERSION/$name" -o "$tmp/$name" &&
+    curl -fsSL "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt" &&
+    (cd "$tmp" && grep " $name\$" SHASUMS256.txt | sha256sum -c --quiet -) &&
+    mkdir -p "$NODE_DIR" && tar -xJf "$tmp/$name" -C "$NODE_DIR" --strip-components=1
+  status=$?
+  rm -rf "$tmp"
+  [[ $status -eq 0 ]] || rm -rf "$NODE_DIR"
+  return $status
+}
+if [[ -x "$NODE_DIR/bin/node" ]] || install_node; then
+  export PATH="$NODE_DIR/bin:$PATH"   # Inherited by the app, which runs the MCP server with npx.
+  # Downloads the package and Firefox the first time; quick afterwards.
+  npx -y "$PLAYWRIGHT_MCP" install-browser firefox >/dev/null ||
+    echo "WARNING: couldn't install Firefox for the browser agent; /browser won't work" >&2
+else
+  echo "WARNING: couldn't install Node.js $NODE_VERSION; /browser won't work" >&2
+fi
+
 # Stop the previous version.
 if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
   old_pid="$(cat "$PIDFILE")"
@@ -57,7 +92,7 @@ fi
 # Start the new one. An empty RUNNER_TRACKING_ID and a new session stop GitHub Actions
 # from killing the process when this job finishes.
 echo "=== Deploy ${SHA:0:7} at $(date -Is) ===" >>"$LOG"
-GIT_SHA="${SHA:0:7}" RUNNER_TRACKING_ID="" \
+GIT_SHA="${SHA:0:7}" RUNNER_TRACKING_ID="" BROWSER_FORMS_URL="${BROWSER_FORMS_URL:-http://127.0.0.1:$PORT/mock/}" \
   setsid nohup "$VENV/bin/uvicorn" app.main:app --app-dir src --host "$HOST" --port "$PORT" \
   >>"$LOG" 2>&1 </dev/null &
 echo $! >"$PIDFILE"

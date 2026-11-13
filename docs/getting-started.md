@@ -4,7 +4,8 @@ Stack: **Python, FastAPI and a [Gradio](https://www.gradio.app/) chat UI, with t
 
 | Path | What it is |
 |---|---|
-| `src/app/main.py` | FastAPI app: chat UI at `/`, status at `/health` |
+| `src/app/main.py` | FastAPI app: chat UI at `/`, browser agent chat at `/browser`, status at `/health` |
+| `src/app/browser_agent.py` | General browser agent: fills in any mock form by reading the page and clicking ([browser-agent.md](browser-agent.md)) |
 | `src/app/usage.py` | Serves the dummy council site (`src/mock/`) at `/mock/` and logs page loads and submissions to `data/usage.jsonl` |
 | `src/app/submissions.py` | Submissions dashboard at `/dashboard` (JSON at `/api/submissions`): what the agents have submitted to the mock forms |
 | `src/app/static/report-card.js` | Front-end library: `ReportCard.render(item, {audience: "staff" | "resident"})` draws one report as a card (styles in `report-card.css`) |
@@ -40,7 +41,7 @@ tail -f data/usage.jsonl
 jq -r '[.event, .page] | @tsv' data/usage.jsonl | sort | uniq -c
 ```
 
-To log agent runs too, point the form toolkit at the served copy; they show up with a `HeadlessChrome` user agent:
+The browser agent (`/browser`) uses the served copy by default, so its runs are logged with a Firefox user agent. To log form toolkit runs too, point the toolkit at the served copy; they show up with a `HeadlessChrome` user agent:
 
 ```bash
 POTHOLE_FORM_URL=http://127.0.0.1:8000/mock/report_pothole_crack.html uv run python -m app.pothole_form_toolkit
@@ -92,6 +93,7 @@ Environment variables:
 | `GEOCODE_LIVE` | `1` | `0` to geocode only the built-in sample addresses (no calls to postcodes.io or Photon) |
 | `MAX_AGENT_STEPS` | `12` | Model calls allowed per user message |
 | `LLM_TIMEOUT` | `180` | Seconds to wait for one model response |
+| `BROWSER_*` | | Browser agent settings, see [browser-agent.md](browser-agent.md#settings) |
 | `TRIAGE_LLM` | `1` | `0` to triage with rules and map context only (no Ollama call after filing) |
 | `TRIAGE_LLM_TIMEOUT` | `20` | Seconds to wait for the triage model's reading of a report |
 | `TRIAGE_SIGNALS_PATH` | `data/triage_signals.jsonl` | Cache of the triage model's readings, by reference |
