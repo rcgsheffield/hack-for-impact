@@ -40,7 +40,8 @@ video/
 1. **Agree the story.** Edit `storyboard.md` and `script/voiceover.md`.
 2. **Voiceover.** Generate clips with ElevenLabs:
    ```bash
-   export ELEVENLABS_API_KEY=...       # from https://elevenlabs.io/app/settings/api-keys; never commit it
+   echo 'ELEVENLABS_API_KEY=...' >> .env  # from https://elevenlabs.io/app/settings/api-keys; .env is git-ignored. Or `export` it instead.
+   pip install python-dotenv             # lets tts.py read .env (optional if you export the variable)
    python3 video/tools/tts.py --dry-run  # check what will be spoken
    python3 video/tools/tts.py            # writes composition/assets/voice/s1.mp3 …
    python3 video/tools/tts.py s4         # regenerate a single clip
