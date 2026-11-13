@@ -36,6 +36,8 @@ uv run uvicorn app.main:app --app-dir src --reload   # http://127.0.0.1:8000
 
 Settings, the deployed app and checks are in [`docs/getting-started.md`](docs/getting-started.md).
 
+The live submissions dashboard is at `/dashboard` (<http://spark12.local/dashboard> on the Spark). It shows what the agents have submitted to the mock council forms and refreshes every 5 seconds. See [Submissions dashboard](docs/getting-started.md#submissions-dashboard).
+
 ## Documentation
 
 | Doc | Contents |
