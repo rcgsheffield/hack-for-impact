@@ -49,6 +49,7 @@ The live submissions dashboard is at `/dashboard` (<http://spark12.local/dashboa
 | [`docs/spark-ollama.md`](docs/spark-ollama.md) | The organisers' shared Ollama on the Spark |
 | [`docs/data-sources.md`](docs/data-sources.md) | Public datasets and provenance |
 | [`docs/sheffield-council-services.md`](docs/sheffield-council-services.md) | Routing rules for the agent |
+| [`docs/triage.md`](docs/triage.md) | Automatic triage: priority scale, rules, LLM role, evaluation, demo seed |
 
 ## Repository layout
 

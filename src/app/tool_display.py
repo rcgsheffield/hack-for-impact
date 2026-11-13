@@ -142,6 +142,8 @@ def describe(name: str, arguments: str | dict, result: dict) -> tuple[str, str]:
     elif name in ("file_report", "file_tree_report"):
         title = "📝 Recorded your report"
         body = f"Reference **{result.get('reference', '?')}**{_link(result)}{_location_line(args)}  \n{result.get('status', '')}"
+        if result.get("priority_plain"):
+            body += f"  \nSuggested priority: **{result['priority_plain']}**  \n_{result.get('priority_note', '')}_"
         if result.get("urgent_advice"):
             body += f"  \n🚨 {result['urgent_advice']}"
     else:

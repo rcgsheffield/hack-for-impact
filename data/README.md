@@ -9,7 +9,8 @@ Place local datasets here. Raw data files are git-ignored (see `.gitignore`); on
 - **`fixmystreet_services_list.txt`** - 2,594 available service types on FixMyStreet
 - **`usage.jsonl`** - Access log of the dummy council site at `/mock/`, written by the app (`src/app/usage.py`). Submit events include the problem's location (`location`, `lat`, `lon`, `geo_source`). Not committed.
 - **`mock_submissions.jsonl`** - Mock-form submissions made by the form agents (`src/app/council_form.py`), without reporter details. Coordinates in `le_gis` ("lat,lon"); `geo_source` is set when they were geocoded from typed text. Shown at `/dashboard`. Not committed.
-- **`reports.jsonl`** - Reports filed by the chat agent's `file_report` tool (`src/app/tools.py`). `geo` holds `lat`, `lon`, the matched address and the lookup `source`, or `null` if the location couldn't be found. Not committed.
+- **`reports.jsonl`** - Reports filed by the chat agent's `file_report` tool (`src/app/tools.py`). `geo` holds `lat`, `lon`, the matched address and the lookup `source`, or `null` if the location couldn't be found; `geo.road_class` is the OpenStreetMap highway class when Photon matched a street. `triage` holds the suggested priority. Records with `"seed": true` come from `python -m app.demo_seed` (fictional demo reports at real Sheffield streets). Not committed.
+- **`triage_signals.jsonl`** - The local LLM's reading of each report's text, by reference (`src/app/triage_llm.py`), used as extra triage signals. Not committed.
 
 ## Sheffield Issues Data Schema
 

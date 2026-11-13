@@ -88,3 +88,16 @@ def test_network_error_returns_none(live, monkeypatch):
 def test_result_is_a_copy():
     geocode.geocode("3 Division Street")["lat"] = 0
     assert geocode.geocode("3 Division Street")["lat"] == 53.379
+
+
+def test_photon_street_keeps_its_road_class(live):
+    live(lambda url: (200, {"features": [{"geometry": {"coordinates": [-1.4876, 53.3631]},
+                                          "properties": {"name": "Abbeydale Road", "osm_key": "highway",
+                                                         "osm_value": "primary"}}]}))
+    assert geocode.geocode("Abbeydale Road")["road_class"] == "primary"
+
+
+def test_photon_non_street_has_no_road_class(live):
+    live(lambda url: (200, {"features": [{"geometry": {"coordinates": [-1.4694, 53.3814]},
+                                          "properties": {"name": "Fargate", "osm_key": "place", "osm_value": "square"}}]}))
+    assert "road_class" not in geocode.geocode("Fargate")

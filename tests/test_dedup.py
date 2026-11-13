@@ -97,7 +97,8 @@ def test_filing_twice_tells_the_second_reporter_and_route_report_warns_the_third
 
     second = tools.file_report("road", "Greater than 40mm", "120 Abbeydale Road", "Pothole in the bus lane", 1)
     assert second["similar_reports"]["count"] == 1
-    assert second["tell_user"] == [second["similar_reports"]["message"]]
+    # A pothole over 40mm is P1, so the urgent phone advice comes first (urgency.py), then the similar reports.
+    assert second["tell_user"] == [tools.URGENT_ADVICE, second["similar_reports"]["message"]]
 
     routed = tools.route_report("pothole", "120 Abbeydale Road", "another pothole")
     assert routed["can_file"] is True and routed["similar_reports"]["count"] == 2
