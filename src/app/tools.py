@@ -108,6 +108,10 @@ def route_report(problem_type: str, road_or_place: str, description: str = "") -
             "owner": "Sheffield City Council (repairs by Amey under the Streets Ahead contract)",
             "can_file": True,
             "form": POTHOLE_FORM,
+            "next_step": (
+                "Carry on with the pothole steps. If the exact spot (house number, junction or map pin) or the depth "
+                "or height is missing, ask the user for it in one short question now."
+            ),
         }, "report_pothole_crack", road_or_place)
     return {
         "owner": "Sheffield City Council",

@@ -136,7 +136,8 @@ def describe(name: str, arguments: str | dict, result: dict) -> tuple[str, str]:
             + f"  \nChecked on this machine by {result.get('model', 'the vision model')}; not confirmed."
     elif name == "route_report":
         if result.get("can_file"):
-            title = "🧭 Checked who's responsible"
+            # The outcome goes in the title, so it can be read while the step is collapsed.
+            title = f"🧭 Can be reported: {str(result.get('owner', 'the council')).split(' (')[0]}"
             body = f"**{result.get('owner', '?')}**: this can be reported here."
         else:
             title = "🧭 This is looked after by someone else"

@@ -195,6 +195,8 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
 def _show(events: Iterator[ToolStep | str]) -> Iterator[list[gr.ChatMessage]]:
     """Turn agent events into chat bubbles: a collapsible one per tool call, then the reply."""
     shown: list[gr.ChatMessage] = []
+    # A "still working" bubble at the end until the reply arrives, so a finished tool step isn't mistaken for the end.
+    yield shown + [working()]
     try:
         for event in events:
             if isinstance(event, ToolStep):
@@ -204,12 +206,35 @@ def _show(events: Iterator[ToolStep | str]) -> Iterator[list[gr.ChatMessage]]:
                     body = (f"**Arguments**\n```json\n{event.arguments}\n```\n"
                             f"**Result**\n```\n{event.result['output']}\n```")
                 shown.append(gr.ChatMessage(content=body, metadata={"title": title, "status": "done"}))
+                yield shown + [working()]
             else:
                 shown.append(gr.ChatMessage(content=event))
-            yield shown
+                yield shown
     except Exception as e:  # Show model/connection failures in the chat rather than a blank error.
         shown.append(gr.ChatMessage(content=f"⚠️ The local model isn't responding ({type(e).__name__}). Please try again shortly."))
         yield shown
+
+
+WORKING_TITLE = "⏳ Working out the next step…"
+
+
+def working() -> gr.ChatMessage:
+    return gr.ChatMessage(content="", metadata={"title": WORKING_TITLE, "status": "pending"})
+
+
+def is_working(history: list) -> bool:
+    """True while the last message on screen is the "still working" bubble."""
+    if not history:
+        return False
+    last = history[-1]
+    meta = (last.get("metadata") if isinstance(last, dict) else getattr(last, "metadata", None)) or {}
+    return meta.get("status") == "pending"
+
+
+def chat_placeholder(history: list) -> str:
+    if not history:
+        return FIRST_PLACEHOLDER
+    return WORKING_PLACEHOLDER if is_working(history) else REPLY_PLACEHOLDER
 
 
 # ---- Browser mode: one browser per visitor, keyed by Gradio's session hash ----
@@ -294,6 +319,7 @@ EXAMPLES = [
 
 FIRST_PLACEHOLDER = "Describe the problem and where it is, or add a photo…"
 REPLY_PLACEHOLDER = "Reply, or describe another problem…"
+WORKING_PLACEHOLDER = "The assistant is still working…"
 
 WELCOME = """<div class="ct-intro">
 <img class="ct-intro__mark" src="/ui/logo-mark.svg" alt="" width="72" height="72">
@@ -519,7 +545,8 @@ with gr.Blocks(title="CouncilTriagent") as demo:
 
     tools_row.render()
     # ChatInterface blanks the placeholder when a message is sent and never restores it; put it back.
-    chat.chatbot.change(lambda history: gr.MultimodalTextbox(placeholder=REPLY_PLACEHOLDER if history else FIRST_PLACEHOLDER),
+    # While the "still working" bubble is showing, say so, so the user knows the turn hasn't finished.
+    chat.chatbot.change(lambda history: gr.MultimodalTextbox(placeholder=chat_placeholder(history)),
                         chat.chatbot, chat.textbox, show_progress="hidden", queue=False)
     location_pin.change(lambda v: gr.Accordion(label=location_label(v)), location_pin, location_panel,
                         show_progress="hidden", queue=False)
