@@ -67,7 +67,7 @@ Run it locally: `OLLAMA_URL=http://<spark>:11434 python3 src/app/server.py`, the
 
 **Check the deployed app:** `src/app/check.sh` (or `curl http://spark12.local:8000/health`). It returns `{"ok": true, ...}` with the deployed commit's short SHA, or HTTP 503 if Ollama is unreachable. The chat page is at <http://spark12.local:8000>.
 
-On the Spark, `deploy.sh` runs the app as the systemd user service `hack-app` (`src/app/hack-app.service`) and fails the deploy if `/health` doesn't go green within 15 seconds. One-time setup on the Spark so the service survives logout and reboot: `sudo loginctl enable-linger $USER`. Logs: `journalctl --user -u hack-app`.
+On the Spark, `deploy.sh` runs the app as a background process (pid in `~/.local/share/hack-for-impact/app.pid`) and fails the deploy if `/health` doesn't go green within 15 seconds. The runner has no systemd user session, so the app won't come back after a reboot: rerun **Actions → Deploy to DGX Spark → Run workflow**. Logs: `~/hack-for-impact.log`.
 
 ### Deployment (DGX Spark)
 
