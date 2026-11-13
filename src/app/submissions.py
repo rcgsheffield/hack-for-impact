@@ -12,6 +12,7 @@ GET /reports/{reference} serves static/report.html, which renders GET /api/repor
 Both pages draw reports with static/report-card.js.
 Reporter details (name, date of birth, phone, email) are never written to disk by save_submission.
 
+Every item has a triage dict (triage.py): stored on the record when it was filed, or worked out when read.
 Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
 address search or map, "device" when the chat user shared their device location, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
 """
@@ -30,6 +31,7 @@ from fastapi.responses import FileResponse
 
 from . import config
 from .geocode import geocode, le_gis
+from .triage import by_priority, safe_triage
 
 log = logging.getLogger(__name__)
 
@@ -70,6 +72,8 @@ def save_submission(record: dict) -> None:
             geo = geocode(_typed_location(record["fields"]))
             if geo:
                 record = {**record, "le_gis": le_gis(geo), "geo_source": geo["source"]}
+        record = {**record, "triage": safe_triage({"form": record.get("form"), "fields": record["fields"],
+                                                    "reference": record.get("reference")})}
         line = json.dumps({"recorded_at": _now(), **record})
         path = Path(config.MOCK_SUBMISSIONS_PATH)
         with _write_lock:
@@ -207,8 +211,11 @@ def load_submissions() -> dict[str, Any]:
             who = "agent" if any(m in str(r.get("user_agent", "")) for m in AGENT_UA_MARKERS) else "person"
             page = views.setdefault(str(r.get("page", "")).removesuffix(".html"), {"agent": 0, "person": 0})
             page[who] += 1
+    for i in items:  # stored when filed; worked out now for older records and browser submissions
+        i["triage"] = (i["raw"] or {}).get("triage") or safe_triage(i)
     items.sort(key=_ts, reverse=True)
-    return {"generated_at": _now(), "count": len(items), "forms": FORM_NAMES, "views": views, "submissions": items}
+    return {"generated_at": _now(), "count": len(items), "by_priority": by_priority(items), "forms": FORM_NAMES,
+            "views": views, "submissions": items}
 
 
 @router.get("/api/submissions")

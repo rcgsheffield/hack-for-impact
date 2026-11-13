@@ -206,3 +206,34 @@ def test_nearest_address_failure_is_an_error_for_the_model(monkeypatch):
         raise tools.httpx.ConnectError("offline")
     monkeypatch.setattr(tools.httpx, "get", offline)
     assert "unavailable" in tools.nearest_address(53.346, -1.479)["error"]
+
+
+def test_assess_pothole_reports_the_triage_priority():
+    deep, shallow = tools.assess_pothole("road", 50), tools.assess_pothole("road", 40)
+    assert (deep["priority"], deep["response_target"]) == ("P1 Emergency", "Made safe within 24 hours")
+    assert (shallow["priority"], shallow["suggested_category"]) == ("P3 Routine", 2)
+
+
+def test_filed_reports_store_their_triage(reports_path):
+    result = tools.file_report("road", "Less than 40mm", "10 Fargate", "A cyclist came off on it")
+    record = json.loads(reports_path.read_text().strip())
+    assert record["triage"]["priority"] == "P1"
+    assert "Someone has been hurt" in record["triage"]["reasons"]
+    assert (result["priority"], result["response_target"]) == ("P1 Emergency", "Made safe within 24 hours")
+
+
+def test_filed_tree_reports_store_their_triage(reports_path):
+    result = tools.file_tree_report("Highway", "Roots", "Derbyshire Lane", "Roots lifting the pavement")
+    assert json.loads(reports_path.read_text().strip())["triage"]["priority"] == "P3"
+    assert result["priority"] == "P3 Routine"
+
+
+def test_triage_failure_never_stops_a_report_being_filed(reports_path, monkeypatch):
+    from app import triage
+
+    def boom(item, signals=None):
+        raise RuntimeError("bug")
+    monkeypatch.setattr(triage, "triage", boom)
+    result = tools.file_report("road", "Greater than 40mm", "10 Fargate", "Deep pothole")
+    assert result["reference"]
+    assert json.loads(reports_path.read_text().strip())["triage"]["reasons"] == ["Triage failed: needs manual review"]

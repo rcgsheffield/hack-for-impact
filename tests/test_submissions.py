@@ -131,3 +131,30 @@ def test_chat_agent_report_with_a_shared_location_goes_on_the_map(logs):
     [new] = [i for ref, i in reports.items() if ref != "SCC-20261113-ABCD"]
     assert (new["lat"], new["lon"], new["geo_source"]) == (53.346012, -1.479034, "device")
     assert reports["SCC-20261113-ABCD"]["geo_source"] == "photon"  # no location shared: geocoded from the text
+
+
+def test_every_item_has_a_triage_and_the_api_counts_them(logs):
+    data = TestClient(main.app).get("/api/submissions").json()
+    by_ref = {i["reference"]: i["triage"] for i in data["submissions"]}
+    assert by_ref["123456789"]["priority"] == "P1"            # fallen tree, stored when saved
+    assert by_ref["SCC-20261113-ABCD"]["priority"] == "P1"    # old chat record without triage: worked out on read
+    assert by_ref["987654321"]["reasons"] == ["Few details: needs review"]  # browser submission
+    assert data["by_priority"] == {"P1": 2, "P2": 0, "P3": 1, "P4": 0}
+
+
+def test_save_submission_stores_the_triage(mock_submissions_path):
+    save_submission(MOCK_RECORD)
+    record = json.loads(mock_submissions_path.read_text().strip())
+    assert record["triage"]["priority"] == "P1"
+    assert record["triage"]["reasons"] == ["Tree or branch has fallen"]
+
+
+def test_stored_triage_wins_over_recomputing(logs):
+    path = config.REPORTS_PATH
+    stored = {"priority": "P2", "label": "High", "score": 55, "reasons": ["Changed by staff"],
+              "response_target": "Inspected within a few days", "engine": "rules", "version": 1}
+    path.write_text(json.dumps({"reference": "SCC-1", "filed_at": "2026-11-13T15:00:00+00:00", "triage": stored,
+                                "form_payload": {"rad_problem_location": "Road Surface",
+                                                 "rad_road_pothole_depth": "Greater than 40mm"}}) + "\n")
+    [item] = [i for i in load_submissions()["submissions"] if i["reference"] == "SCC-1"]
+    assert item["triage"] == stored
