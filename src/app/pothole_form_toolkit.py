@@ -65,8 +65,9 @@ class PotholeFormSession:
     """
 
     def __init__(self, url: str = FORM_URL, headless: bool = HEADLESS, channel: str | None = BROWSER_CHANNEL,
-                 timeout_ms: int = TIMEOUT_MS):
+                 timeout_ms: int = TIMEOUT_MS, slow_mo_ms: int = 0):
         self.url, self.headless, self.channel, self.timeout_ms = url, headless, channel, timeout_ms
+        self.slow_mo_ms = slow_mo_ms
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pothole-form")
         self._lock = threading.Lock()
         self._pw = self._browser = self._page = None
@@ -84,7 +85,8 @@ class PotholeFormSession:
                 raise FormStepError("Playwright is not installed: run `uv sync`.") from e
             self._pw = sync_playwright().start()
             try:
-                self._browser = self._pw.chromium.launch(headless=self.headless, channel=self.channel)
+                self._browser = self._pw.chromium.launch(headless=self.headless, channel=self.channel,
+                                                         slow_mo=self.slow_mo_ms)
             except Exception as e:
                 self._pw.stop()
                 self._pw = None
@@ -253,6 +255,10 @@ class PotholeFormSession:
     def status(self) -> dict:
         return self._run(lambda: self._state() if self._page else {"page": "", "heading": "not started"})
 
+    def wait_until_closed(self) -> None:
+        """Block until the user closes the browser tab (for headed demos)."""
+        self._run(lambda: self._page and self._page.wait_for_event("close", timeout=0))
+
 
 # ---------- LangChain tools ----------
 
@@ -346,9 +352,9 @@ def make_form_agent(session: PotholeFormSession | None = None, model: str | None
     return agent, session
 
 
-def _demo(headed: bool) -> None:
+def _demo(headed: bool, slow_mo_ms: int = 0, keep_open: bool = False) -> None:
     """Fill the form with fixed answers, no model involved."""
-    with PotholeFormSession(headless=not headed) as s:
+    with PotholeFormSession(headless=not headed, slow_mo_ms=slow_mo_ms) as s:
         tools = {t.name: t for t in PotholeFormToolkit(session=s).get_tools()}
         steps = [
             ("start_pothole_form", {}),
@@ -360,10 +366,16 @@ def _demo(headed: bool) -> None:
             ("submit_pothole_form", {}),
         ]
         for name, args in steps:
-            print(f"> {name} {json.dumps(args)}\n{tools[name].invoke(args)}\n")
+            print(f"> {name} {json.dumps(args)}\n{tools[name].invoke(args)}\n", flush=True)
+        if headed and keep_open:
+            print("Done. Close the browser window to exit.", flush=True)
+            s.wait_until_closed()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=_demo.__doc__)
     parser.add_argument("--headed", action="store_true", help="show the browser window")
-    _demo(parser.parse_args().headed)
+    parser.add_argument("--slow-mo", type=int, default=0, metavar="MS", help="pause between browser actions")
+    parser.add_argument("--keep-open", action="store_true", help="with --headed, leave the window open at the end")
+    a = parser.parse_args()
+    _demo(a.headed, a.slow_mo, a.keep_open)
