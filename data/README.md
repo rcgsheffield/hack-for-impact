@@ -1,12 +1,17 @@
 # Data
 
-Place local datasets here. Raw data files are git-ignored (see `.gitignore`); only this file and small samples are committed.
+Local datasets and the app's runtime logs. Only small public samples are committed; the `.jsonl` files the app writes are git-ignored (see `.gitignore`).
 
 ## Files
 
+Committed (public FixMyStreet samples, see Provenance below):
+
+- **`sample_sheffield_issues.json`** - 5 FixMyStreet reports used by the demo seed (`src/app/demo_seed.py`)
 - **`sheffield_issues_only.json`** - 11 Sheffield-specific issues (filtered by coordinates)
-- **`sheffield_fixmystreet_issues.json`** - All 1,000 issues in the "sheffield" jurisdiction
+- **`sheffield_council_issues.json`** - 10 open issues sent to Sheffield City Council, summarised in `SHEFFIELD_ISSUES_REPORT.md`
 - **`fixmystreet_services_list.txt`** - 2,594 available service types on FixMyStreet
+
+Written by the app (not committed):
 - **`usage.jsonl`** - Access log of the dummy council site at `/mock/`, written by the app (`src/app/usage.py`). Submit events include the problem's location (`location`, `lat`, `lon`, `geo_source`). Not committed.
 - **`mock_submissions.jsonl`** - Mock-form submissions made by the form agents (`src/app/council_form.py`), without reporter details. Coordinates in `le_gis` ("lat,lon"); `geo_source` is set when they were geocoded from typed text. Shown at `/dashboard`. Not committed.
 - **`reports.jsonl`** - Reports filed by the chat agent's `file_report` tool (`src/app/tools.py`). `geo` holds `lat`, `lon`, the matched address and the lookup `source`, or `null` if the location couldn't be found; `geo.road_class` is the OpenStreetMap highway class when Photon matched a street. `triage` holds the suggested priority. Records with `"seed": true` come from `python -m app.demo_seed` (fictional demo reports at real Sheffield streets). Not committed.
@@ -71,5 +76,6 @@ Place local datasets here. Raw data files are git-ignored (see `.gitignore`); on
 | File | Source | URL | Licence | Date retrieved |
 |------|--------|-----|---------|----------------|
 | sheffield_issues_only.json | FixMyStreet Open311 API | https://www.fixmystreet.com/open311/v2/requests.json?jurisdiction_id=sheffield | Public Domain | 2026-11-13 |
-| sheffield_fixmystreet_issues.json | FixMyStreet Open311 API | https://www.fixmystreet.com/open311/v2/requests.json?jurisdiction_id=sheffield | Public Domain | 2026-11-13 |
+| sheffield_council_issues.json | FixMyStreet Open311 API | https://www.fixmystreet.com/open311/v2/requests.json?jurisdiction_id=sheffield | Public Domain | 2026-11-13 |
+| sample_sheffield_issues.json | FixMyStreet Open311 API | https://www.fixmystreet.com/open311/v2/requests.json?jurisdiction_id=sheffield | Public Domain | 2026-11-13 |
 | fixmystreet_services_list.txt | FixMyStreet Open311 API | https://www.fixmystreet.com/open311/v2/services.json?jurisdiction_id=fixmystreet | Public Domain | 2026-11-13 |
