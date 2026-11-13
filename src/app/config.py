@@ -13,6 +13,9 @@ OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL") or "nemotron-3.5-lightning:30b"
 REPORTS_PATH = Path(os.environ.get("REPORTS_PATH", "data/reports.jsonl"))
 # Dummy council site page loads and submissions, one JSON object per line (src/app/usage.py).
 USAGE_PATH = Path(os.environ.get("USAGE_PATH", "data/usage.jsonl"))
+# Full records of mock-form submissions made by the form agents (council_form.py), minus reporter details.
+# Read by the submissions dashboard at /dashboard (src/app/submissions.py).
+MOCK_SUBMISSIONS_PATH = Path(os.environ.get("MOCK_SUBMISSIONS_PATH", "data/mock_submissions.jsonl"))
 
 # Deployed commit, set by deploy.sh and reported by /health.
 GIT_SHA = os.environ.get("GIT_SHA", "unknown")

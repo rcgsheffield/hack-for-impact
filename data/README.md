@@ -8,6 +8,7 @@ Place local datasets here. Raw data files are git-ignored (see `.gitignore`); on
 - **`sheffield_fixmystreet_issues.json`** - All 1,000 issues in the "sheffield" jurisdiction
 - **`fixmystreet_services_list.txt`** - 2,594 available service types on FixMyStreet
 - **`usage.jsonl`** - Access log of the dummy council site at `/mock/`, written by the app (`src/app/usage.py`). Not committed.
+- **`mock_submissions.jsonl`** - Mock-form submissions made by the form agents (`src/app/council_form.py`), without reporter details. Shown at `/dashboard`. Not committed.
 
 ## Sheffield Issues Data Schema
 
