@@ -42,6 +42,15 @@ COUNCIL_PHONE = "0114 273 4567"
 class TreeFormSession(CouncilFormSession):
     default_url = FORM_URL
     page_titles = {**CouncilFormSession.page_titles, "page_about_the_problem": "About the tree"}
+    noun = "tree"
+
+    def next_step(self, page: str) -> str:
+        if page == "page_about_the_problem":
+            return ("Call set_tree_problem now. For a tree in a park or woodland, on a council housing estate, or in a "
+                    "private or neighbour's garden, pass only tree_location (Park, Housing or Private): the form will "
+                    "say where to report it instead. Otherwise pass tree_location Highway, the problem and, for "
+                    "Fallen, Dangerous or Obstruction, whether it is blocking the way.")
+        return super().next_step(page)
 
     def set_problem(self, tree_location: str, problem: str | None = None, blocking: bool | None = None,
                     photo_path: str | None = None) -> dict:
@@ -61,7 +70,8 @@ class TreeFormSession(CouncilFormSession):
                 "() => { const e = Array.from(document.querySelectorAll('.exit-panel')).find(x => !x.hidden);"
                 " return e ? e.textContent.replace(/\\s+/g, ' ').trim() : ''; }")
             if redirect:
-                return self._state(can_file=False, redirect=redirect)
+                return self._state(can_file=False, redirect=redirect,
+                                   next_step="Stop here. Tell the user this advice in plain words; don't continue the form.")
             if problem in BLOCKING_PROBLEMS:
                 p.check(f"input[name=rad_tree_blocking][value='{'Yes' if blocking else 'No'}']")
             self._attach_photo(photo_path)
@@ -69,9 +79,12 @@ class TreeFormSession(CouncilFormSession):
 
         state = self._run(step)
         if state.get("can_file") and (problem == "Fallen" or (problem == "Dangerous" and blocking)):
-            state["urgent_advice"] = (
-                f"If the tree is putting people in danger, phone the council now on {COUNCIL_PHONE} "
-                "(999 if anyone is hurt). The form says not to use it for emergencies.")
+            advice = (f"If the tree is putting people in danger, phone the council now on {COUNCIL_PHONE} "
+                      "(999 if anyone is hurt). The form says not to use it for emergencies.")
+            state["urgent_advice"] = advice
+            if advice not in self.tell_user:
+                self.tell_user.append(advice)
+            state["tell_user"] = list(self.tell_user)
         return state
 
 
@@ -106,21 +119,30 @@ SYSTEM_PROMPT = f"""You complete Sheffield's 'Report a problem with a tree' form
 
 Steps: start_tree_form, set_tree_problem, set_tree_location, set_tree_reporter, review_tree_form,
 then submit_tree_form once the user agrees the answers are right.
+- Call one tool at a time, in that order, and wait for its result before the next.
 - If a tree has fallen or is about to fall and someone is in danger, tell them to phone {COUNCIL_PHONE} now
   (999 if anyone is hurt) before anything else.
-- Ask one short question if you don't know where the tree is (road or pavement, park, housing estate or private land),
-  what the problem is, whether it is blocking the way, or the location.
+- Use everything the user has already said: a tree on or by a road, pavement or street is tree_location Highway,
+  "has fallen" or "branch came down" is problem Fallen, "across the pavement" means blocking true, and any street
+  or address is the location. Keep going through the steps without asking again for things you already know.
+- Only ask one short question if where the tree is, what the problem is, whether it is blocking the way,
+  or the location is really missing.
+- Before submitting, tell the user the answers from review_tree_form and ask them to confirm.
+- For a tree in a park or woodland, on a council housing estate, or in a private or neighbour's garden, call
+  set_tree_problem with just tree_location (Park, Housing or Private). Don't ask what the problem is first.
 - If set_tree_problem returns can_file false, don't continue the form: pass on its redirect advice in plain words.
+- If a tool result has tell_user, include that advice in your reply to the user.
+- Follow the next_step in each tool result.
 - Submit anonymously unless the user wants updates and gives their details.
 - If a tool returns "error" or "errors", fix the input or ask the user, then call the tool for the current page again.
 - Never invent a reference number; only quote the one from submit_tree_form.
 - This is a test form: say that nothing is sent to the council. Use British English and keep replies short."""
 
 
-def make_form_agent(session: TreeFormSession | None = None, model: str | None = None):
+def make_form_agent(session: TreeFormSession | None = None, model: str | None = None, **llm_kwargs):
     """A LangChain agent on the local Ollama model with the tree form tools. Returns (agent, session)."""
     session = session or TreeFormSession()
-    return make_agent(TreeFormToolkit(session=session).get_tools(), SYSTEM_PROMPT, model), session
+    return make_agent(TreeFormToolkit(session=session).get_tools(), SYSTEM_PROMPT, model, **llm_kwargs), session
 
 
 DEMO_STEPS = [

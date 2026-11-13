@@ -30,6 +30,7 @@ FORM_URL = os.environ.get("POTHOLE_FORM_URL") or (MOCK_DIR / "report_pothole_cra
 
 class PotholeFormSession(CouncilFormSession):
     default_url = FORM_URL
+    noun = "pothole"
 
     def set_problem(self, surface: str, depth_mm: float, photo_path: str | None = None) -> dict:
         assessment = assess_pothole(surface, depth_mm)  # validates and gives the form's exact option value
@@ -72,17 +73,23 @@ SYSTEM_PROMPT = """You complete Sheffield's 'Report a pothole or crack' form for
 
 Steps: start_pothole_form, set_pothole_problem, set_pothole_location, set_pothole_reporter, review_pothole_form,
 then submit_pothole_form once the user agrees the answers are right.
-- Ask one short question if the surface (road or pavement), rough depth or location is missing.
+- Call one tool at a time, in that order, and wait for its result before the next.
+- Use everything the user has already said: "in the road" means surface road, "on the pavement" or
+  "cycle path" means pavement, "6cm" means depth_mm 60, and any street or address is the location.
+  Keep going through the steps without asking again for things you already know.
+- Only ask one short question if the surface, rough depth or location is really missing.
+- Before submitting, tell the user the answers from review_pothole_form and ask them to confirm.
+- Follow the next_step in each tool result.
 - Submit anonymously unless the user wants updates and gives their details.
 - If a tool returns "error" or "errors", fix the input or ask the user, then call the tool for the current page again.
 - Never invent a reference number; only quote the one from submit_pothole_form.
 - This is a test form: say that nothing is sent to the council. Use British English and keep replies short."""
 
 
-def make_form_agent(session: PotholeFormSession | None = None, model: str | None = None):
+def make_form_agent(session: PotholeFormSession | None = None, model: str | None = None, **llm_kwargs):
     """A LangChain agent on the local Ollama model with the pothole form tools. Returns (agent, session)."""
     session = session or PotholeFormSession()
-    return make_agent(PotholeFormToolkit(session=session).get_tools(), SYSTEM_PROMPT, model), session
+    return make_agent(PotholeFormToolkit(session=session).get_tools(), SYSTEM_PROMPT, model, **llm_kwargs), session
 
 
 DEMO_STEPS = [

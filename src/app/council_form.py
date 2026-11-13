@@ -62,6 +62,20 @@ class CouncilFormSession:
 
     default_url: str = ""
     page_titles: dict[str, str] = PAGES
+    noun: str = "council"  # tool names are start_<noun>_form, set_<noun>_problem, ...
+
+    def next_step(self, page: str) -> str:
+        """A hint for the model on what to call next. Small models follow these far better than the system prompt."""
+        n = self.noun
+        return {
+            "page_about_the_problem": f"Call set_{n}_problem with what the user has already told you.",
+            "page_about_the_location": f"Call set_{n}_location with the street or address and a short description.",
+            "page_about_you": f"Call set_{n}_reporter. Use anonymous=true unless the user gave their details.",
+            "page_review": f"If the user has already confirmed the answers, call submit_{n}_form now. Otherwise call "
+                           f"review_{n}_form, tell the user the answers and ask them to confirm. Never make up a "
+                           f"reference number: only submit_{n}_form gives one.",
+            "page_complete": "Tell the user the reference number, and that this test form sends nothing to the council.",
+        }.get(page, "")
 
     def __init__(self, url: str | None = None, headless: bool = HEADLESS, channel: str | None = BROWSER_CHANNEL,
                  timeout_ms: int = TIMEOUT_MS, slow_mo_ms: int = 0):
@@ -70,6 +84,8 @@ class CouncilFormSession:
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="council-form")
         self._lock = threading.Lock()
         self._pw = self._browser = self._page = None
+        # Advice the user must hear (e.g. "phone now"); repeated in every result until the form is finished.
+        self.tell_user: list[str] = []
 
     # ---------- plumbing ----------
     def _run(self, fn: Callable[[], Any]) -> Any:
@@ -129,6 +145,13 @@ class CouncilFormSession:
         if errors:
             state["errors"] = errors
         state.update(extra)
+        if self.tell_user:
+            state["tell_user"] = list(self.tell_user)
+        if "redirect" not in state:
+            state.setdefault("next_step", self.next_step(page))
+            # Only where the model replies to the user anyway; mid-form it makes small models stop and chat.
+            if self.tell_user and page in ("page_review", "page_complete"):
+                state["next_step"] += " In your reply, also tell the user: " + " ".join(self.tell_user)
         return state
 
     def _expect(self, page_id: str) -> None:
@@ -157,6 +180,8 @@ class CouncilFormSession:
 
     # ---------- common form steps ----------
     def start(self) -> dict:
+        self.tell_user = []
+
         def step():
             page = self._ensure_page()
             page.goto(self.url)
@@ -181,10 +206,15 @@ class CouncilFormSession:
             options = p.eval_on_selector_all(
                 "#sel_search_results_about_the_location option",
                 "os => os.map(o => ({value: o.value, text: o.textContent.trim()})).filter(o => o.value !== '')")
+            matches_only = [o for o in options if o["value"] != "typed"]
             chosen = None
-            if address_choice:
+            if address_choice and address_choice.strip():
                 wanted = address_choice.strip().lower()
-                chosen = next((o for o in options if o["value"] != "typed" and wanted in o["text"].lower()), None)
+                chosen = next((o for o in matches_only if wanted in o["text"].lower()), None)
+            else:
+                # No choice given: take a match that starts with exactly what the user said (e.g. "120 Abbeydale Road").
+                wanted = location.strip().lower()
+                chosen = next((o for o in matches_only if o["text"].lower().startswith(wanted)), None)
             if chosen is None:
                 # Fall back to the user's own words, so the step never depends on the live geocoder.
                 chosen = next(o for o in options if o["value"] == "typed")
@@ -307,15 +337,34 @@ def common_tools(s: CouncilFormSession, noun: str, problem_tool: BaseTool) -> li
     ]
 
 
-def make_agent(tools: list[BaseTool], system_prompt: str, model: str | None = None):
-    """A LangChain agent on the local Ollama model with the given tools."""
+def make_agent(tools: list[BaseTool], system_prompt: str, model: str | None = None, **llm_kwargs):
+    """A LangChain agent on the local Ollama model with the given tools.
+
+    llm_kwargs go to ChatOllama, e.g. reasoning=False to switch off a thinking model's reasoning (faster on CPU).
+    """
     from langchain.agents import create_agent
     from langchain_ollama import ChatOllama
 
     from . import config
 
-    llm = ChatOllama(model=model or config.OLLAMA_MODEL, base_url=config.OLLAMA_URL, temperature=0)
+    llm = ChatOllama(model=model or config.OLLAMA_MODEL, base_url=config.OLLAMA_URL, temperature=0, **llm_kwargs)
     return create_agent(llm, tools, system_prompt=system_prompt)
+
+
+REFERENCE_RE = re.compile(r"\b[A-Z]{0,4}-?\d{6,}\b")
+
+
+def unverified_references(reply: str, tool_results: list[str]) -> list[str]:
+    """Reference-like numbers in the model's reply that no submit tool returned (i.e. made up)."""
+    real = set()
+    for content in tool_results:
+        try:
+            ref = json.loads(content).get("reference")
+        except (ValueError, AttributeError):
+            continue
+        if ref:
+            real.add(str(ref))
+    return [r for r in REFERENCE_RE.findall(reply or "") if r not in real]
 
 
 def run_demo(session: CouncilFormSession, tools: list[BaseTool], steps: list[tuple[str, dict]],
