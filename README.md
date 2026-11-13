@@ -23,6 +23,36 @@ We are building an agentic AI solution that runs on local compute and delivers r
 - **Who benefits:** Residents, who report in plain words, and council staff, who get complete reports that have already been triaged.
 - **Approach:** A local agent (Nemotron on the DGX Spark, through Ollama) talks to the resident and calls tools. It routes the report to whoever owns the problem, assesses severity using the council form's depth bands, and files a completed form payload with a reference number. Routing rules come from [`docs/sheffield-council-services.md`](docs/sheffield-council-services.md). The first version covers road and pavement defects.
 
+### How it works
+
+```mermaid
+flowchart TD
+    A["Resident describes the problem<br>plus an optional map pin or device location"] --> B["Agent clarifies what and where<br>(one question at most)"]
+    B --> C{"Who owns it?<br>route_report"}
+
+    C -->|Untaxed vehicle| D1[DVLA]
+    C -->|Blocking or burnt-out vehicle| D2["South Yorkshire Police (101)"]
+    C -->|"M1, M18, A616"| D3[National Highways]
+    C -->|Car park or private road| D4[Landowner]
+    C -->|"Other council service<br>(street light, fly-tipping)"| D5[Council phone or website]
+    D1 & D2 & D3 & D4 & D5 --> R["Tell the resident who to contact. Stop."]
+
+    C -->|Pothole, road or pavement defect| P["Pothole form<br>surface and depth vs the form's limit<br>(road 40 mm, pavement 20 mm)"]
+    C -->|Street tree| T["Tree form<br>where it is, the problem, is it blocking?"]
+    T -.->|"Fallen or blocking"| U0["Phone the council now"]
+    T -->|"Park, housing or private tree"| R2["Redirect. Stop."]
+
+    P --> DUP
+    T -->|Highway tree| DUP["Duplicate check<br>same kind of problem within 60 m in 30 days?<br>tell the resident, file anyway"]
+    DUP --> F["File the report<br>chat mode: tool files it directly<br>form mode: agent fills in the web form in a browser<br>location geocoded to lat/lon"]
+    F --> TR["Triage: P1 to P4<br>rules (depth, blocking, keywords)<br>+ local LLM facts (was anyone hurt?)<br>+ context (A road, repeat reports)"]
+    TR --> E{P1 Emergency?}
+    E -->|Yes| U["Phone the council now on 0114 273 4567, or 999"]
+    E -->|No| REP
+    U --> REP["Reply to the resident<br>reference, who deals with it, priority, report link"]
+    REP --> DASH["Council dashboard<br>duplicates grouped on the map, queue sorted by priority,<br>a group rises as more people report it"]
+```
+
 ## Getting started
 
 Python, FastAPI and a Gradio chat UI calling the organisers' Ollama on the DGX Spark. Run it locally:
