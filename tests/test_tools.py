@@ -78,3 +78,58 @@ def test_call_tool_returns_errors_instead_of_raising():
     assert "error" in tools.call_tool("assess_pothole", '{"surface": "road"}')
     assert "error" in tools.call_tool("assess_pothole", '{"surface": "sky", "depth_mm": 3}')
     assert tools.call_tool("assess_pothole", '{"surface": "road", "depth_mm": 50}')["suggested_category"] == 1
+
+
+@pytest.mark.parametrize(
+    ("amount", "unit", "mm", "approximate"),
+    [
+        (5, "cm", 50, False),
+        (2, "inches", 50.8, False),
+        (1, "Inch", 25.4, False),
+        (0.5, "ft", 152.4, False),
+        (40, "mm", 40, False),
+        (1, "golf ball", 43, True),
+        (2, "fingers deep", 40, True),
+        (0.5, "a brick", 32.5, True),
+    ],
+)
+def test_convert_to_mm(amount, unit, mm, approximate):
+    result = tools.convert_to_mm(amount, unit)
+    assert result["mm"] == mm
+    assert result["approximate"] is approximate
+
+
+def test_convert_to_mm_unknown_unit_is_an_error_for_the_model():
+    assert "Unknown unit" in tools.call_tool("convert_to_mm", {"amount": 3, "unit": "smoots"})["error"]
+
+
+def test_trees_route_to_the_tree_form():
+    result = tools.route_report("tree", "Derbyshire Lane")
+    assert result["can_file"] is True and "tree steps" in result["next_step"]
+    assert tools.route_report("tree", "M1 junction 34")["owner"] == "National Highways"
+
+
+@pytest.mark.parametrize(("where", "problem"), [("Park", None), ("Housing", None), ("Private", None),
+                                                 ("Highway", "Utility"), ("Highway", "Nuisance")])
+def test_assess_tree_redirects_what_the_form_cannot_take(where, problem):
+    result = tools.assess_tree(where, problem)
+    assert result["can_file"] is False and result["redirect"]
+
+
+def test_assess_tree_needs_blocking_for_blocking_problems_and_flags_urgent_ones():
+    assert "blocking" in tools.call_tool("assess_tree", {"tree_location": "Highway", "problem": "Obstruction"})["error"]
+    assert "urgent_advice" in tools.assess_tree("Highway", "Fallen", blocking=False)
+    assert "urgent_advice" not in tools.assess_tree("Highway", "Roots")
+
+
+def test_file_tree_report_records_the_form_fields(reports_path):
+    result = tools.file_tree_report("Highway", "Dangerous", "12 Derbyshire Lane", "Split trunk, leaning", blocking=True)
+    assert result["reference"].startswith("SCC-") and "urgent_advice" in result
+    record = json.loads(reports_path.read_text().splitlines()[-1])
+    assert record["form"] == "report_tree"
+    assert record["form_payload"]["rad_tree_blocking"] == "Yes"
+
+
+def test_file_tree_report_refuses_redirected_trees():
+    assert "can't be filed" in tools.call_tool("file_tree_report", {
+        "tree_location": "Highway", "problem": "Nuisance", "location": "x", "description": "y"})["error"]

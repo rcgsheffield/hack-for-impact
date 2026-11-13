@@ -13,7 +13,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from hack_for_impact.agent.llm import build_agent, run_agent_events
+from hack_for_impact.agent.llm import build_agent, new_thread_id, run_agent_events, user_turns
 
 from . import config, submissions, usage
 from .agent import ToolStep
@@ -62,17 +62,38 @@ def _to_model_history(history: list[dict]) -> list[dict]:
     return out
 
 
+MODE_CHOICES = [
+    ("Chat: the agent files the report itself", "chat"),
+    ("Web form: the agent fills in the council form in a browser", "form"),
+]
+
+
 @cache
-def get_agent():
-    """The LangChain agent with the council tools, on the configured local Ollama model. Built on first use."""
-    return build_agent(model_name=config.OLLAMA_MODEL, base_url=config.OLLAMA_URL)
+def get_agent(mode: str = "chat"):
+    """The LangChain agent for one branch ("chat" or "form"), on the configured local Ollama model. Built on first use."""
+    return build_agent(model_name=config.OLLAMA_MODEL, base_url=config.OLLAMA_URL, mode=mode)
 
 
-def respond(message, history: list[dict]) -> Iterator[list[gr.ChatMessage]]:
+def respond(message, history: list[dict], mode: str | None, thread_id: str | None) -> Iterator[tuple[list[gr.ChatMessage], str]]:
+    """One chat turn. Each conversation is a checkpointer thread keyed by a UUID held in the browser session.
+
+    Normally only the new message is sent; the agent remembers earlier turns, tool results included. If the thread
+    doesn't match the chat on screen (new chat, or the user retried, undid or edited a message), start a new
+    thread seeded with the visible text history.
+    """
+    # Each mode has its own agent and checkpointer, so switching mode mid-chat starts a new thread (seeded below).
+    agent = get_agent(mode or "chat")
+    new_message = {"role": "user", "content": _text(message)}
+    shown_turns = sum(m.get("role") == "user" for m in history)
+    if thread_id and user_turns(agent, thread_id) == shown_turns:
+        messages = [new_message]
+    else:
+        thread_id = new_thread_id()
+        messages = _to_model_history(history) + [new_message]
+
     shown: list[gr.ChatMessage] = []
-    turn = _to_model_history(history) + [{"role": "user", "content": _text(message)}]
     try:
-        for event in run_agent_events(get_agent(), turn):
+        for event in run_agent_events(agent, messages, thread_id):
             if isinstance(event, ToolStep):
                 shown.append(gr.ChatMessage(
                     content=f"**Arguments**\n```json\n{event.arguments}\n```\n**Result**\n```json\n{json.dumps(event.result, indent=2)}\n```",
@@ -80,14 +101,20 @@ def respond(message, history: list[dict]) -> Iterator[list[gr.ChatMessage]]:
                 ))
             else:
                 shown.append(gr.ChatMessage(content=event))
-            yield shown
+            yield shown, thread_id
     except Exception as e:  # Show model/connection failures in the chat rather than a blank error.
         shown.append(gr.ChatMessage(content=f"⚠️ The local model isn't responding ({type(e).__name__}). Please try again shortly."))
-        yield shown
+        yield shown, thread_id
 
+
+thread_state = gr.State(None)
+mode_radio = gr.Radio(MODE_CHOICES, value="chat", label="How should the agent file reports?")
 
 demo = gr.ChatInterface(
     respond,
+    additional_inputs=[mode_radio, thread_state],
+    additional_inputs_accordion=gr.Accordion("Filing mode", open=True),
+    additional_outputs=[thread_state],
     title="CouncilTriagent",
     description=(
         "Report a problem with a road or pavement in Sheffield in your own words. "
@@ -95,12 +122,13 @@ demo = gr.ChatInterface(
         "**Unofficial hackathon prototype: nothing is sent to the council.** "
         "[Submissions dashboard](/dashboard)"
     ),
-    examples=[
+    # One column per input: message, mode, thread id. None leaves the mode as chosen and starts a new thread.
+    examples=[[ex, None, None] for ex in [
         "There's a really deep pothole outside 10 Fargate, about 5cm deep. A cyclist nearly came off.",
         "Huge pothole on the Stocksbridge Bypass heading north",
         "The supermarket car park on Abbeydale Road is full of potholes",
         "Cracked pavement on Ecclesall Road near the Botanical Gardens, maybe 1cm deep",
-    ],
+    ]],
     run_examples_on_click=True,
     cache_examples=False,
 )

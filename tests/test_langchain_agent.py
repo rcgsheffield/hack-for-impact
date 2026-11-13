@@ -71,3 +71,102 @@ def test_step_limit_gives_fallback_reply(monkeypatch):
     events = list(llm.run_agent_events(agent, USER))
 
     assert events[-1] == llm.FALLBACK_REPLY
+
+
+def test_thread_remembers_earlier_turns_including_tool_results(monkeypatch):
+    agent = make_agent([
+        AIMessage(content="", tool_calls=[call("1", "assess_pothole", {"surface": "road", "depth_mm": 50})]),
+        AIMessage(content="Where is it?"),
+        AIMessage(content="Thanks."),
+    ], monkeypatch)
+    thread = llm.new_thread_id()
+
+    list(llm.run_agent_events(agent, USER, thread))
+    list(llm.run_agent_events(agent, [{"role": "user", "content": "Fargate"}], thread))
+
+    stored = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"]
+    assert [type(m).__name__ for m in stored] == ["HumanMessage", "AIMessage", "ToolMessage", "AIMessage",
+                                                  "HumanMessage", "AIMessage"]
+    assert llm.user_turns(agent, thread) == 2
+    assert llm.user_turns(agent, llm.new_thread_id()) == 0
+
+
+def test_frontend_keeps_one_thread_per_chat_and_resets_on_mismatch(monkeypatch):
+    from app import main
+
+    agent = make_agent([AIMessage(content=f"reply {i}") for i in range(4)], monkeypatch)
+    monkeypatch.setattr(main, "get_agent", lambda mode="chat": agent)
+
+    def turn(message, history, thread_id):
+        shown, thread_id = list(main.respond(message, history, "chat", thread_id))[-1]
+        return shown[-1].content, thread_id
+
+    reply, thread = turn("hello", [], None)
+    assert reply == "reply 0" and thread
+    history = [{"role": "user", "content": "hello"}, {"role": "assistant", "content": reply}]
+
+    _, same = turn("Fargate", history, thread)
+    assert same == thread and llm.user_turns(agent, thread) == 2
+
+    # A cleared chat (or a retry/undo) no longer matches the stored thread, so a new one starts.
+    _, fresh = turn("new problem", [], thread)
+    assert fresh != thread and llm.user_turns(agent, fresh) == 1
+
+
+class FakeSession:
+    def __init__(self):
+        self.calls, self.closed = 0, False
+
+    def close(self):
+        self.closed = True
+
+
+def counter_tools(session):
+    from langchain_core.tools import StructuredTool
+
+    def bump() -> str:
+        session.calls += 1
+        return str(session.calls)
+    return [StructuredTool.from_function(func=bump, name="bump", description="Count calls in this session")]
+
+
+def test_thread_scoped_tools_keep_one_session_per_thread_and_close_the_oldest():
+    scoped = llm.ThreadScopedTools(FakeSession, counter_tools, max_sessions=2)
+    (bump,) = scoped.get_tools()
+    on = lambda t: {"configurable": {"thread_id": t}}  # noqa: E731
+
+    assert [bump.invoke({}, config=on("a")), bump.invoke({}, config=on("a")), bump.invoke({}, config=on("b"))] == ["1", "2", "1"]
+    first = scoped._sessions["a"][0]
+    bump.invoke({}, config=on("c"))  # a is least recently used, so it is closed
+
+    assert first.closed and list(scoped._sessions) == ["b", "c"]
+
+
+def test_agent_has_tree_form_tools():
+    names = {t.name for t in llm.tree_form_tools()}
+    assert {"start_tree_form", "set_tree_problem", "submit_tree_form"} <= names
+
+
+def test_each_mode_has_its_own_branch_of_tools():
+    chat = {t.name for t in llm.mode_tools("chat")}
+    form = {t.name for t in llm.mode_tools("form")}
+    assert {"file_report", "assess_tree", "file_tree_report"} <= chat
+    assert not any(n.startswith(("start_", "submit_")) for n in chat)
+    assert {"start_pothole_form", "submit_pothole_form", "start_tree_form", "submit_tree_form"} <= form
+    assert not {"file_report", "file_tree_report"} & form
+    assert {"route_report", "convert_to_mm"} <= chat & form
+
+
+def test_chat_mode_files_a_tree_report(monkeypatch):
+    agent = make_agent([
+        AIMessage(content="", tool_calls=[call("1", "assess_tree", {"tree_location": "Highway", "problem": "Fallen", "blocking": True})]),
+        AIMessage(content="", tool_calls=[call("2", "file_tree_report", {
+            "tree_location": "Highway", "problem": "Fallen", "blocking": True,
+            "location": "12 Derbyshire Lane", "description": "Branch across the pavement"})]),
+        AIMessage(content="Filed."),
+    ], monkeypatch)
+
+    events = list(llm.run_agent_events(agent, [{"role": "user", "content": "Branch down on Derbyshire Lane"}]))
+
+    assert events[0].result["urgent_advice"]
+    assert events[1].result["reference"].startswith("SCC-")
