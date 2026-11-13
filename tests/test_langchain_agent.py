@@ -247,3 +247,98 @@ def test_location_panel_title_shows_whether_a_location_is_set():
     assert main.location_label("") == "📍 Add a location (optional)"
     assert main.location_label("53.38, -1.47 (map pin)") == "📍 Location: pin on the map ✓"
     assert main.location_label("53.38, -1.47 (±9 m)") == "📍 Location: your current location ✓"
+
+
+# --- Regression: chat stalled after "Checked who's responsible" (pavement report, can_file true, no reply). ---
+
+SLAB = [{"role": "user", "content": "There's a loose, wobbling paving slab on the pavement outside the library on "
+                                    "Western Bank. Someone nearly tripped on it this morning."}]
+ROUTE = AIMessage(content="", tool_calls=[call("1", "route_report", {"problem_type": "pavement_surface",
+                                                                    "road_or_place": "Western Bank",
+                                                                    "description": "loose paving slab"})])
+
+
+@pytest.fixture
+def offline_geocode(monkeypatch):
+    monkeypatch.setattr(config, "GEOCODE_LIVE", False)
+
+
+def assert_asks_for_location(reply: str):
+    assert "Sheffield City Council" in reply
+    assert "pin" in reply
+
+
+@pytest.mark.parametrize("model_reply", ["", "<think>hmm</think>",
+                                         '{"name": "assess_pothole", "arguments": {"surface": "pavement"}}'])
+def test_unusable_reply_after_route_gets_a_next_step(model_reply, monkeypatch, offline_geocode):
+    agent = make_agent([ROUTE, AIMessage(content=model_reply)], monkeypatch)
+    thread = llm.new_thread_id()
+
+    events = list(llm.run_agent_events(agent, SLAB, thread))
+
+    assert [e.name for e in events if isinstance(e, ToolStep)] == ["route_report"]
+    assert_asks_for_location(events[-1])
+    # The follow-up is stored, so next turn the model knows what was asked.
+    stored = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"]
+    assert stored[-1].content == events[-1]
+
+
+def test_model_timeout_after_route_gets_a_next_step(monkeypatch, offline_geocode):
+    import httpx
+
+    def replies():
+        yield ROUTE
+        raise httpx.ReadTimeout("model took too long")
+
+    agent = make_agent(replies(), monkeypatch)
+
+    events = list(llm.run_agent_events(agent, SLAB))
+
+    assert_asks_for_location(events[-1])
+
+
+def test_model_failure_before_route_still_raises(monkeypatch):
+    import httpx
+
+    def replies():
+        raise httpx.ReadTimeout("model took too long")
+        yield  # pragma: no cover
+
+    agent = make_agent(replies(), monkeypatch)
+
+    with pytest.raises(httpx.ReadTimeout):
+        list(llm.run_agent_events(agent, SLAB))
+
+
+def test_pin_is_acknowledged_in_the_follow_up(monkeypatch, offline_geocode):
+    pinned = [{"role": "user", "content": SLAB[0]["content"] + "\n\n[The user dropped a pin on the map where the "
+                                                               "problem is: lat 53.38, lon -1.49.]"}]
+    agent = make_agent([ROUTE, AIMessage(content="")], monkeypatch)
+
+    reply = list(llm.run_agent_events(agent, pinned))[-1]
+
+    assert "Thanks for the pin" in reply
+
+
+def test_good_reply_after_route_is_kept(monkeypatch, offline_geocode):
+    question = "Thanks! Could you drop a pin on the map where the slab is?"
+    agent = make_agent([ROUTE, AIMessage(content=question)], monkeypatch)
+
+    assert list(llm.run_agent_events(agent, SLAB))[-1] == question
+
+
+def test_frontend_shows_working_bubble_until_the_reply(monkeypatch, offline_geocode):
+    from app import main
+
+    agent = make_agent([ROUTE, AIMessage(content="Where exactly is it?")], monkeypatch)
+    monkeypatch.setattr(main, "get_agent", lambda mode="chat": agent)
+
+    frames = [shown for shown, _ in main.respond(SLAB[0]["content"], [], "chat", None, None)]
+
+    as_dicts = [[{"metadata": m.metadata, "content": m.content} for m in f] for f in frames]
+    assert all(main.is_working(f) for f in as_dicts[:-1])  # the start, and after the route step
+    assert as_dicts[1][0]["metadata"]["title"] == "🧭 Can be reported: Sheffield City Council"
+    assert not main.is_working(as_dicts[-1])
+    assert frames[-1][-1].content == "Where exactly is it?"
+    assert main.chat_placeholder(as_dicts[1]) == main.WORKING_PLACEHOLDER
+    assert main.chat_placeholder(as_dicts[-1]) == main.REPLY_PLACEHOLDER
