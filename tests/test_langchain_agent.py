@@ -176,6 +176,9 @@ def test_shared_location_goes_to_the_model_not_the_chat(monkeypatch):
     from app import main
 
     assert "lat 53.381100, lon -1.470100, accuracy about 12 m" in main.location_note("53.381100, -1.470100 (±12 m)")
+    pinned = main.location_note("53.381411, -1.469543 (map pin)")
+    assert "dropped a pin on the map where the problem is: lat 53.381411, lon -1.469543" in pinned
+    assert "Use it only if they are at the problem now" not in pinned
     assert main.location_note("Not available: permission denied") == ""
     assert main.location_note(None) == ""
 

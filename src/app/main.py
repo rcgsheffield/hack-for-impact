@@ -81,28 +81,50 @@ def get_agent(mode: str = "chat"):
 
 # Runs in the browser: asks for location permission and returns "lat, lon (±N m)" or a message saying why not.
 # Browsers only allow geolocation on secure origins: https://..., or http://localhost / 127.0.0.1.
-GEOLOCATE_JS = """
-async () => {
-  if (!window.isSecureContext) return "Not available: location needs HTTPS or localhost (this page is " + location.origin + ")";
-  if (!navigator.geolocation) return "Not available: this browser has no location support";
-  try {
-    const p = await new Promise((ok, fail) =>
-      navigator.geolocation.getCurrentPosition(ok, fail, {enableHighAccuracy: true, timeout: 15000, maximumAge: 60000}));
-    return `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)} (±${Math.round(p.coords.accuracy)} m)`;
-  } catch (e) {
-    return "Not available: " + (e.code === 1 ? "permission denied" : e.message);
-  }
-}
-"""
-LOCATION_RE = re.compile(r"^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)(?:\s*\(±(\d+) m\))?")
+# Optional map for pointing at the problem (static/location-pin.js). Its value is the location string that
+# location_note() reads: "lat, lon (±N m)" from the device, or "lat, lon (map pin)" once tapped or dragged.
+# The template doesn't use ${value}, so setting the value from JS doesn't redraw (and lose) the map.
+LEAFLET = "https://unpkg.com/leaflet@1.9.4/dist/"  # same version as /dashboard and the mock forms
+location_pin = gr.HTML(
+    value="",
+    render=False,  # rendered beside the chat below
+    html_template="""
+<section class="lp" aria-labelledby="lp-heading">
+  <h2 id="lp-heading">Where is the problem? <span class="lp-optional">(optional)</span></h2>
+  <div class="lp-actions">
+    <button type="button" class="lp-use">📍 Use my location</button>
+    <button type="button" class="lp-clear" disabled>Clear pin</button>
+  </div>
+  <div class="lp-map" role="application" aria-label="Map of Sheffield. Click to drop a pin where the problem is."></div>
+  <p class="lp-status" role="status" aria-live="polite">Loading map…</p>
+</section>""",
+    css_template="""
+.lp h2 { font-size: 1rem; margin: 0 0 .5rem; }
+.lp-optional { font-weight: normal; opacity: .75; }
+.lp-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .5rem; }
+.lp button { font: inherit; padding: .4rem .8rem; border-radius: 6px; cursor: pointer;
+             border: 1px solid var(--border-color-primary); background: var(--button-secondary-background-fill);
+             color: var(--button-secondary-text-color); }
+.lp button:disabled { opacity: .5; cursor: not-allowed; }
+.lp button:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+.lp-map { height: 320px; border-radius: 8px; border: 1px solid var(--border-color-primary); }
+.lp-status { margin: .5rem 0 0; font-size: .9rem; }""",
+    js_on_load=(submissions.STATIC_DIR / "location-pin.js").read_text(encoding="utf-8"),
+    head=f'<link rel="stylesheet" href="{LEAFLET}leaflet.css"><script src="{LEAFLET}leaflet.js"></script>',
+)
+
+LOCATION_RE = re.compile(r"^\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)(?:\s*\((?:±(\d+) m|(map pin))\))?")
 
 
 def location_note(location: str | None) -> str:
-    """The context note added to the user's message when they have shared their device location."""
+    """The context note added to the user's message when they have shared their device location or dropped a pin."""
     m = LOCATION_RE.match(location or "")
     if not m:
         return ""
-    lat, lon, accuracy = m.groups()
+    lat, lon, accuracy, pinned = m.groups()
+    if pinned:
+        return (f"\n\n[The user dropped a pin on the map where the problem is: lat {lat}, lon {lon}. "
+                "Use it as the problem's location; you don't need to ask where it is.]")
     acc = f", accuracy about {accuracy} m" if accuracy else ""
     return (f"\n\n[Device location shared by the user: lat {lat}, lon {lon}{acc}. "
             "Use it only if they are at the problem now.]")
@@ -144,39 +166,33 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
 with gr.Blocks(title="CouncilTriagent") as demo:
     gr.Markdown(
         "# CouncilTriagent\n"
-        "Report a problem with a road, pavement or street tree in Sheffield in your own words. "
+        "Report a problem with a road, pavement or street tree in Sheffield in your own words, and drop a pin "
+        "on the map if you can. "
         f"Running locally on NVIDIA DGX Spark ({config.OLLAMA_MODEL}). "
         "**Unofficial hackathon prototype: nothing is sent to the council.** "
         "[Submissions dashboard](/dashboard)"
     )
     thread_state = gr.State(None)
-    with gr.Row(equal_height=True):
-        mode_radio = gr.Radio(MODE_CHOICES, value="chat", label="How should the agent file reports?", scale=3)
-        with gr.Column(scale=2):
-            location_box = gr.Textbox(label="Your location (optional)", interactive=False,
-                                      placeholder="Share it if you're standing at the problem")
-            with gr.Row():
-                locate_btn = gr.Button("📍 Share my location", size="sm")
-                forget_btn = gr.Button("Forget", size="sm", variant="secondary")
-    # fn=None: runs only in the browser, where the permission prompt appears; the result fills the textbox.
-    locate_btn.click(fn=None, inputs=None, outputs=location_box, js=GEOLOCATE_JS)
-    forget_btn.click(fn=lambda: "", inputs=None, outputs=location_box)
-
-    gr.ChatInterface(
-        respond,
-        additional_inputs=[mode_radio, location_box, thread_state],
-        additional_outputs=[thread_state],
-        # One column per input: message, mode, location, thread id. None leaves those as they are.
-        examples=[[ex, None, None, None] for ex in [
-            "There's a really deep pothole outside 10 Fargate, about 5cm deep. A cyclist nearly came off.",
-            "A big branch has come down across the pavement on Derbyshire Lane outside number 12",
-            "There's a pothole right here where I'm standing, about two inches deep",
-            "Huge pothole on the Stocksbridge Bypass heading north",
-            "The supermarket car park on Abbeydale Road is full of potholes",
-        ]],
-        run_examples_on_click=True,
-        cache_examples=False,
-    )
+    with gr.Row(equal_height=False):
+        with gr.Column(scale=2, min_width=280):
+            location_pin.render()
+        with gr.Column(scale=3, min_width=320):
+            mode_radio = gr.Radio(MODE_CHOICES, value="chat", label="How should the agent file reports?")
+            gr.ChatInterface(
+                respond,
+                additional_inputs=[mode_radio, location_pin, thread_state],
+                additional_outputs=[thread_state],
+                # One column per input: message, mode, location, thread id. None leaves those as they are.
+                examples=[[ex, None, None, None] for ex in [
+                    "There's a really deep pothole outside 10 Fargate, about 5cm deep. A cyclist nearly came off.",
+                    "A big branch has come down across the pavement on Derbyshire Lane outside number 12",
+                    "There's a pothole right here where I'm standing, about two inches deep",
+                    "Huge pothole on the Stocksbridge Bypass heading north",
+                    "The supermarket car park on Abbeydale Road is full of potholes",
+                ]],
+                run_examples_on_click=True,
+                cache_examples=False,
+            )
 
 # Mount last so /health and /mock/ aren't shadowed by Gradio's routes.
 app = gr.mount_gradio_app(app, demo, path="/")

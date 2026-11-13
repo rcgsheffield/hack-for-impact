@@ -16,6 +16,7 @@ Browser setup (once per machine):
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import threading
@@ -48,6 +49,17 @@ PAGES = {
     "page_review": "Review your request",
     "page_complete": "Request submitted",
 }
+
+
+log = logging.getLogger(__name__)
+
+# What the model is told when the browser can't start. Written for the user's benefit: the technical detail
+# goes to the server log, so the model has nothing to repeat or embellish.
+FORM_UNAVAILABLE = (
+    "The online form isn't available right now. Don't explain why or mention technical details. "
+    "Tell the user they can report it by phoning the council on 0114 273 4567, "
+    "or 999 if anyone is in danger or hurt."
+)
 
 
 class FormStepError(Exception):
@@ -99,7 +111,8 @@ class CouncilFormSession:
             try:
                 from playwright.sync_api import sync_playwright  # imported lazily so the app boots without it
             except ImportError as e:
-                raise FormStepError("Playwright is not installed: run `uv sync`.") from e
+                log.error("Form browser unavailable: Playwright is not installed (run `uv sync`).")
+                raise FormStepError(FORM_UNAVAILABLE) from e
             self._pw = sync_playwright().start()
             try:
                 self._browser = self._pw.chromium.launch(headless=self.headless, channel=self.channel,
@@ -107,9 +120,10 @@ class CouncilFormSession:
             except Exception as e:
                 self._pw.stop()
                 self._pw = None
-                raise FormStepError(
-                    "Could not start a browser. Run `uv run playwright install chromium`, "
-                    f"or set FORM_BROWSER_CHANNEL=chrome. ({type(e).__name__}: {e})") from e
+                log.error("Form browser unavailable: could not start Chromium. Run `uv run playwright install "
+                          "chromium` (and `playwright install-deps chromium` with sudo on Linux), or set "
+                          "FORM_BROWSER_CHANNEL=chrome. %s: %s", type(e).__name__, e)
+                raise FormStepError(FORM_UNAVAILABLE) from e
             self._page = self._browser.new_page()
             self._page.set_default_timeout(self.timeout_ms)
         return self._page
@@ -158,6 +172,10 @@ class CouncilFormSession:
 
     def _expect(self, page_id: str) -> None:
         current = self._current_page() if self._page else ""
+        if page_id == "page_about_the_problem" and current in ("", "page_sign_in"):
+            # The model skipped (or ran in parallel) the start tool: open the form now rather than fail.
+            self._start_on_thread()
+            current = self._current_page()
         if current != page_id:
             raise FormStepError(
                 f"The form is on {self.page_titles.get(current, current or 'no page')!r}, "
@@ -181,16 +199,16 @@ class CouncilFormSession:
             raise FormStepError(file_error.removeprefix("Error: "))
 
     # ---------- common form steps ----------
+    def _start_on_thread(self) -> dict:
+        page = self._ensure_page()
+        page.goto(self.url)
+        page.wait_for_selector("#page_sign_in:not([hidden])")
+        page.check("#page_sign_in input[name=rad_sign_in][value=false]")  # "Submit a request without signing in"
+        return self._click_next("page_sign_in")
+
     def start(self) -> dict:
         self.tell_user = []
-
-        def step():
-            page = self._ensure_page()
-            page.goto(self.url)
-            page.wait_for_selector("#page_sign_in:not([hidden])")
-            page.check("#page_sign_in input[name=rad_sign_in][value=false]")  # "Submit a request without signing in"
-            return self._click_next("page_sign_in")
-        return self._run(step)
+        return self._run(self._start_on_thread)
 
     def set_location(self, location: str, details: str, address_choice: str | None = None,
                      lat: float | None = None, lon: float | None = None) -> dict:
