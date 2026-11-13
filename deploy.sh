@@ -11,7 +11,22 @@ mkdir -p "$DEPLOY_DIR"
 rsync -a --delete --exclude .git --exclude data/ ./ "$DEPLOY_DIR/"
 cd "$DEPLOY_DIR"
 
-# TODO: start/restart the app once the stack is chosen, e.g.
-#   docker compose up -d --build
+# Run the app as a systemd user service (needs `loginctl enable-linger` once).
+# The commit SHA reaches the app through an env file read by the unit.
+echo "GIT_SHA=${SHA:0:7}" > .app.env
+mkdir -p "$HOME/.config/systemd/user"
+cp src/app/hack-app.service "$HOME/.config/systemd/user/hack-app.service"
+systemctl --user daemon-reload
+systemctl --user enable hack-app >/dev/null 2>&1 || true
+systemctl --user restart hack-app
 
-echo "Deployed ${SHA:0:7} to $DEPLOY_DIR"
+# Fail the deploy unless the app comes up healthy.
+for _ in $(seq 15); do
+  if curl -fsS --max-time 3 "http://127.0.0.1:${PORT:-8000}/health" >/dev/null; then
+    echo "Deployed ${SHA:0:7} to $DEPLOY_DIR (app healthy)"
+    exit 0
+  fi
+  sleep 1
+done
+echo "ERROR: app not healthy after deploy; see: journalctl --user -u hack-app" >&2
+exit 1
