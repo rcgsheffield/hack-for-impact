@@ -12,12 +12,17 @@ from openai import OpenAI
 
 from . import config
 from .tools import SCHEMAS, call_tool
+from .urgency import ensure_advice, is_urgent_result, urgent_note
 
 _COMMON_RULES = """Rules:
 - Never invent a reference number; only quote one a tool returned.
 - If a tool returns "error" or "errors", fix the arguments or ask the user, then try again.
 - If someone is in immediate danger, tell them to call 999. For urgent road or tree hazards, they should phone the council on 0114 273 4567.
-- If a tool result has urgent_advice or tell_user, include that advice in your reply.
+- If a tool result has urgent_advice or tell_user, include that advice in your reply, word for word.
+- If the user's message ends with an [Urgent check ...] note, start your reply with that advice before asking anything.
+- After filing, tell the user the suggested priority in plain words from priority_plain, e.g. "Emergency: made safe
+  within 24 hours". It is a suggestion only: the council decides after inspection. Say so.
+- For an Emergency (P1) always tell the user to phone the council now on 0114 273 4567, or 999 if anyone is in danger.
 - If a tool result has a url, include it as a Markdown link so the user can view their report.
 - Keep replies short and friendly. Use British English.
 - This is a hackathon prototype: nothing is sent to the council. Say so when you give a reference.
@@ -38,7 +43,7 @@ SYSTEM_PROMPT = _INTRO + """
 Potholes and road or pavement surface defects:
 1. Call assess_pothole with the surface (road or pavement) and depth_mm.
 2. Call file_report with the depth_band from assess_pothole, the location and a short description.
-3. Reply with the reference number, who will deal with it, and the suggested priority with what it means.
+3. Reply with the reference number, who will deal with it, and the suggested priority from priority_plain.
 
 Trees (fallen, dangerous, overhanging, roots lifting the pavement, touching cables, and so on):
 Where the tree is: use Highway unless the user clearly said a park or woodland, a council housing estate or a private
@@ -46,7 +51,7 @@ or neighbour's garden. A named street or road, or "don't know", means Highway. N
 1. Call assess_tree with tree_location and, for a tree on or by a road or pavement (Highway), the problem and, for Fallen, Dangerous or Obstruction, whether it is blocking the way.
 2. If can_file is false, pass on the redirect advice in plain words and stop.
 3. Call file_tree_report with the same values, the location and a short description.
-4. Reply with the reference number and who will deal with it. Trees have no priority category.
+4. Reply with the reference number, who will deal with it, and the suggested priority from priority_plain.
 
 """ + _COMMON_RULES
 
@@ -67,7 +72,7 @@ For both forms:
 - Use everything the user has already said and don't ask again for things you know.
 - Submit anonymously unless the user wants updates and gives their details.
 - After the review step, tell the user the answers and ask them to confirm. Only call submit_pothole_form or submit_tree_form after they say yes.
-- Reply with the reference number from the submit tool.
+- Reply with the reference number and the suggested priority (priority_plain) from the submit tool.
 - If a form tool says the online form isn't available, don't guess why or mention technical details: give the
   user the council phone number from the tool result and stop.
 
@@ -107,13 +112,18 @@ def run_agent_events(history: list[dict], client: OpenAI | None = None, model: s
     client = client or make_client()
     model = model or config.OLLAMA_MODEL
     messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}, *history]
+    # Escalate in code (see hack_for_impact.agent.llm.run_agent_events): note for the model, advice in the reply.
+    note = urgent_note(str(history[-1].get("content") or "")) if history and history[-1].get("role") == "user" else ""
+    urgent = bool(note)
+    if note:
+        messages[-1] = {**messages[-1], "content": str(messages[-1]["content"]) + note}
 
     for _ in range(config.MAX_AGENT_STEPS):
         response = client.chat.completions.create(model=model, messages=messages, tools=SCHEMAS)
         msg = response.choices[0].message
 
         if not msg.tool_calls:
-            yield clean(msg.content) or "Sorry, I didn't catch that. Could you describe the problem and where it is?"
+            yield ensure_advice(clean(msg.content) or "Sorry, I didn't catch that. Could you describe the problem and where it is?", urgent)
             return
 
         messages.append({
@@ -126,6 +136,7 @@ def run_agent_events(history: list[dict], client: OpenAI | None = None, model: s
         })
         for call in msg.tool_calls:
             result = call_tool(call.function.name, call.function.arguments)
+            urgent = urgent or is_urgent_result(result)
             yield ToolStep(call.function.name, call.function.arguments, result)
             messages.append({"role": "tool", "tool_call_id": call.id, "content": json.dumps(result)})
 

@@ -21,6 +21,7 @@ from app.agent import FORM_SYSTEM_PROMPT, SYSTEM_PROMPT, ToolStep, clean
 from app.pothole_form_toolkit import PotholeFormSession, PotholeFormToolkit
 from app.tools import langchain_tools
 from app.tree_form_toolkit import TreeFormSession, TreeFormToolkit
+from app.urgency import ensure_advice, is_urgent_result, urgent_note
 
 OLLAMA_URL = "http://spark12.local:11434"
 
@@ -155,7 +156,18 @@ def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
     user's message. With a thread_id, earlier turns (including tool calls and results) come from the checkpointer,
     so pass only the new message. Without one, a fresh thread is used.
     `max_steps` caps model calls for this turn (default config.MAX_AGENT_STEPS); the browser agent needs more.
+
+    Emergencies are escalated in code, not just the prompt: if the new message already triages as P1, a note telling
+    the model to give the phone advice first is added to it; and if that or any tool result was urgent, the final
+    reply always ends up containing the council phone number.
     """
+    messages = list(messages)
+    urgent = False
+    if messages and messages[-1].get("role") == "user":
+        note = urgent_note(str(messages[-1].get("content") or ""))
+        if note:
+            urgent = True
+            messages[-1] = {**messages[-1], "content": str(messages[-1]["content"]) + note}
     calls: dict[str, dict] = {}  # tool_call_id -> {"name", "args"} from the model's request
     reply = ""
     run_config = thread_config(thread_id or new_thread_id(), max_steps)
@@ -174,9 +186,10 @@ def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
                             result = json.loads(msg.content)
                         except (TypeError, ValueError):
                             result = {"output": msg.content}
+                        urgent = urgent or (isinstance(result, dict) and is_urgent_result(result))
                         yield ToolStep(call.get("name", msg.name or "tool"), json.dumps(call.get("args", {})), result)
     except GraphRecursionError:
         yield FALLBACK_REPLY
         return
-    yield reply or "Sorry, I didn't catch that. Could you describe the problem and where it is?"
+    yield ensure_advice(reply or "Sorry, I didn't catch that. Could you describe the problem and where it is?", urgent)
 # %%

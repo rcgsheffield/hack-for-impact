@@ -54,3 +54,11 @@ BROWSER_NUM_CTX = int(os.environ.get("BROWSER_NUM_CTX", "65536"))
 # Each /browser conversation runs its own Node process and browser: cap them and close idle ones.
 BROWSER_MAX_SESSIONS = int(os.environ.get("BROWSER_MAX_SESSIONS", "3"))
 BROWSER_IDLE_SECONDS = int(os.environ.get("BROWSER_IDLE_SECONDS", "900"))
+
+# Local-model triage signals (src/app/triage_llm.py, issue #26): read the report text after filing and add reasons.
+# "0" turns it off (tests, or Ollama down); triage then uses the rules only.
+TRIAGE_LLM = (os.environ.get("TRIAGE_LLM") or "1").lower() not in ("0", "false", "no")
+# Seconds to wait for the model's reading of one report; on timeout triage falls back to the rules.
+TRIAGE_LLM_TIMEOUT = float(os.environ.get("TRIAGE_LLM_TIMEOUT") or "20")
+# Cached model signals by report reference, one JSON object per line.
+TRIAGE_SIGNALS_PATH = Path(os.environ.get("TRIAGE_SIGNALS_PATH") or "data/triage_signals.jsonl")

@@ -15,6 +15,8 @@ Reporter details (name, date of birth, phone, email) are never written to disk b
 Every item has a triage dict (triage.py): stored on the record when it was filed, or worked out when read.
 Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
 address search or map, "device" when the chat user shared their device location, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
+Every item has road_class (OSM highway=*, or None) and a duplicate group (dedup.py); triage_context.py turns both
+into triage signals (an A road, "Reported 3 times in 8 days").
 """
 
 from __future__ import annotations
@@ -29,9 +31,10 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-from . import config, dedup
+from . import config, dedup, triage_context
 from .geocode import geocode, le_gis
-from .triage import by_priority, safe_triage
+from .triage import by_priority, combine_signals, safe_triage
+from .triage_llm import cached_signals, enrich_in_background
 
 log = logging.getLogger(__name__)
 
@@ -72,6 +75,8 @@ def save_submission(record: dict) -> None:
             geo = geocode(_typed_location(record["fields"]))
             if geo:
                 record = {**record, "le_gis": le_gis(geo), "geo_source": geo["source"]}
+                if geo.get("road_class"):
+                    record["road_class"] = geo["road_class"]
         record = {**record, "triage": safe_triage({"form": record.get("form"), "fields": record["fields"],
                                                     "reference": record.get("reference")})}
         line = json.dumps({"recorded_at": _now(), **record})
@@ -80,6 +85,7 @@ def save_submission(record: dict) -> None:
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("a", encoding="utf-8") as f:
                 f.write(line + "\n")
+        enrich_in_background(record.get("reference"), record["fields"].get("txta_details_about_the_location", ""))
     except Exception:  # The dashboard is a nice-to-have; it must not break the submit tool.
         log.exception("could not save mock submission")
 
@@ -142,6 +148,7 @@ def _from_mock(r: dict) -> dict:
         "lat": lat,
         "lon": lon,
         "geo_source": (r.get("geo_source") or "form") if lat is not None else None,
+        "road_class": r.get("road_class"),
         "raw": without_personal_details(r),
     }
 
@@ -166,6 +173,7 @@ def _from_report(r: dict) -> dict:
         "lat": lat,
         "lon": lon,
         "geo_source": geo.get("source") if lat is not None and lon is not None else None,
+        "road_class": geo.get("road_class"),
         "raw": r,
     }
 
@@ -186,6 +194,7 @@ def _from_usage(r: dict) -> dict:
         "lat": lat,
         "lon": lon,
         "geo_source": r.get("geo_source") if lat is not None and lon is not None else None,
+        "road_class": None,
         "raw": {k: r.get(k) for k in ("ts", "event", "page", "reference", "user_agent", "location", "lat", "lon", "geo_source")},
     }
 
@@ -211,9 +220,13 @@ def load_submissions() -> dict[str, Any]:
             who = "agent" if any(m in str(r.get("user_agent", "")) for m in AGENT_UA_MARKERS) else "person"
             page = views.setdefault(str(r.get("page", "")).removesuffix(".html"), {"agent": 0, "person": 0})
             page[who] += 1
-    for i in items:  # stored when filed; worked out now for older records and browser submissions
-        i["triage"] = (i["raw"] or {}).get("triage") or safe_triage(i)
     groups = dedup.group(items)  # annotates every item with item["duplicate"]
+    contexts = triage_context.annotate(items, _ts)  # road class and repeat-report signals (uses the dedup groups)
+    for i, context in zip(items, contexts):
+        # Stored when filed, or worked out now for older records and browser submissions. Re-worked when the local
+        # LLM (#26) or the map context (#27) adds signals, since both arrive after the report was filed.
+        sig = combine_signals(cached_signals(i["reference"]), context)
+        i["triage"] = safe_triage(i, sig) if sig else (i["raw"] or {}).get("triage") or safe_triage(i)
     items.sort(key=_ts, reverse=True)
     return {"generated_at": _now(), "count": len(items), "by_priority": by_priority(items), "forms": FORM_NAMES,
             "views": views, "submissions": items,

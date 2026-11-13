@@ -51,7 +51,8 @@ def test_full_flow_routes_assesses_files_then_replies():
 
     assert [s.name for s in result.steps] == ["route_report", "assess_pothole", "file_report"]
     assert result.steps[2].result["reference"].startswith("SCC-")
-    assert result.reply == "Filed it."
+    # A 50mm road pothole is P1, so the urgent advice is added when the model leaves it out.
+    assert result.reply.startswith("Filed it.") and "0114 273 4567" in result.reply
     # The model saw each tool result, matched to its call id.
     last_messages = client.calls[-1]["messages"]
     assert [m["tool_call_id"] for m in last_messages if m["role"] == "tool"] == ["1", "2", "3"]
@@ -78,3 +79,11 @@ def test_step_cap_stops_a_looping_model(monkeypatch):
 def test_empty_reply_gets_a_fallback():
     result = agent.run_agent(USER, client=FakeClient([message(content="<think>hmm</think>")]), model="test")
     assert result.reply.startswith("Sorry")
+
+
+def test_p1_message_is_escalated_before_any_tool_call():
+    client = FakeClient([message(content="Which street is it on?")])
+    result = agent.run_agent([{"role": "user", "content": "A big tree has fallen across the road"}], client=client, model="test")
+
+    assert "[Urgent check" in client.calls[0]["messages"][-1]["content"]
+    assert "0114 273 4567" in result.reply and "999" in result.reply

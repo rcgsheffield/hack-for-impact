@@ -6,6 +6,7 @@ from langchain_core.messages import AIMessage
 
 from app import config
 from app.agent import ToolStep
+from app.urgency import URGENT_ADVICE
 from hack_for_impact.agent import llm
 
 
@@ -46,7 +47,8 @@ def test_full_flow_streams_tool_steps_then_reply(monkeypatch):
     assert [s.name for s in steps] == ["route_report", "assess_pothole", "file_report"]
     assert steps[0].result["can_file"] is True
     assert steps[2].result["reference"].startswith("SCC-")
-    assert events[-1] == "Filed it."
+    # A 50mm road pothole is P1, so the urgent advice is added when the model leaves it out.
+    assert events[-1] == f"Filed it.\n\n{URGENT_ADVICE}"
 
 
 def test_tool_errors_are_returned_not_raised(monkeypatch):
@@ -188,6 +190,55 @@ def test_shared_location_goes_to_the_model_not_the_chat(monkeypatch):
 
     sent = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"][0].content
     assert sent.startswith("pothole right here") and "[Device location shared by the user: lat 53.38, lon -1.47" in sent
+
+
+FALLEN_TREE = [{"role": "user", "content": "A tree has fallen across the road on Derbyshire Lane"}]
+
+
+def test_fallen_tree_across_the_road_is_escalated_before_filing(monkeypatch):
+    agent = make_agent([AIMessage(content="Where exactly is it?")], monkeypatch)
+    thread = llm.new_thread_id()
+
+    events = list(llm.run_agent_events(agent, FALLEN_TREE, thread))
+
+    # The model is told to lead with the phone advice, and the reply has it even though the model forgot.
+    sent = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"][0].content
+    assert sent.startswith(FALLEN_TREE[0]["content"]) and "[Urgent check" in sent and "0114 273 4567" in sent
+    assert events[-1].startswith("Where exactly is it?")
+    assert "0114 273 4567" in events[-1] and "999" in events[-1]
+
+
+def test_routine_message_gets_no_urgent_note(monkeypatch):
+    agent = make_agent([AIMessage(content="How deep is it?")], monkeypatch)
+    thread = llm.new_thread_id()
+
+    events = list(llm.run_agent_events(agent, [{"role": "user", "content": "Small crack on Fargate"}], thread))
+
+    sent = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"][0].content
+    assert sent == "Small crack on Fargate"
+    assert events[-1] == "How deep is it?"
+
+
+def test_scripted_p1_tree_report_tells_the_resident_to_phone(monkeypatch):
+    agent = make_agent([
+        AIMessage(content="", tool_calls=[call("1", "route_report", {
+            "problem_type": "tree", "road_or_place": "Derbyshire Lane", "description": "tree fallen across the road"})]),
+        AIMessage(content="", tool_calls=[call("2", "assess_tree", {"tree_location": "Highway", "problem": "Fallen", "blocking": True})]),
+        AIMessage(content="", tool_calls=[call("3", "file_tree_report", {
+            "tree_location": "Highway", "problem": "Fallen", "blocking": True,
+            "location": "Derbyshire Lane", "description": "Tree fallen across the road"})]),
+        AIMessage(content="Filed as SCC-x. Suggested priority: Emergency."),
+    ], monkeypatch)
+
+    events = list(llm.run_agent_events(agent, FALLEN_TREE))
+
+    filed = events[2].result
+    assert (filed["priority"], filed["label"]) == ("P1 Emergency", "Emergency")
+    assert filed["priority_plain"] == "Emergency: made safe within 24 hours"
+    assert filed["urgent_advice"] == URGENT_ADVICE and "0114 273 4567" in filed["urgent_advice"]
+    assert "suggestion only" in filed["priority_note"]
+    assert "score" not in filed and "engine" not in filed
+    assert "0114 273 4567" in events[-1]
 
 
 def test_location_panel_title_shows_whether_a_location_is_set():
