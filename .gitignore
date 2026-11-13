@@ -220,10 +220,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Hack for Impact: local datasets and secrets
-data/*
-!data/README.md
-!data/.gitkeep
-!data/sample/
 .env
 .env.*
 !.env.example
