@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en-GB" class="ct">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CouncilTriagent styleguide</title>
+<link rel="icon" href="/ui/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/ui/ui.css">
+<!-- Visual reference for page builders. Everything here uses only /ui/ui.css; the <style> below is page layout for
+     the guide itself (sg-*), not part of the design system. -->
+<style>
+  .sg-section { padding-block: var(--ct-space-10) 0; }
+  .sg-section > h2 { font-size: var(--ct-text-2xl); margin-bottom: var(--ct-space-1); }
+  .sg-section > .sg-lead { color: var(--ct-text-2); margin-bottom: var(--ct-space-5); max-width: 60rem; }
+  .sg-h3 { font-size: var(--ct-text-sm) !important; text-transform: uppercase; letter-spacing: var(--ct-tracking-caps); color: var(--ct-muted) !important; margin: var(--ct-space-6) 0 var(--ct-space-3) !important; font-weight: 700 !important; }
+  .sg-swatches { display: grid; gap: var(--ct-space-3); grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .sg-sw { border: 1px solid var(--ct-border); border-radius: var(--ct-radius); overflow: hidden; background: var(--ct-surface); font-size: var(--ct-text-xs); }
+  .sg-sw__chip { height: 56px; border-bottom: 1px solid var(--ct-border); display: grid; place-items: center; font-weight: 700; font-size: var(--ct-text-sm); }
+  .sg-sw__meta { padding: 8px 10px; display: grid; gap: 1px; }
+  .sg-sw__meta code { background: none; padding: 0; color: var(--ct-text); font-size: 11px; }
+  .sg-sw__meta span { color: var(--ct-muted); font-family: var(--ct-font-mono); }
+  .sg-type > * + * { margin-top: var(--ct-space-3); }
+  .sg-type-row { display: grid; grid-template-columns: 140px 1fr; gap: var(--ct-space-4); align-items: baseline; padding-bottom: var(--ct-space-3); border-bottom: 1px dashed var(--ct-border); }
+  .sg-type-row code { font-size: var(--ct-text-xs); color: var(--ct-muted); background: none; }
+  .sg-logos { display: flex; flex-wrap: wrap; gap: var(--ct-space-6); align-items: center; }
+  .sg-logo-tile { display: grid; justify-items: center; gap: var(--ct-space-2); padding: var(--ct-space-4); border-radius: var(--ct-radius-lg); border: 1px solid var(--ct-border); background: var(--ct-surface); font-size: var(--ct-text-xs); color: var(--ct-muted); }
+  .sg-logo-tile--dark { background: #0C1310; border-color: #26332C; color: #93A399; }
+  .sg-row { display: flex; flex-wrap: wrap; gap: var(--ct-space-3); align-items: center; }
+  .sg-demo-header { border: 1px solid var(--ct-border); border-radius: var(--ct-radius-lg); overflow: hidden; }
+  .sg-demo-header .ct-header { position: relative; }
+  .sg-two { display: grid; gap: var(--ct-space-4); grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+  .sg-theme { position: fixed; right: 16px; bottom: 16px; z-index: 60; box-shadow: var(--ct-shadow-lg); background: var(--ct-surface); }
+  @media (max-width: 560px) { .sg-type-row { grid-template-columns: 1fr; gap: 2px; } }
+</style>
+</head>
+<body>
+<a class="ct-skip" href="#main">Skip to main content</a>
+
+<header class="ct-header">
+  <div class="ct-header__inner">
+    <a class="ct-brand" href="/" aria-label="CouncilTriagent home">
+      <img class="ct-brand__mark" src="/ui/logo-mark.svg" alt="" width="32" height="32">
+      <span class="ct-brand__text"><span class="ct-brand__name">Council<b>Triagent</b></span><span class="ct-brand__sub">Sheffield street problems</span></span>
+    </a>
+    <nav class="ct-nav" aria-label="Main">
+      <a href="/">Report a problem</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/ui/styleguide.html" aria-current="page">Styleguide</a>
+    </nav>
+    <div class="ct-header__meta">
+      <span class="ct-badge ct-pill ct-pill--local" title="Local LLM via Ollama">Runs locally on DGX Spark</span>
+      <span class="ct-badge ct-pill ct-pill--prototype">Prototype</span>
+    </div>
+  </div>
+</header>
+<div class="ct-strip"><div class="ct-strip__inner"><strong>Unofficial hackathon prototype.</strong> Nothing is sent to Sheffield City Council.</div></div>
+
+<main id="main" class="ct-container ct-main">
+  <div class="ct-page-head">
+    <div>
+      <p class="ct-eyebrow">Design system · ui.css</p>
+      <h1 class="ct-page-title">CouncilTriagent styleguide</h1>
+      <p class="ct-page-lead">One look for chat, the triage console and the resident report page. Tokens are <code>--ct-*</code>, classes are <code>ct-*</code>.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ BRAND -->
+  <section class="sg-section" aria-labelledby="h-brand">
+    <h2 id="h-brand">Brand</h2>
+    <p class="sg-lead">Built on the team's smiling-tree logo: deep ring green for actions, leaf greens for the assistant, circuit gold for "local AI", bark brown sparingly. Never crests, crowns or GOV.UK styling.</p>
+    <div class="sg-logos">
+      <div class="sg-logo-tile"><img src="/ui/logo.svg" alt="Full logo" width="140" height="140">logo.svg</div>
+      <div class="sg-logo-tile"><img src="/ui/logo-mark.svg" alt="" width="64" height="64"><span class="sg-row"><img src="/ui/logo-mark.svg" alt="" width="32"><img src="/ui/logo-mark.svg" alt="" width="24"><img src="/ui/logo-mark.svg" alt="" width="16"></span>logo-mark.svg 64 / 32 / 24 / 16</div>
+      <div class="sg-logo-tile sg-logo-tile--dark"><img src="/ui/logo-mark.svg" alt="" width="64" height="64"><span class="sg-row"><img src="/ui/logo-mark.svg" alt="" width="32"><img src="/ui/logo-mark.svg" alt="" width="24"><img src="/ui/logo-mark.svg" alt="" width="16"></span>on dark</div>
+      <div class="sg-logo-tile"><span class="sg-row"><img src="/ui/favicon.svg" alt="" width="48"><img src="/ui/favicon.svg" alt="" width="32"><img src="/ui/favicon.svg" alt="" width="16"></span>favicon.svg</div>
+      <div class="sg-logo-tile sg-logo-tile--dark"><span class="sg-row"><img src="/ui/favicon.svg" alt="" width="48"><img src="/ui/favicon.svg" alt="" width="32"><img src="/ui/favicon.svg" alt="" width="16"></span>favicon on dark</div>
+    </div>
+  </section>
+
+  <!-- ============================================================ PALETTE -->
+  <section class="sg-section" aria-labelledby="h-palette">
+    <h2 id="h-palette">Palette</h2>
+    <p class="sg-lead">Switch theme with the control at the bottom right; values below are read live from the tokens. <strong>Colour means priority</strong>: red, orange, blue and grey are reserved for P1 to P4 and always come with an icon and text. Violet means "similar reports grouped".</p>
+    <h3 class="sg-h3">Neutrals</h3>
+    <div class="sg-swatches" data-tokens="bg surface surface-2 surface-3 border border-strong input-border text text-2 muted"></div>
+    <h3 class="sg-h3">Brand</h3>
+    <div class="sg-swatches" data-tokens="brand brand-hover brand-text brand-soft brand-soft-2 leaf leaf-light mint mint-2 sun bark focus"></div>
+    <h3 class="sg-h3">Priority (solid / text / soft / border)</h3>
+    <div class="sg-swatches" data-tokens="p1 p1-text p1-soft p1-border p2 p2-text p2-soft p2-border p3 p3-text p3-soft p3-border p4 p4-text p4-soft p4-border"></div>
+    <h3 class="sg-h3">Duplicates, status and data</h3>
+    <div class="sg-swatches" data-tokens="dup dup-text dup-soft success success-soft info info-soft warning warning-soft proto proto-soft data-neutral data-brand"></div>
+  </section>
+
+  <!-- ============================================================ TYPE -->
+  <section class="sg-section" aria-labelledby="h-type">
+    <h2 id="h-type">Type</h2>
+    <p class="sg-lead">System font stack only. Tight tracking on headings, tabular numbers for counts, monospace for references.</p>
+    <div class="ct-card sg-type">
+      <div class="sg-type-row"><code>--ct-text-4xl 40</code><span style="font-size:var(--ct-text-4xl);font-weight:750;letter-spacing:-.03em;line-height:1.1">7 emergencies</span></div>
+      <div class="sg-type-row"><code>--ct-text-3xl 30 · h1</code><span style="font-size:var(--ct-text-3xl);font-weight:750;letter-spacing:-.025em">Thanks, we've got it</span></div>
+      <div class="sg-type-row"><code>--ct-text-2xl 24</code><span style="font-size:var(--ct-text-2xl);font-weight:700;letter-spacing:-.02em">Triage console</span></div>
+      <div class="sg-type-row"><code>--ct-text-xl 20 · h2</code><span style="font-size:var(--ct-text-xl);font-weight:650">Repeated problems</span></div>
+      <div class="sg-type-row"><code>--ct-text-lg 18 · lead</code><span style="font-size:var(--ct-text-lg);color:var(--ct-text-2)">Report a road, pavement or street tree problem in Sheffield, in your own words.</span></div>
+      <div class="sg-type-row"><code>--ct-text-base 16 · body</code><span>A big branch has come down across the pavement on Derbyshire Lane outside number 12.</span></div>
+      <div class="sg-type-row"><code>--ct-text-md 14 · UI</code><span style="font-size:var(--ct-text-md)">Table cells, buttons, notices and form controls.</span></div>
+      <div class="sg-type-row"><code>--ct-text-sm 13 · meta</code><span class="ct-small ct-muted">13 Nov, 15:30 · Chat agent · 120 Abbeydale Road</span></div>
+      <div class="sg-type-row"><code>eyebrow 12</code><span class="ct-eyebrow">Pothole or crack</span></div>
+      <div class="sg-type-row"><code>mono reference</code><span class="ct-mono" style="font-weight:700;font-size:1.25rem">SCC-20261113-C7D2</span></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ HEADER -->
+  <section class="sg-section" aria-labelledby="h-header">
+    <h2 id="h-header">Site header</h2>
+    <p class="sg-lead">Sticky, translucent, mark + wordmark + nav (<code>aria-current="page"</code>) + local and prototype pills. Add <code>.ct-header--chat</code> to narrow it to the chat column. Follow it with the <code>.ct-strip</code> prototype disclaimer.</p>
+    <div class="sg-demo-header">
+      <header class="ct-header ct-header--static">
+        <div class="ct-header__inner">
+          <a class="ct-brand" href="/"><img class="ct-brand__mark" src="/ui/logo-mark.svg" alt="" width="32" height="32"><span class="ct-brand__text"><span class="ct-brand__name">Council<b>Triagent</b></span><span class="ct-brand__sub">Triage console</span></span></a>
+          <nav class="ct-nav" aria-label="Demo"><a href="/">Report a problem</a><a href="/dashboard" aria-current="page">Dashboard</a><a href="/mock/">Mock forms</a></nav>
+          <div class="ct-header__meta"><span class="ct-status"><span class="ct-dot ct-dot--live"></span>Live · 15:35</span><button class="ct-btn ct-btn--sm" type="button" aria-pressed="false">Pause</button><span class="ct-badge ct-pill ct-pill--prototype">Prototype</span></div>
+        </div>
+      </header>
+    </div>
+  </section>
+
+  <!-- ============================================================ BUTTONS + FORMS -->
+  <section class="sg-section" aria-labelledby="h-controls">
+    <h2 id="h-controls">Buttons and form controls</h2>
+    <div class="sg-two">
+      <div class="ct-card">
+        <h3 class="sg-h3" style="margin-top:0 !important">Buttons</h3>
+        <div class="ct-stack">
+          <div class="sg-row"><button class="ct-btn ct-btn--primary" type="button">Report another problem</button><button class="ct-btn" type="button">Fit to reports</button><button class="ct-btn ct-btn--ghost" type="button">Dismiss</button><button class="ct-btn ct-btn--danger" type="button">View P1s</button></div>
+          <div class="sg-row"><button class="ct-btn ct-btn--primary ct-btn--lg" type="button">Send report</button><button class="ct-btn ct-btn--sm" type="button">Small</button><button class="ct-btn ct-btn--sm" type="button" aria-pressed="true">Paused</button><button class="ct-btn ct-btn--icon" type="button" aria-label="Refresh"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a6 6 0 1 1-1.8-4.3M16 3.5v3.5h-3.5"/></svg></button><button class="ct-btn" type="button" disabled>Disabled</button></div>
+          <div class="sg-row"><button class="ct-btn ct-btn--pill" type="button">📍 Use my location</button><button class="ct-linkish" type="button">Show reports</button><a class="ct-link" href="#">view on map</a><span class="ct-spinner" role="status" aria-label="Loading"></span></div>
+        </div>
+      </div>
+      <div class="ct-card">
+        <h3 class="sg-h3" style="margin-top:0 !important">Fields</h3>
+        <div class="ct-stack">
+          <div class="ct-field"><label class="ct-label" for="sg-in">Where is the problem?</label><input class="ct-input" id="sg-in" placeholder="Street name, landmark or postcode"><span class="ct-hint">A house number or nearby shop helps the inspector find it.</span></div>
+          <div class="ct-toolbar">
+            <label class="ct-visually-hidden" for="sg-sel">Sort</label><select class="ct-select ct-select--sm" id="sg-sel"><option>Priority first</option><option>Newest first</option></select>
+            <label class="ct-visually-hidden" for="sg-sel2">Priority</label><select class="ct-select ct-select--sm" id="sg-sel2"><option>All priorities</option><option>P1 Emergency</option></select>
+            <div class="ct-search"><label class="ct-visually-hidden" for="sg-q">Search</label><input class="ct-input ct-input--sm" id="sg-q" placeholder="Search reference, location…"></div>
+            <label class="ct-check"><input type="checkbox" checked> Repeated only</label>
+          </div>
+          <div class="sg-row">
+            <div class="ct-segmented" role="radiogroup" aria-label="How should reports be filed?">
+              <label><input type="radio" name="sg-mode" checked>💬 Chat</label>
+              <label><input type="radio" name="sg-mode">🖥️ Web form</label>
+            </div>
+            <label class="ct-check"><input type="radio" name="sg-r" checked> Radio</label>
+            <label class="ct-check"><input type="checkbox"> Checkbox</label>
+          </div>
+          <div class="ct-field"><label class="ct-label" for="sg-ta">What you told us</label><textarea class="ct-textarea" id="sg-ta" rows="2">Deep pothole in the bus lane outside the chip shop.</textarea></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ BADGES + PRIORITY -->
+  <section class="sg-section" aria-labelledby="h-prio">
+    <h2 id="h-prio">Priority, badges and duplicates</h2>
+    <p class="sg-lead">Priority = icon + text + colour: ⚠ P1 Emergency, ▲ P2 High, ● P3 Routine, ↪ P4 Low. P1 is filled so it is the first thing seen on a projector. Triage is always presented as a <em>suggestion</em>.</p>
+    <div class="ct-card ct-stack">
+      <div class="sg-row">
+        <span class="ct-prio ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 Emergency</span>
+        <span class="ct-prio ct-p2"><span class="ct-prio__icon" aria-hidden="true">▲</span>P2 High</span>
+        <span class="ct-prio ct-p3"><span class="ct-prio__icon" aria-hidden="true">●</span>P3 Routine</span>
+        <span class="ct-prio ct-p4"><span class="ct-prio__icon" aria-hidden="true">↪</span>P4 Low</span>
+        <span class="ct-prio ct-p1 ct-prio--outline"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 outline</span>
+      </div>
+      <div class="sg-row">
+        <span class="ct-prio ct-prio--lg ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 Emergency</span>
+        <span class="ct-prio ct-prio--lg ct-p2"><span class="ct-prio__icon" aria-hidden="true">▲</span>P2 High</span>
+        <span class="ct-prio ct-prio--lg ct-p3"><span class="ct-prio__icon" aria-hidden="true">●</span>P3 Routine</span>
+        <span class="ct-prio ct-prio--lg ct-p4"><span class="ct-prio__icon" aria-hidden="true">↪</span>P4 Low</span>
+      </div>
+      <div class="sg-row">
+        <span class="ct-dup" title="3 reports of a similar problem nearby"><span class="ct-dup__icon" aria-hidden="true">⧉</span>×3 similar</span>
+        <span class="ct-dup ct-dup--first"><span class="ct-dup__icon" aria-hidden="true">⧉</span>First of 2</span>
+        <span class="ct-badge">Pothole or crack</span>
+        <span class="ct-badge">🌳 Tree problem</span>
+        <span class="ct-badge ct-badge--success">Filed</span>
+        <span class="ct-badge ct-badge--info">Chat agent</span>
+        <span class="ct-badge ct-badge--warning">Approximate</span>
+        <span class="ct-badge ct-badge--danger">Blocking</span>
+        <span class="ct-badge ct-badge--outline">Browser</span>
+        <span class="ct-badge ct-pill ct-pill--prototype">Prototype: nothing is sent to the council</span>
+        <span class="ct-badge ct-pill ct-pill--local">Runs locally on NVIDIA DGX Spark</span>
+      </div>
+      <div class="sg-row">
+        <span class="ct-status"><span class="ct-dot ct-dot--live"></span>Live · updated 15:35</span>
+        <span class="ct-status"><span class="ct-dot ct-dot--off"></span>Paused</span>
+        <span class="ct-status"><span class="ct-dot ct-dot--warn"></span>Slow to respond</span>
+        <span class="ct-status"><span class="ct-dot ct-dot--error"></span>Can't reach server</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ ALERT + NOTICES -->
+  <section class="sg-section" aria-labelledby="h-notices">
+    <h2 id="h-notices">Alert banner and notices</h2>
+    <div class="ct-stack">
+      <div class="ct-alert" role="status">
+        <span class="ct-alert__icon" aria-hidden="true">⚠</span>
+        <div class="ct-alert__body"><strong class="ct-alert__title">New P1 emergency: Fallen branch blocking Derbyshire Lane</strong>Suggested response: made safe within 24 hours · 7 P1 reports awaiting action</div>
+        <div class="ct-alert__actions"><button class="ct-btn ct-btn--danger ct-btn--sm" type="button">Show P1s</button><button class="ct-btn ct-btn--ghost ct-btn--sm" type="button">Dismiss</button></div>
+      </div>
+      <div class="ct-notice ct-notice--prototype"><span class="ct-notice__icon" aria-hidden="true">!</span><div><strong>This is an unofficial hackathon prototype.</strong> Your report has not been sent to Sheffield City Council. For urgent road hazards, phone the council on 0114 273 4567; if someone is in immediate danger, call 999.</div></div>
+      <div class="sg-two">
+        <div class="ct-notice"><span class="ct-notice__icon" aria-hidden="true">i</span><div><strong>Who's responsible?</strong> Abbeydale Road is a council-maintained road.</div></div>
+        <div class="ct-notice ct-notice--success"><span class="ct-notice__icon" aria-hidden="true">✓</span><div><strong>Report recorded.</strong> Keep your reference number.</div></div>
+        <div class="ct-notice ct-notice--warning"><span class="ct-notice__icon" aria-hidden="true">!</span><div><strong>Location is approximate.</strong> We matched the street but not the exact spot.</div></div>
+        <div class="ct-notice ct-notice--danger"><span class="ct-notice__icon" aria-hidden="true">✕</span><div><strong>The local model isn't responding.</strong> Please try again shortly.</div></div>
+      </div>
+      <div class="ct-notice ct-notice--prototype ct-notice--compact"><span class="ct-notice__icon" aria-hidden="true">!</span><div>Compact: <strong>mock</strong> council forms only. Reporter names and contact details are not stored.</div></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ KPIs -->
+  <section class="sg-section" aria-labelledby="h-kpi">
+    <h2 id="h-kpi">KPI tiles</h2>
+    <p class="sg-lead">The P1 tile is the urgent one. Priority tiles take <code>.ct-p1</code> to <code>.ct-p4</code> for the accent edge; use <code>.ct-kpi--button</code> with <code>aria-pressed</code> to make a tile filter the queue.</p>
+    <div class="ct-kpis">
+      <div class="ct-kpi ct-kpi--urgent ct-p1"><div class="ct-kpi__label"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 Emergency</div><div class="ct-kpi__value">7</div><div class="ct-kpi__sub">Oldest waiting 10 h 0 min</div></div>
+      <div class="ct-kpi ct-p2"><div class="ct-kpi__label"><span class="ct-prio__icon" aria-hidden="true">▲</span>P2 High</div><div class="ct-kpi__value">1</div><div class="ct-kpi__sub">Within 5 working days</div></div>
+      <button class="ct-kpi ct-kpi--button ct-p3" type="button" aria-pressed="true"><span class="ct-kpi__label"><span class="ct-prio__icon" aria-hidden="true">●</span>P3 Routine</span><span class="ct-kpi__value">5</span><span class="ct-kpi__sub">Filtering the queue</span></button>
+      <div class="ct-kpi ct-kpi--zero ct-p4"><div class="ct-kpi__label"><span class="ct-prio__icon" aria-hidden="true">↪</span>P4 Low</div><div class="ct-kpi__value">0</div><div class="ct-kpi__sub">None</div></div>
+      <div class="ct-kpi"><div class="ct-kpi__label"><span aria-hidden="true">⧉</span>Repeated problems</div><div class="ct-kpi__value">2</div><div class="ct-kpi__sub">5 reports · biggest ×3</div></div>
+      <div class="ct-kpi"><div class="ct-kpi__label">Last hour</div><div class="ct-kpi__value">8</div><div class="ct-kpi__sub">13 total today</div></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ TABLE -->
+  <section class="sg-section" aria-labelledby="h-table">
+    <h2 id="h-table">Triage queue table</h2>
+    <p class="sg-lead">Disclosure button in the first cell (<code>aria-expanded</code>, <code>aria-controls</code>), detail row with triage reasons beside the ReportCard. P1 rows are tinted. Add <code>.ct-table--stack</code> and <code>data-label</code> to stack rows on phones.</p>
+    <section class="ct-card ct-card--flush" aria-labelledby="sg-q-title">
+      <div class="ct-card__head"><h3 class="ct-card__title" id="sg-q-title">Triage queue <span class="ct-count">13</span></h3><span class="ct-small ct-muted">Priority first · suggestions only</span></div>
+      <div style="padding: 0 var(--ct-space-5) var(--ct-space-5)">
+      <div class="ct-table-wrap">
+        <table class="ct-table ct-table--stack">
+          <thead><tr><th class="ct-shrink"><span class="ct-visually-hidden">Details</span></th><th>Priority</th><th>Problem</th><th>Location</th><th class="ct-num">Received</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr class="ct-row ct-p1 is-open">
+              <td><button class="ct-disclosure" type="button" aria-expanded="true" aria-controls="sg-d1"><span class="ct-visually-hidden">Hide details for SCC-20261113-C7D2</span></button></td>
+              <td data-label="Priority"><span class="ct-prio ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 Emergency</span></td>
+              <td data-label="Problem"><span class="ct-cell-title">🌳 Fallen, blocking</span> <span class="ct-dup"><span class="ct-dup__icon" aria-hidden="true">⧉</span>×2 similar</span><span class="ct-cell-sub ct-mono">SCC-20261113-C7D2</span></td>
+              <td data-label="Location">Derbyshire Lane by the bus stop <a class="ct-link ct-small" href="#">map</a><span class="ct-cell-sub">A big branch has come down across the pavement.</span></td>
+              <td data-label="Received" class="ct-num">15:14<span class="ct-cell-sub">21 min ago</span></td>
+              <td data-label="Source">Chat agent</td>
+            </tr>
+            <tr class="ct-row-detail" id="sg-d1">
+              <td colspan="6">
+                <div class="ct-row-detail__grid">
+                  <section class="ct-triage ct-p1" aria-label="Triage suggestion">
+                    <div class="ct-triage__head"><span class="ct-prio ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 Emergency</span><span class="ct-triage__target">Made safe within 24 hours</span><span class="ct-triage__score">Score 92 <span class="ct-meter" aria-hidden="true"><span style="--ct-meter:92%"></span></span></span></div>
+                    <ul class="ct-triage__reasons"><li>Tree is blocking the road or path</li><li>People are walking in the road to get round it</li><li>Near a bus stop</li></ul>
+                    <p class="ct-triage__foot">Suggested by rules + local LLM. The council decides after inspection.</p>
+                  </section>
+                  <div class="ct-card ct-card--flat" style="padding:var(--ct-space-4)"><p class="ct-eyebrow">ReportCard staff view goes here</p><dl class="ct-dl" style="margin-top:8px"><dt>Where the tree is</dt><dd>Highway</dd><dt>Problem</dt><dd>Fallen</dd><dt>Blocking</dt><dd>Yes</dd></dl></div>
+                </div>
+              </td>
+            </tr>
+            <tr class="ct-row ct-p1">
+              <td><button class="ct-disclosure" type="button" aria-expanded="false"><span class="ct-visually-hidden">Show details</span></button></td>
+              <td data-label="Priority"><span class="ct-prio ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1 Emergency</span></td>
+              <td data-label="Problem"><span class="ct-cell-title">Road: greater than 40mm</span> <span class="ct-dup"><span class="ct-dup__icon" aria-hidden="true">⧉</span>×3 similar</span><span class="ct-cell-sub ct-mono">SCC-20261113-A9B0</span></td>
+              <td data-label="Location">Outside 124 Abbeydale Road<span class="ct-cell-sub">Pothole in the bus lane, still not fixed.</span></td>
+              <td data-label="Received" class="ct-num">15:27<span class="ct-cell-sub">8 min ago</span></td>
+              <td data-label="Source">Chat agent</td>
+            </tr>
+            <tr class="ct-row ct-p2 is-fresh">
+              <td><button class="ct-disclosure" type="button" aria-expanded="false"><span class="ct-visually-hidden">Show details</span></button></td>
+              <td data-label="Priority"><span class="ct-prio ct-p2"><span class="ct-prio__icon" aria-hidden="true">▲</span>P2 High</span></td>
+              <td data-label="Problem"><span class="ct-cell-title">🌳 Dangerous tree</span><span class="ct-cell-sub ct-mono">SCC-20261113-B21C</span></td>
+              <td data-label="Location">Derbyshire Lane, Sheffield<span class="ct-cell-sub">Large split in the trunk, leaning over the pavement.</span></td>
+              <td data-label="Received" class="ct-num">14:56<span class="ct-cell-sub">39 min ago</span></td>
+              <td data-label="Source">Form agent</td>
+            </tr>
+            <tr class="ct-row ct-p3">
+              <td><button class="ct-disclosure" type="button" aria-expanded="false"><span class="ct-visually-hidden">Show details</span></button></td>
+              <td data-label="Priority"><span class="ct-prio ct-p3"><span class="ct-prio__icon" aria-hidden="true">●</span>P3 Routine</span></td>
+              <td data-label="Problem"><span class="ct-cell-title">Pavement: less than 20mm</span><span class="ct-cell-sub ct-mono">SCC-20261113-0D9E</span></td>
+              <td data-label="Location">Ecclesall Road near the Botanical Gardens</td>
+              <td data-label="Received" class="ct-num">13:59<span class="ct-cell-sub">1 h ago</span></td>
+              <td data-label="Source">Chat agent</td>
+            </tr>
+            <tr class="ct-row ct-p4">
+              <td><button class="ct-disclosure" type="button" aria-expanded="false"><span class="ct-visually-hidden">Show details</span></button></td>
+              <td data-label="Priority"><span class="ct-prio ct-p4"><span class="ct-prio__icon" aria-hidden="true">↪</span>P4 Low</span></td>
+              <td data-label="Problem"><span class="ct-cell-title">Supermarket car park</span><span class="ct-cell-sub">Private land: redirected</span></td>
+              <td data-label="Location">Abbeydale Road</td>
+              <td data-label="Received" class="ct-num">12:34<span class="ct-cell-sub">3 h ago</span></td>
+              <td data-label="Source">Browser</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- ============================================================ GROUPS + CHARTS -->
+  <section class="sg-section" aria-labelledby="h-groups">
+    <h2 id="h-groups">Repeated problems and charts</h2>
+    <div class="ct-console">
+      <section class="ct-card" aria-labelledby="sg-g">
+        <div class="ct-card__head"><div><h3 class="ct-card__title" id="sg-g">Repeated problems <span class="ct-count">2</span></h3><p class="ct-card__sub">Same kind of problem within 60 m and 30 days.</p></div></div>
+        <ul class="ct-groups">
+          <li class="ct-group is-active">
+            <span class="ct-group__count">×3</span>
+            <div class="ct-group__body"><span class="ct-group__title"><span class="ct-prio ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1</span>Road: greater than 40mm</span><span class="ct-group__where">120 Abbeydale Road, Sheffield, S7 1FL</span><span class="ct-group__meta">First 412866290 · 15:22 – 15:31 · Chat 1 · Form 1 · Browser 1</span></div>
+            <div class="ct-group__actions"><button class="ct-btn ct-btn--sm ct-btn--ghost" type="button" aria-pressed="true">Showing</button><button class="ct-btn ct-btn--sm ct-btn--ghost" type="button">Map</button></div>
+          </li>
+          <li class="ct-group">
+            <span class="ct-group__count">×2</span>
+            <div class="ct-group__body"><span class="ct-group__title"><span class="ct-prio ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>P1</span>🌳 Fallen, blocking</span><span class="ct-group__where">12 Derbyshire Lane, Sheffield, S8 9EH</span><span class="ct-group__meta">First 587892884 · 14:39 – 15:14</span></div>
+            <div class="ct-group__actions"><button class="ct-btn ct-btn--sm ct-btn--ghost" type="button">Show reports</button><button class="ct-btn ct-btn--sm ct-btn--ghost" type="button">Map</button></div>
+          </li>
+        </ul>
+      </section>
+      <section class="ct-card" aria-labelledby="sg-c">
+        <div class="ct-card__head"><h3 class="ct-card__title" id="sg-c">Reports per hour</h3>
+          <ul class="ct-legend"><li class="ct-p1"><span class="ct-swatch"></span>P1</li><li class="ct-p2"><span class="ct-swatch"></span>P2</li><li class="ct-p3"><span class="ct-swatch"></span>P3</li><li class="ct-p4"><span class="ct-swatch"></span>P4</li></ul></div>
+        <svg class="ct-chart" id="sg-chart" viewBox="0 0 420 170" role="img" aria-label="Example stacked bar chart of reports per hour by priority"></svg>
+        <div class="ct-card__foot">Bars stack by priority, same colours as the map pins. Non-priority series use <code>--ct-data-neutral</code>.</div>
+      </section>
+    </div>
+    <h3 class="sg-h3">Map pins and legend</h3>
+    <div class="ct-card">
+      <div class="ct-cluster" style="--ct-cluster-gap: var(--ct-space-6)">
+        <ul class="ct-legend"><li class="ct-p1"><span class="ct-swatch ct-swatch--dot"></span>⚠ P1 Emergency</li><li class="ct-p2"><span class="ct-swatch ct-swatch--dot"></span>▲ P2 High</li><li class="ct-p3"><span class="ct-swatch ct-swatch--dot"></span>● P3 Routine</li><li class="ct-p4"><span class="ct-swatch ct-swatch--dot"></span>↪ P4 Low</li></ul>
+        <div class="ct-cluster" style="--ct-cluster-gap: var(--ct-space-4)"><span class="ct-pin ct-p1">!</span><span class="ct-pin ct-p2">▲</span><span class="ct-pin ct-p3"></span><span class="ct-pin ct-p4"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ RESIDENT -->
+  <section class="sg-section" aria-labelledby="h-res">
+    <h2 id="h-res">Resident report page</h2>
+    <p class="sg-lead">Warm, reassuring hero; the reference is the hero's centrepiece with a copy button; triage is shown as what to expect, not as a staff code.</p>
+    <div class="ct-container--narrow" style="margin:0 auto;padding:0" >
+      <div class="ct-stack">
+        <section class="ct-hero" aria-labelledby="sg-hero">
+          <div class="ct-hero__icon" aria-hidden="true">✓</div>
+          <p class="ct-eyebrow">Report recorded</p>
+          <h3 class="ct-hero__title" id="sg-hero">Thanks, we've got it</h3>
+          <p class="ct-hero__lead">Your tree problem on Derbyshire Lane has been recorded. Keep this reference to follow it up.</p>
+          <div class="ct-ref" style="margin-top:var(--ct-space-3)">
+            <span class="ct-ref__label" id="sg-ref-l">Your reference</span>
+            <span class="ct-ref__row"><span class="ct-ref__value" aria-labelledby="sg-ref-l">SCC-20261113-C7D2</span><button class="ct-copy" type="button">Copy</button></span>
+          </div>
+          <div class="ct-hero__actions"><span class="ct-prio ct-prio--lg ct-p1"><span class="ct-prio__icon" aria-hidden="true">⚠</span>Emergency</span><span class="ct-badge ct-pill">Usually made safe within 24 hours</span></div>
+        </section>
+        <div class="ct-dup-note"><span class="ct-dup-note__icon" aria-hidden="true">⧉</span><div><strong>You're not the only one.</strong> 1 other report has been made about a similar problem nearby. They're grouped together so the council can see how many people it affects.</div></div>
+        <section class="ct-card">
+          <div class="ct-card__head"><h3 class="ct-card__title">What happens next</h3></div>
+          <ol class="ct-steps"><li><strong>An inspector checks it</strong>Priority is a suggestion; the council decides after inspection.</li><li><strong>It's made safe</strong>Emergencies are usually made safe within 24 hours.</li><li><strong>You can follow up</strong>Quote your reference number.</li></ol>
+        </section>
+        <div class="ct-notice ct-notice--prototype"><span class="ct-notice__icon" aria-hidden="true">!</span><div><strong>Not sent to Sheffield City Council.</strong> This is an unofficial hackathon prototype. If someone is in immediate danger, call 999.</div></div>
+        <div class="sg-row"><a class="ct-btn ct-btn--primary ct-btn--lg" href="/">Report another problem</a><button class="ct-copy is-copied" type="button">Copied</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ CHAT -->
+  <section class="sg-section" aria-labelledby="h-chat">
+    <h2 id="h-chat">Chat pieces</h2>
+    <div class="sg-two">
+      <div class="ct-card">
+        <div class="ct-intro">
+          <img class="ct-intro__mark" src="/ui/logo-mark.svg" alt="">
+          <h3 class="ct-intro__title">Tell us what's wrong and where</h3>
+          <p class="ct-intro__lead">Describe a pothole, damaged pavement or street tree problem in your own words.</p>
+        </div>
+        <div class="ct-chips"><button class="ct-chip" type="button">🕳️ Deep pothole on Fargate</button><button class="ct-chip" type="button">🌳 Branch down on Derbyshire Lane</button><button class="ct-chip" type="button">📍 Pothole where I'm standing</button></div>
+      </div>
+      <div class="ct-stack">
+        <div class="ct-step"><span class="ct-step__title">Filed the report</span>Reference SCC-20261113-C7D2 · ⚠ P1 Emergency, made safe within 24 hours<br>👥 1 similar report nearby, grouped together</div>
+        <div class="ct-step"><span class="ct-step__title">Checked who's responsible</span>Derbyshire Lane is a council highway.</div>
+        <h3 class="sg-h3">Empty, loading</h3>
+        <div class="ct-card ct-card--flat"><div class="ct-empty"><span class="ct-empty__icon"><img src="/ui/logo-mark.svg" alt=""></span><p class="ct-empty__title">No reports yet</p><p>New reports appear here within 5 seconds.</p></div></div>
+        <div class="ct-card ct-card--flat"><span class="ct-skeleton ct-skeleton--title"></span><span class="ct-skeleton ct-skeleton--text"></span><span class="ct-skeleton ct-skeleton--text" style="width:70%"></span></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="ct-footer"><div class="ct-footer__inner"><span>CouncilTriagent · NVIDIA Hack for Impact, Sheffield · unofficial prototype</span><span>Local LLM on DGX Spark</span></div></footer>
+
+<div class="ct-segmented sg-theme" role="radiogroup" aria-label="Theme">
+  <label><input type="radio" name="sg-theme" value="" checked>Auto</label>
+  <label><input type="radio" name="sg-theme" value="light">Light</label>
+  <label><input type="radio" name="sg-theme" value="dark">Dark</label>
+</div>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const css = name => getComputedStyle(root).getPropertyValue('--ct-' + name).trim();
+  const toHex = c => {
+    const m = c.match(/\d+(\.\d+)?/g); if (!c.startsWith('rgb') || !m) return c.toUpperCase();
+    return '#' + m.slice(0, 3).map(n => (+n).toString(16).padStart(2, '0')).join('').toUpperCase();
+  };
+  function swatches() {
+    document.querySelectorAll('.sg-swatches').forEach(box => {
+      box.innerHTML = '';
+      box.dataset.tokens.split(' ').forEach(t => {
+        const el = document.createElement('div'); el.className = 'sg-sw';
+        el.innerHTML = `<div class="sg-sw__chip" style="background:var(--ct-${t})"></div><div class="sg-sw__meta"><code>--ct-${t}</code><span>${toHex(css(t))}</span></div>`;
+        box.append(el);
+      });
+    });
+  }
+  // Example stacked chart, coloured by priority.
+  function chart() {
+    const svg = document.getElementById('sg-chart'); const W = 420, H = 170, pad = {l: 24, r: 4, t: 8, b: 22};
+    const data = [[0,0,1,0],[0,0,0,0],[1,0,1,0],[0,1,1,1],[2,0,1,0],[1,1,2,0],[3,0,2,0],[4,1,1,0]];
+    const labels = ['08','09','10','11','12','13','14','15'];
+    const max = 8, bw = (W - pad.l - pad.r) / data.length;
+    let out = '';
+    [0, 4, 8].forEach(v => { const y = pad.t + (H - pad.t - pad.b) * (1 - v / max);
+      out += `<line class="ct-chart__grid" x1="${pad.l}" x2="${W - pad.r}" y1="${y}" y2="${y}"/><text x="${pad.l - 6}" y="${y + 4}" text-anchor="end">${v}</text>`; });
+    data.forEach((d, i) => { let y = H - pad.b; const x = pad.l + i * bw + bw * .2;
+      d.forEach((v, p) => { if (!v) return; const h = (H - pad.t - pad.b) * v / max; y -= h;
+        out += `<rect class="ct-bar" x="${x}" y="${y + 1}" width="${bw * .6}" height="${h - 1}" rx="3" fill="var(--ct-p${p + 1})"/>`; });
+      out += `<text x="${x + bw * .3}" y="${H - 6}" text-anchor="middle">${labels[i]}:00</text>`; });
+    svg.innerHTML = out;
+  }
+  document.querySelectorAll('input[name="sg-theme"]').forEach(r => r.addEventListener('change', () => {
+    if (r.value) root.dataset.theme = r.value; else delete root.dataset.theme; swatches();
+  }));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', swatches);
+  document.querySelectorAll('.ct-disclosure').forEach(b => b.addEventListener('click', () => {
+    const open = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', open);
+    b.closest('tr').classList.toggle('is-open', open);
+    const d = b.getAttribute('aria-controls') && document.getElementById(b.getAttribute('aria-controls')); if (d) d.hidden = !open;
+  }));
+  document.querySelectorAll('.ct-copy:not(.is-copied)').forEach(b => b.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(b.previousElementSibling.textContent.trim()); } catch (e) {}
+    b.dataset.copied = ''; b.textContent = 'Copied'; setTimeout(() => { delete b.dataset.copied; b.textContent = 'Copy'; }, 2000);
+  }));
+  swatches(); chart();
+})();
+</script>
+</body>
+</html>

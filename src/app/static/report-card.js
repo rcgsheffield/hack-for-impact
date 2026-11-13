@@ -1,10 +1,12 @@
 /* ReportCard: renders one report (a normalised item from /api/submissions or /api/reports/{reference}) as HTML.
 
    Usage:
-     <link rel="stylesheet" href="/static/report-card.css">
-     <script src="/static/report-card.js"></script>
+     <link rel="stylesheet" href="/ui/report-card.css">
+     <script src="/ui/report-card.js"></script>
      el.innerHTML = ReportCard.render(item, { audience: "staff" });    // council triage view
      el.innerHTML = ReportCard.render(item, { audience: "resident" }); // confirmation for the person who reported
+     el.innerHTML = ReportCard.hero(item) + ReportCard.render(item, { audience: "resident", hero: true }); // success page
+   Needs /ui/ui.css (--ct-* tokens, ct-* classes) on the page.
 
    Item fields (see submissions.py _from_mock/_from_report/_from_usage): source, form, reference, submitted_at, title,
    location, details, problem, anonymous, lat, lon, triage, raw. Every value is escaped; the output is safe for innerHTML.
@@ -62,18 +64,48 @@
     };
   }
 
+  const ICON = { P1: "⚠", P2: "▲", P3: "●", P4: "↪" };
+  const pcls = p => (ICON[p] ? `ct-${p.toLowerCase()}` : "ct-p4");
+
+  /** Priority chip (ct-prio): colour + icon + text. Staff see "P1 Emergency", residents just "Emergency". */
+  function chip(sev, opts) {
+    if (!sev) return "";
+    const text = opts && opts.code === false ? sev.label : `${sev.priority} ${sev.label}`;
+    return `<span class="ct-prio ${pcls(sev.priority)}${opts && opts.lg ? " ct-prio--lg" : ""}"><span class="ct-prio__icon" aria-hidden="true">${ICON[sev.priority] || "↪"}</span>${esc(text)}</span>`;
+  }
+
   // Staff views (/dashboard) show the full triage beside the card, so the card shows it only to residents
   // unless opts.triage is true.
-  function severityHtml(sev, resident) {
+  function severityHtml(sev, resident, inHero) {
     if (!sev) return "";
+    const target = sev.note ? `<span class="ct-triage__target">${esc(sev.note.charAt(0).toUpperCase() + sev.note.slice(1))}</span>` : "";
     const reasons = resident && sev.reasons.length
-      ? `<p class="rc-why">Why: ${sev.reasons.map(esc).join("; ")}.</p>` : "";
-    return `<div class="rc-sev rc-sev-${sev.level}">
-    <p><strong>${esc(sev.label)}</strong>${sev.note ? `: <span>${esc(sev.note)}</span>` : ""}</p>
+      ? `<p class="rc-why-label">Why we suggested this</p><ul class="ct-triage__reasons">${sev.reasons.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : "";
+    return `<section class="ct-triage ${pcls(sev.priority)} rc-sev rc-sev-${sev.level}" aria-label="Suggested priority">
+    ${inHero ? "" : `<div class="ct-triage__head">${chip(sev, { code: !resident })}${target}</div>`}
     ${reasons}
     ${resident && sev.priority === "P1" ? `<p class="rc-urgent"><strong>${esc(URGENT)}</strong></p>` : ""}
-    ${resident ? `<p class="rc-why">This is a suggestion only: the council decides after inspection.</p>` : ""}
-  </div>`;
+    ${resident ? `<p class="ct-triage__foot">This is a suggestion only: the council decides after inspection.</p>` : ""}
+  </section>`;
+  }
+
+  /** Resident success hero: big reference with a Copy button (data-copy) and the suggested priority. */
+  function hero(item, opts) {
+    const formName = (opts && opts.forms && opts.forms[item.form]) || FORM_NAMES[item.form] || item.form || "report";
+    const sev = severity(item);
+    const street = fieldsOf(item).txt_street_name_about_the_location;
+    const what = formName.replace(/\s*\(prototype\)$/i, "").toLowerCase();
+    return `<section class="ct-hero rc-hero" aria-labelledby="rc-hero-title">
+  <div class="ct-hero__icon" aria-hidden="true">✓</div>
+  <p class="ct-eyebrow">Report recorded</p>
+  <h1 class="ct-hero__title" id="rc-hero-title">Thanks, we've got it</h1>
+  <p class="ct-hero__lead">Your ${esc(what)}${street ? ` on ${esc(street)}` : ""} has been recorded. Keep this reference to follow it up.</p>
+  <div class="ct-ref rc-hero-ref">
+    <span class="ct-ref__label" id="rc-ref-label">Your reference</span>
+    <span class="ct-ref__row"><span class="ct-ref__value" aria-labelledby="rc-ref-label">${esc(item.reference) || "–"}</span><button class="ct-copy" type="button" data-copy="${esc(item.reference)}">Copy</button></span>
+  </div>
+  ${sev ? `<div class="ct-hero__actions">${chip(sev, { code: false, lg: true })}${sev.note ? `<span class="ct-badge ct-pill">Usually ${esc(sev.note)}</span>` : ""}</div>` : ""}
+</section>`;
   }
 
   function fmtTime(s) {
@@ -95,7 +127,7 @@
 
   function render(item, opts) {
     const audience = (opts && opts.audience) === "resident" ? "resident" : "staff";
-    if (!item) return `<article class="report-card rc-empty"><p>Report not found.</p></article>`;
+    if (!item) return `<article class="report-card rc-empty"><div class="ct-empty"><p class="ct-empty__title">Report not found</p></div></article>`;
     const formName = (opts && opts.forms && opts.forms[item.form]) || FORM_NAMES[item.form] || item.form || "Report";
     const sev = severity(item);
     const when = fmtTime(item.submitted_at);
@@ -105,7 +137,7 @@
     const rows = [];
     if (where) {
       rows.push(row("Location", esc(where) + (located(item)
-        ? ` <a href="${osm(item)}" target="_blank" rel="noopener">view on map</a>` : "")
+        ? ` <a class="ct-link" href="${osm(item)}" target="_blank" rel="noopener">view on map</a>` : "")
         + (located(item) && item.geo_source && !["form", "device"].includes(item.geo_source)
           ? ` <span class="rc-muted">(map position approximate, from the address as typed)</span>` : "")));
     }
@@ -129,27 +161,28 @@
       if (cat !== undefined && cat !== null) rows.push(row("Suggested category", esc(cat)));
     }
 
+    const showRef = !(opts && opts.hero);
     return `<article class="report-card rc-${audience}" aria-label="${esc(formName)} report ${esc(item.reference)}">
   <header class="rc-head">
-    <div>
-      <p class="rc-form">${esc(formName)}</p>
+    <div class="rc-head-text">
+      <p class="ct-eyebrow rc-form">${esc(formName)}</p>
       <h3 class="rc-title">${esc(item.title || formName)}</h3>
       ${when ? `<p class="rc-when"><time datetime="${esc(item.submitted_at)}">${esc(when)}</time></p>` : ""}
     </div>
-    <div class="rc-ref">
-      <span class="rc-ref-label">Reference</span>
+    ${showRef ? `<div class="rc-ref">
+      <span class="ct-ref__label">Reference</span>
       <span class="rc-ref-value">${esc(item.reference) || "–"}</span>
-    </div>
+    </div>` : ""}
   </header>
-  ${resident || (opts && opts.triage) ? severityHtml(sev, resident) : ""}
-  ${rows.length ? `<dl class="rc-fields">${rows.join("")}</dl>` : ""}
+  ${resident || (opts && opts.triage) ? severityHtml(sev, resident, !showRef) : ""}
+  ${rows.length ? `<dl class="ct-dl rc-fields">${rows.join("")}</dl>` : ""}
   ${item.details ? `<div class="rc-details"><h4>${resident ? "What you told us" : "Details"}</h4><p>${esc(item.details)}</p></div>` : ""}
-  ${resident && dup ? `<p class="rc-note"><strong>You're not the only one.</strong> ${esc(dup.others)} other report${dup.others === 1 ? " has" : "s have"} been made about a similar problem nearby. They're grouped together so the council can see how many people it affects.</p>` : ""}
+  ${resident && dup ? `<div class="ct-dup-note rc-dup"><span class="ct-dup-note__icon" aria-hidden="true">⧉</span><div><strong>You're not the only one.</strong> ${esc(dup.others)} other report${dup.others === 1 ? " has" : "s have"} been made about a similar problem nearby. They're grouped together so the council can see how many people it affects.</div></div>` : ""}
   ${resident
-    ? `<p class="rc-note">Keep the reference number to follow up on this report. <strong>This is an unofficial hackathon prototype: the report has not been sent to Sheffield City Council.</strong> For urgent road hazards, phone the council on 0114 273 4567; if someone is in immediate danger, call 999.</p>`
+    ? `<div class="ct-notice ct-notice--prototype rc-proto"><span class="ct-notice__icon" aria-hidden="true">!</span><div><strong>Not sent to Sheffield City Council.</strong> This is an unofficial hackathon prototype. Keep the reference number to follow up. For urgent road hazards, phone the council on 0114 273 4567; if someone is in immediate danger, call 999.</div></div>`
     : `<details class="rc-raw"><summary>Raw record</summary><pre>${esc(JSON.stringify(item.raw, null, 2))}</pre></details>`}
 </article>`;
   }
 
-  global.ReportCard = { render, severity, fieldsOf, FIELDS, FORM_NAMES };
+  global.ReportCard = { render, hero, chip, severity, fieldsOf, FIELDS, FORM_NAMES };
 })(typeof window !== "undefined" ? window : globalThis);
