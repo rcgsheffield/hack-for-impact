@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="docs/logo.svg" alt="Hack for Impact logo: a smiling tree with circuit-trace roots" width="200">
+</p>
+
 # Hack for Impact
+
+[![Deploy to DGX Spark](https://github.com/rcgsheffield/hack-for-impact/actions/workflows/deploy.yml/badge.svg)](https://github.com/rcgsheffield/hack-for-impact/actions/workflows/deploy.yml)
 
 > Build autonomous systems that think, act, and run anywhere, whilst also making a positive impact on the world.
 
@@ -48,6 +54,7 @@ Keep downloaded datasets in `data/`. Raw files are git-ignored by default, so re
 ├── docs/       Challenge brief, design notes, pitch material
 ├── data/       Local datasets (not committed) and their provenance
 ├── src/        Application and agent code
+├── video/      Pitch video, built with HyperFrames (see video/README.md)
 ├── LICENSE
 └── README.md
 ```
@@ -69,6 +76,10 @@ One-time runner setup, done on the Spark over SSH:
    sudo ./svc.sh install && sudo ./svc.sh start
    ```
 3. Make sure `rsync` is installed. If the app will use Docker, add the runner's user to the `docker` group.
+
+### Smoke test (GPU + Ollama)
+
+[`src/smoke/`](src/smoke) is a small Docker Compose stack (GPU-enabled Ollama plus a FastAPI wrapper) that checks the runner, the NVIDIA Container Toolkit and local inference end to end. The **Smoke test** workflow (`.github/workflows/smoke.yml`) runs it on the Spark for pull requests touching `src/smoke/` or via **Actions → Smoke test → Run workflow**; it never deploys. It pulls `nemotron-mini` (override with `MODEL`), generates a reply and fails if the model isn't resident in VRAM. Locally: `cd src/smoke && docker compose up -d --build && REQUIRE_GPU=0 ./smoke_test.sh`.
 
 ## Team
 
