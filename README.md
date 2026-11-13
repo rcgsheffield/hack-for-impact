@@ -61,7 +61,13 @@ Keep downloaded datasets in `data/`. Raw files are git-ignored by default, so re
 
 ## Getting started
 
-_Setup instructions to be added once the stack is chosen._
+The barebones app in [`src/app/`](src/app/) is a stdlib-only Python server (no install step). It serves a chat page at `/`, forwards `/chat` to the local Ollama, and reports status at `/health`.
+
+Run it locally: `OLLAMA_URL=http://<spark>:11434 python3 src/app/server.py`, then open <http://localhost:8000>. Settings are `PORT` (8000), `OLLAMA_URL` (`http://127.0.0.1:11434`) and `OLLAMA_MODEL` (`nemotron-3.5-lightning:30b`).
+
+**Check the deployed app:** `src/app/check.sh` (or `curl http://spark12.local:8000/health`). It returns `{"ok": true, ...}` with the deployed commit's short SHA, or HTTP 503 if Ollama is unreachable. The chat page is at <http://spark12.local:8000>.
+
+On the Spark, `deploy.sh` runs the app as the systemd user service `hack-app` (`src/app/hack-app.service`) and fails the deploy if `/health` doesn't go green within 15 seconds. One-time setup on the Spark so the service survives logout and reboot: `sudo loginctl enable-linger $USER`. Logs: `journalctl --user -u hack-app`.
 
 ### Deployment (DGX Spark)
 

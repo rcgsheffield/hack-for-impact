@@ -1,0 +1,13 @@
+[Unit]
+Description=Hack for Impact app
+After=network-online.target
+
+[Service]
+WorkingDirectory=%h/hack-for-impact/src/app
+EnvironmentFile=-%h/hack-for-impact/.app.env
+ExecStart=/usr/bin/python3 %h/hack-for-impact/src/app/server.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target
