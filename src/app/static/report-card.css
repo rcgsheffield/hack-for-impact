@@ -27,7 +27,10 @@
                 user-select: all; overflow-wrap: anywhere; }
 .rc-resident .rc-ref-value { font-size: 1.5rem; }
 .rc-sev { padding: 8px 12px; border-radius: 6px; background: var(--rc-bg); }
+.rc-sev { display: grid; gap: 4px; }
 .rc-sev span { color: inherit; opacity: .85; }
+.rc-sev .rc-why { font-size: .875rem; }
+.rc-sev .rc-urgent { font-size: .9375rem; }
 .rc-sev-high { background: var(--rc-high-bg); color: var(--rc-high-text); }
 .rc-sev-low { background: var(--rc-low-bg); color: var(--rc-low-text); }
 .rc-fields { margin: 0; display: grid; grid-template-columns: minmax(120px, max-content) 1fr; gap: 6px 16px; }

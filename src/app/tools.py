@@ -15,8 +15,9 @@ import httpx
 from . import config
 from .geocode import geocode, le_gis
 from .triage import safe_triage, triage
+from .urgency import COUNCIL_PHONE, URGENT_ADVICE
+from .urgency import summary as triage_summary
 
-COUNCIL_PHONE = "0114 273 4567"
 POTHOLE_FORM = "https://forms.sheffield.gov.uk/site/portal/form/report_pothole_crack"
 
 # Roads maintained by National Highways, not the council (docs/sheffield-council-services.md, "Routing").
@@ -126,7 +127,7 @@ def assess_pothole(surface: str, depth_mm: float) -> dict:
     t = triage({"form": "report_pothole_crack", "fields": {"rad_problem_location": FORM_SURFACE[surface],
                                                            depth_field: depth_band}})
     urgent = t["priority"] == "P1"
-    return {
+    result = {
         "depth_band": depth_band,
         "suggested_category": 1 if urgent else 2,
         "category_meaning": (
@@ -138,6 +139,10 @@ def assess_pothole(surface: str, depth_mm: float) -> dict:
         "response_target": t["response_target"],
         "note": "Suggestion only. The council decides the category after inspection.",
     }
+    if urgent:  # escalate before filing: the resident hears "phone now" before the remaining questions
+        result["urgent_advice"] = URGENT_ADVICE
+        result["tell_user"] = [URGENT_ADVICE]
+    return result
 
 
 # Exact length units, in mm per unit. Keys are lower-case; plurals and abbreviations are aliases.
@@ -287,9 +292,7 @@ def _save_report(record: dict) -> dict:
         f.write(json.dumps(record) + "\n")
     result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
               "status": "recorded (prototype: not sent to the council)",
-              "priority": f"{record['triage']['priority']} {record['triage']['label']}",
-              "response_target": record["triage"]["response_target"],
-              "priority_note": "Suggested priority only. The council decides after inspection."}
+              **triage_summary(record["triage"])}
     if geo:
         result["located_at"] = geo["matched"]
     else:
@@ -363,8 +366,8 @@ def file_tree_report(tree_location: str, problem: str, location: str, descriptio
         "form_payload": payload,
     })
     result["owner"] = TREE_OWNER
-    if "urgent_advice" in assessment:
-        result["urgent_advice"] = assessment["urgent_advice"]
+    if "urgent_advice" in assessment:  # P1 results already carry URGENT_ADVICE; keep that wording
+        result.setdefault("urgent_advice", assessment["urgent_advice"])
     return result
 
 

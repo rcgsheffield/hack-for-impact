@@ -47,6 +47,11 @@ class PotholeFormSession(CouncilFormSession):
         state = self._run(step)
         state["depth_band"] = assessment["depth_band"]
         state["suggested_category"] = assessment["suggested_category"]
+        if assessment.get("urgent_advice"):  # P1: escalate now, not after the remaining form pages
+            state["urgent_advice"] = assessment["urgent_advice"]
+            if assessment["urgent_advice"] not in self.tell_user:
+                self.tell_user.append(assessment["urgent_advice"])
+            state["tell_user"] = list(self.tell_user)
         return state
 
 
@@ -82,6 +87,9 @@ then submit_pothole_form once the user agrees the answers are right.
 - Follow the next_step in each tool result.
 - Submit anonymously unless the user wants updates and gives their details.
 - If a tool returns "error" or "errors", fix the input or ask the user, then call the tool for the current page again.
+- If a tool result has urgent_advice or tell_user, give that advice to the user straight away, word for word.
+- After submitting, give the reference number and the suggested priority in plain words from priority_plain
+  (e.g. "Emergency: made safe within 24 hours"), and say it is a suggestion only: the council decides after inspection.
 - Never invent a reference number; only quote the one from submit_pothole_form.
 - This is a test form: say that nothing is sent to the council. Use British English and keep replies short."""
 

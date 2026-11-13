@@ -7,7 +7,7 @@
      el.innerHTML = ReportCard.render(item, { audience: "resident" }); // confirmation for the person who reported
 
    Item fields (see submissions.py _from_mock/_from_report/_from_usage): source, form, reference, submitted_at, title,
-   location, details, problem, anonymous, lat, lon, raw. Every value is escaped; the output is safe for innerHTML.
+   location, details, problem, anonymous, lat, lon, triage, raw. Every value is escaped; the output is safe for innerHTML.
 */
 (function (global) {
   "use strict";
@@ -43,18 +43,37 @@
     return raw.fields || raw.form_payload || {};
   }
 
-  /** {level: "high"|"low"|"normal", label, note} or null if the report doesn't say. */
+  // Stored triage (src/app/triage.py, served as item.triage): P1-P4 with a label and a response target.
+  const LEVEL = { P1: "high", P2: "high", P3: "normal", P4: "low" };
+  // Reasons that describe our process, not the problem; residents don't need them.
+  const INTERNAL_REASON = /needs (manual )?review|triage failed|no immediate risk reported/i;
+  const URGENT = "If it's still dangerous, phone the council now on 0114 273 4567, or 999 if anyone is in danger.";
+
+  /** {level, priority, label, note, reasons} from the report's stored triage, or null if it has none.
+      label + note read as e.g. "Emergency: made safe within 24 hours". No scores or engine. */
   function severity(item) {
-    const f = fieldsOf(item);
-    const depth = f.rad_road_pothole_depth || f.rad_path_pothole_depth;
-    if (depth) {
-      return /^greater/i.test(depth)
-        ? { level: "high", label: "Above intervention depth", note: `${depth}: likely to be repaired as a priority` }
-        : { level: "low", label: "Below intervention depth", note: `${depth}: monitored, may not need a repair yet` };
-    }
-    if (f.rad_tree_blocking === "Yes") return { level: "high", label: "Blocking", note: "Tree is blocking the road or path" };
-    if (f.rad_tree_problem || f.rad_tree_location) return { level: "normal", label: "Not blocking", note: "" };
-    return null;
+    const t = item && item.triage;
+    if (!t || !t.priority || !t.label) return null;
+    const target = String(t.response_target || "");
+    return {
+      level: LEVEL[t.priority] || "normal", priority: t.priority, label: t.label,
+      note: target ? target.charAt(0).toLowerCase() + target.slice(1) : "",
+      reasons: (t.reasons || []).map(String).filter(r => !INTERNAL_REASON.test(r)),
+    };
+  }
+
+  // Staff views (/dashboard) show the full triage beside the card, so the card shows it only to residents
+  // unless opts.triage is true.
+  function severityHtml(sev, resident) {
+    if (!sev) return "";
+    const reasons = resident && sev.reasons.length
+      ? `<p class="rc-why">Why: ${sev.reasons.map(esc).join("; ")}.</p>` : "";
+    return `<div class="rc-sev rc-sev-${sev.level}">
+    <p><strong>${esc(sev.label)}</strong>${sev.note ? `: <span>${esc(sev.note)}</span>` : ""}</p>
+    ${reasons}
+    ${resident && sev.priority === "P1" ? `<p class="rc-urgent"><strong>${esc(URGENT)}</strong></p>` : ""}
+    ${resident ? `<p class="rc-why">This is a suggestion only: the council decides after inspection.</p>` : ""}
+  </div>`;
   }
 
   function fmtTime(s) {
@@ -115,7 +134,7 @@
       <span class="rc-ref-value">${esc(item.reference) || "–"}</span>
     </div>
   </header>
-  ${sev ? `<p class="rc-sev rc-sev-${sev.level}"><strong>${esc(sev.label)}</strong>${sev.note ? ` <span>${esc(sev.note)}</span>` : ""}</p>` : ""}
+  ${resident || (opts && opts.triage) ? severityHtml(sev, resident) : ""}
   ${rows.length ? `<dl class="rc-fields">${rows.join("")}</dl>` : ""}
   ${item.details ? `<div class="rc-details"><h4>${resident ? "What you told us" : "Details"}</h4><p>${esc(item.details)}</p></div>` : ""}
   ${resident
