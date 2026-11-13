@@ -60,5 +60,12 @@ BROWSER_IDLE_SECONDS = int(os.environ.get("BROWSER_IDLE_SECONDS", "900"))
 TRIAGE_LLM = (os.environ.get("TRIAGE_LLM") or "1").lower() not in ("0", "false", "no")
 # Seconds to wait for the model's reading of one report; on timeout triage falls back to the rules.
 TRIAGE_LLM_TIMEOUT = float(os.environ.get("TRIAGE_LLM_TIMEOUT") or "20")
+# Which model answers the rubric's open questions (src/app/triage_llm.py): "ollama" (local, default) or "jev"
+# (TypeSafe's hosted System One model, src/app/triage_jev.py; sends redacted report text to a US service).
+TRIAGE_DECIDER = (os.environ.get("TRIAGE_DECIDER") or "ollama").lower()
+JEV_URL = (os.environ.get("JEV_URL") or "https://api.typesafe.ai").rstrip("/")
+JEV_MODEL = os.environ.get("JEV_MODEL") or "jev-latest"
+JEV_API_KEY = os.environ.get("JEV_API_KEY") or ""   # environment only; never write it to a file
+JEV_TIMEOUT = float(os.environ.get("JEV_TIMEOUT") or "2")
 # Cached model signals by report reference, one JSON object per line.
 TRIAGE_SIGNALS_PATH = Path(os.environ.get("TRIAGE_SIGNALS_PATH") or "data/triage_signals.jsonl")

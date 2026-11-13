@@ -313,7 +313,8 @@ def _save_report(record: dict) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    enrich_in_background(record["reference"], payload.get("txta_details_about_the_location", ""))
+    enrich_in_background(record["reference"], payload.get("txta_details_about_the_location", ""),
+                         record.get("form") or "report_pothole_crack")
     result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
               "status": "recorded (prototype: not sent to the council)",
               **triage_summary(record["triage"])}

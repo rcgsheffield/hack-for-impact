@@ -85,7 +85,8 @@ def save_submission(record: dict) -> None:
             path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("a", encoding="utf-8") as f:
                 f.write(line + "\n")
-        enrich_in_background(record.get("reference"), record["fields"].get("txta_details_about_the_location", ""))
+        enrich_in_background(record.get("reference"), record["fields"].get("txta_details_about_the_location", ""),
+                             record.get("form"))
     except Exception:  # The dashboard is a nice-to-have; it must not break the submit tool.
         log.exception("could not save mock submission")
 
