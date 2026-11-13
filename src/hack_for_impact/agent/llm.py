@@ -2,7 +2,9 @@
 """LangChain agent wired to the CouncilTriagent tools (src/app/tools.py). Used by the Gradio app in src/app/main.py."""
 
 import json
+import logging
 import threading
+import time
 import uuid
 from collections import OrderedDict
 from collections.abc import Callable, Iterator
@@ -26,6 +28,10 @@ from app.urgency import ensure_advice, is_urgent_result, urgent_note
 OLLAMA_URL = "http://spark12.local:11434"
 
 FALLBACK_REPLY = "Sorry, I couldn't finish that report. Please try again, or phone the council on 0114 273 4567."
+DIDNT_CATCH = "Sorry, I didn't catch that. Could you describe the problem and where it is?"
+PIN_NOTE = "[The user dropped a pin"
+
+log = logging.getLogger(__name__)
 
 
 class ThreadScopedTools:
@@ -114,6 +120,8 @@ def build_agent(model_name: str = "gemma4:e2b", model_provider: str = "ollama", 
     """
     if mode not in MODES:
         raise ValueError(f"mode must be one of {MODES}")
+    # A timeout, so a busy or stuck shared Ollama ends the turn instead of leaving the chat waiting forever.
+    extra = {"client_kwargs": {"timeout": config.LLM_TIMEOUT}} if model_provider == "ollama" else {}
     # A ready-made chat model (app.models.chat_model, for routing) wins over model_name/provider/base_url.
     model = model or init_chat_model(
         model_name,
@@ -121,6 +129,7 @@ def build_agent(model_name: str = "gemma4:e2b", model_provider: str = "ollama", 
         base_url=base_url,
         api_key=api_key,
         temperature=0,
+        **extra,
     )
 
     agent = create_agent(
@@ -154,6 +163,23 @@ def latest_checkpoint_id(agent, thread_id: str) -> str | None:
     return (state.config or {}).get("configurable", {}).get("checkpoint_id")
 
 
+def follow_up_after_route(result: dict, has_pin: bool) -> str:
+    """A plain next step after a successful route_report, for when the model gives no usable reply."""
+    owner = result.get("owner", "the council")
+    where = ("Thanks for the pin on the map. " if has_pin else
+             "To report it I need the exact spot: please drop a pin on the map below, or tell me the nearest "
+             "house number, junction or landmark. ")
+    ask = ("Could you also tell me roughly how big or deep it is?" if result.get("form") else
+           "Could you also tell me a little more about the problem?")
+    return f"This one is for **{owner}**, and I can report it for you. {where}{ask}"
+
+
+def _unusable(reply: str) -> bool:
+    """True for a reply the user can't act on: empty, our generic fallback, or a tool call written out as JSON."""
+    text = reply.strip()
+    return not text or text == DIDNT_CATCH or text.startswith(("{", "[", "```json")) or '"arguments"' in text
+
+
 def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
                      max_steps: int | None = None, checkpoint_id: str | None = None) -> Iterator[ToolStep | str]:
     """Run one user turn. Yields a ToolStep for each tool call, then the final reply as a str.
@@ -169,24 +195,35 @@ def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
     Emergencies are escalated in code, not just the prompt: if the new message already triages as P1, a note telling
     the model to give the phone advice first is added to it; and if that or any tool result was urgent, the final
     reply always ends up containing the council phone number.
+
+    Every turn ends with a reply the user can act on: if route_report said the problem can be filed but the model
+    then times out, fails or replies with nothing useful, a fixed next step (follow_up_after_route) is used instead.
     """
     messages = list(messages)
     urgent = False
-    if messages and messages[-1].get("role") == "user":
-        note = urgent_note(str(messages[-1].get("content") or ""))
+    last_user = str(messages[-1].get("content") or "") if messages and messages[-1].get("role") == "user" else ""
+    if last_user:
+        note = urgent_note(last_user)
         if note:
             urgent = True
-            messages[-1] = {**messages[-1], "content": str(messages[-1]["content"]) + note}
+            messages[-1] = {**messages[-1], "content": last_user + note}
     calls: dict[str, dict] = {}  # tool_call_id -> {"name", "args"} from the model's request
     reply = ""
+    routed: dict | None = None  # the last route_report result this turn, if it said we can file
     run_config = thread_config(thread_id or new_thread_id(), max_steps)
     if checkpoint_id:
         run_config["configurable"]["checkpoint_id"] = checkpoint_id
+    start = last = time.monotonic()
     try:
         for update in agent.stream({"messages": messages}, config=run_config, stream_mode="updates"):
             for node_update in update.values():
                 for msg in (node_update or {}).get("messages", []):
                     if isinstance(msg, AIMessage):
+                        now = time.monotonic()
+                        log.info("model call %.1fs: tool_calls=%s text_chars=%d reasoning=%s",
+                                 now - last, [c["name"] for c in msg.tool_calls], len(str(msg.text)),
+                                 bool(msg.additional_kwargs.get("reasoning_content")))
+                        last = now
                         for call in msg.tool_calls:
                             calls[call["id"]] = call
                         if not msg.tool_calls:
@@ -198,9 +235,26 @@ def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
                         except (TypeError, ValueError):
                             result = {"output": msg.content}
                         urgent = urgent or (isinstance(result, dict) and is_urgent_result(result))
-                        yield ToolStep(call.get("name", msg.name or "tool"), json.dumps(call.get("args", {})), result)
+                        name = call.get("name", msg.name or "tool")
+                        if name == "route_report" and isinstance(result, dict):
+                            routed = result if result.get("can_file") else None
+                        last = time.monotonic()
+                        yield ToolStep(name, json.dumps(call.get("args", {})), result)
     except GraphRecursionError:
         yield FALLBACK_REPLY
         return
-    yield ensure_advice(reply or "Sorry, I didn't catch that. Could you describe the problem and where it is?", urgent)
+    except Exception:
+        if routed is None:
+            raise  # the frontend shows "the local model isn't responding"
+        log.exception("model failed after route_report; using the fixed follow-up")
+        reply = ""
+    log.info("turn finished in %.1fs, reply_chars=%d", time.monotonic() - start, len(reply))
+    if routed is not None and _unusable(reply):
+        log.warning("no usable reply after route_report (%r); using the fixed follow-up", reply[:200])
+        reply = follow_up_after_route(routed, PIN_NOTE in last_user)
+        try:  # keep the thread consistent, so next turn the model knows what it asked
+            agent.update_state(run_config, {"messages": [AIMessage(content=reply)]})
+        except Exception:
+            log.exception("couldn't store the follow-up in the thread")
+    yield ensure_advice(reply or DIDNT_CATCH, urgent)
 # %%

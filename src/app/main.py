@@ -246,8 +246,14 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
     started = time.monotonic()
     route = _route_message(tier, reason)
     shown = [route]
+    def stamp(frame):
+        """Put the turn's time on the model card once the reply is on screen (no "still working" bubble)."""
+        if not is_working(frame):
+            route.metadata["duration"] = round(time.monotonic() - started, 1)
+        return frame
+
     for shown in _show(watch(run_agent_events(agent, messages, thread_id)), shown):
-        yield shown, thread_id
+        yield stamp(shown), thread_id
 
     if tier == "small" and (trouble["failed"] or trouble["errors"] >= 2):
         # Escalate: redo this turn on the agent tier from the checkpoint before it (or on a fresh thread).
@@ -262,15 +268,14 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
             _escalated.add(thread_id)
         retry = run_agent_events(get_agent(mode, "agent"), messages, thread_id, checkpoint_id=before)
         for shown in _show(retry, shown):
-            yield shown, thread_id
-
-    route.metadata["duration"] = round(time.monotonic() - started, 1)
-    yield shown, thread_id
+            yield stamp(shown), thread_id
 
 
 def _show(events: Iterator[ToolStep | str], shown: list[gr.ChatMessage] | None = None) -> Iterator[list[gr.ChatMessage]]:
     """Turn agent events into chat bubbles: a collapsible one per tool call, then the reply, after any `shown`."""
     shown = list(shown or [])
+    # A "still working" bubble at the end until the reply arrives, so a finished tool step isn't mistaken for the end.
+    yield shown + [working()]
     try:
         for event in events:
             if isinstance(event, ToolStep):
@@ -280,12 +285,35 @@ def _show(events: Iterator[ToolStep | str], shown: list[gr.ChatMessage] | None =
                     body = (f"**Arguments**\n```json\n{event.arguments}\n```\n"
                             f"**Result**\n```\n{event.result['output']}\n```")
                 shown.append(gr.ChatMessage(content=body, metadata={"title": title, "status": "done"}))
+                yield shown + [working()]
             else:
                 shown.append(gr.ChatMessage(content=event))
-            yield shown
+                yield shown
     except Exception as e:  # Show model/connection failures in the chat rather than a blank error.
         shown.append(gr.ChatMessage(content=f"⚠️ The local model isn't responding ({type(e).__name__}). Please try again shortly."))
         yield shown
+
+
+WORKING_TITLE = "⏳ Working out the next step…"
+
+
+def working() -> gr.ChatMessage:
+    return gr.ChatMessage(content="", metadata={"title": WORKING_TITLE, "status": "pending"})
+
+
+def is_working(history: list) -> bool:
+    """True while the last message on screen is the "still working" bubble."""
+    if not history:
+        return False
+    last = history[-1]
+    meta = (last.get("metadata") if isinstance(last, dict) else getattr(last, "metadata", None)) or {}
+    return meta.get("status") == "pending"
+
+
+def chat_placeholder(history: list) -> str:
+    if not history:
+        return FIRST_PLACEHOLDER
+    return WORKING_PLACEHOLDER if is_working(history) else REPLY_PLACEHOLDER
 
 
 # ---- Browser mode: one browser per visitor, keyed by Gradio's session hash ----
@@ -370,14 +398,15 @@ EXAMPLES = [
 
 FIRST_PLACEHOLDER = "Describe the problem and where it is, or add a photo…"
 REPLY_PLACEHOLDER = "Reply, or describe another problem…"
+WORKING_PLACEHOLDER = "The assistant is still working…"
 
 WELCOME = """<div class="ct-intro">
 <img class="ct-intro__mark" src="/ui/logo-mark.svg" alt="" width="72" height="72">
 <h2 class="ct-intro__title">Tell us what's wrong and where</h2>
 <p class="ct-intro__lead">Describe a pothole, damaged pavement or street tree problem in your own words. The assistant \
 checks who's responsible, asks for anything missing, and files the report. You can add a photo (📎) and a location on \
-the map below. Photos are checked by a vision model on this machine, and their location and camera details are \
-removed.</p>
+the map below.<span class="ct-intro__extra"> Photos are checked by a vision model on this machine, and their location \
+and camera details are removed.</span></p>
 </div>"""
 
 # Map Gradio's theme onto the design system's tokens (src/app/static/ui.css). The tokens switch themselves for dark
@@ -472,7 +501,31 @@ SITE_HEADER = f"""<header class="ct-header ct-header--wide">
 <div class="ct-strip"><div class="ct-strip__inner"><strong>Unofficial hackathon prototype.</strong> \
 Nothing is sent to Sheffield City Council.</div></div>"""
 
-HEAD = '<link rel="stylesheet" href="/ui/ui.css">'
+# Fit the chat box to the screen: its height is whatever is left after the header, tabs, message box and controls,
+# so the page never scrolls. Re-run whenever the window or the layout changes (e.g. the location map opens).
+FIT_CHAT_JS = """<script>
+(() => {
+  // Below this the page scrolls rather than squash the chat (e.g. a phone held sideways).
+  const MIN = () => (innerWidth < 720 ? (innerHeight < 760 ? 180 : 220) : 280);
+  let queued = false;
+  function fit() {
+    queued = false;
+    const chat = document.getElementById("ct-chat");
+    if (!chat || !chat.offsetParent) return;          // not on the chat tab
+    const doc = document.documentElement, current = chat.getBoundingClientRect().height;
+    const overflow = doc.scrollHeight - innerHeight;   // > 0: page scrolls; < 0: spare space
+    const next = Math.max(MIN(), Math.floor(current - overflow));
+    if (Math.abs(next - current) > 1) doc.style.setProperty("--ct-chat-h", next + "px");
+  }
+  const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(fit); } };
+  addEventListener("resize", schedule);
+  addEventListener("orientationchange", schedule);
+  new ResizeObserver(schedule).observe(document.documentElement);
+  new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>"""
+
+HEAD = '<link rel="stylesheet" href="/ui/ui.css">' + FIT_CHAT_JS
 
 CSS = """
 /* Page-specific styling for the chat page; tokens and ct-* components come from /ui/ui.css. */
@@ -498,9 +551,21 @@ body, gradio-app { background: var(--ct-bg) !important; }
 #ct-tabs > .tabitem, #ct-tabs .tabitem { padding: 0 !important; border: 0 !important; background: none !important; }
 #ct-chat-tab { max-width: var(--ct-container-chat); margin: 0 auto; width: 100%; }
 
-/* Chat */
+/* Chat. Height comes from --ct-chat-h (FIT_CHAT_JS: the space left on screen); the fallback is a rough guess for the
+   first paint. The page itself never scrolls; long conversations scroll inside the box, and its scroll bar only
+   shows while the pointer is over it. */
+html, body { overflow-x: hidden; }
 #ct-chat { border-radius: var(--ct-radius-lg) !important; border: 1px solid var(--ct-border) !important;
-           background: var(--ct-surface) !important; box-shadow: var(--ct-shadow-sm) !important; }
+           background: var(--ct-surface) !important; box-shadow: var(--ct-shadow-sm) !important;
+           height: var(--ct-chat-h, calc(100dvh - 430px)) !important; min-height: 180px !important; max-height: none !important; }
+#ct-chat .bubble-wrap { scrollbar-width: thin; scrollbar-color: transparent transparent; scrollbar-gutter: auto; }
+#ct-chat .bubble-wrap:hover { scrollbar-color: var(--ct-border-strong) transparent; }
+#ct-chat .bubble-wrap::-webkit-scrollbar { width: 6px; }
+#ct-chat .bubble-wrap::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+#ct-chat .bubble-wrap:hover::-webkit-scrollbar-thumb { background: var(--ct-border-strong); }
+/* Welcome screen: centred in the box, and compact enough to fit it without scrolling. */
+#ct-chat .placeholder-content, #ct-chat .placeholder { margin-block: auto; }
+#ct-chat .placeholder .ct-intro { gap: 6px; }
 #ct-chat .placeholder { max-width: 38rem; margin: 0 auto; padding: 0 1rem; }
 #ct-chat .placeholder .ct-intro { padding-bottom: var(--ct-space-2); }
 #ct-chat .placeholder .ct-intro__title { border: 0; }
@@ -513,6 +578,9 @@ body, gradio-app { background: var(--ct-bg) !important; }
                           transition: border-color var(--ct-dur-fast) var(--ct-ease), background var(--ct-dur-fast) var(--ct-ease); }
 #ct-chat button.example:hover { border-color: var(--ct-leaf) !important; background: var(--ct-brand-soft) !important; }
 #ct-chat button.example .example-text, #ct-chat button.example span { color: inherit !important; }
+/* The photo-enabled (multimodal) box gives each example an "Aa" text icon; the chips' own emoji say enough. */
+#ct-chat button.example .example-icon { display: none !important; }
+#ct-chat button.example .example-content { display: block !important; }
 #ct-chat .message.user, #ct-chat .user .message { background: var(--ct-brand) !important; color: var(--ct-on-brand) !important;
                           border-color: var(--ct-brand) !important; border-radius: 18px 18px 4px 18px !important; }
 #ct-chat .message.user *, #ct-chat .user .message * { color: inherit !important; }
@@ -547,7 +615,38 @@ body, gradio-app { background: var(--ct-bg) !important; }
 /* Browser-mode tab */
 #ct-browser-intro { font-size: var(--ct-text-md); }
 footer { display: none !important; }
+/* Short screens (laptops, phones in landscape): smaller welcome so it fits the chat box. */
+@media (max-height: 940px) {
+  #ct-chat .ct-intro__mark { width: 48px; height: 48px; }
+  #ct-chat .placeholder .ct-intro { padding-top: var(--ct-space-2); padding-bottom: 0; }
+  #ct-chat .ct-intro__title { font-size: var(--ct-text-lg) !important; margin: 0; }
+  #ct-chat .ct-intro__lead { font-size: var(--ct-text-md) !important; }
+  #ct-chat .examples { padding-bottom: .5rem !important; }
+  #ct-chat button.example { padding: 6px 12px !important; }
+  #ct-tabs { padding-bottom: 12px !important; }
+  #ct-tabs .tab-wrapper { margin-bottom: 10px; }
+}
+@media (max-height: 820px) {
+  #ct-chat .ct-intro__mark, #ct-chat .ct-intro__extra { display: none; }
+}
 @media (max-width: 720px) {
+  #ct-chat .ct-intro__extra { display: none; }
+  #ct-chat button.example:nth-child(n+4) { display: none; }  /* three examples are enough on a phone */
+  #ct-chat .ct-intro__mark { display: none; }
+  #ct-mode [data-testid="block-info"], #ct-mode .info, #ct-mode-box [data-testid="block-info"] { display: none !important; }
+  #ct-mode-box { padding: 8px 12px !important; gap: 4px !important; }
+  #ct-chat .examples { padding: 0 .5rem .25rem !important; gap: 6px !important; }
+  #ct-chat .ct-intro__lead { line-height: 1.4; }
+}
+/* Short phones (iPhone SE and similar): every pixel goes to the chat. The header's Prototype badge stays. */
+@media (max-width: 720px) and (max-height: 760px) {
+  .ct-strip { display: none; }
+  #ct-chat .ct-intro__lead { display: none; }
+  #ct-chat button.example:nth-child(n+3) { display: none; }
+  #ct-mode-box .prose, #ct-mode-box > .block:first-child:not(#ct-mode) { display: none !important; }
+  #ct-tabs { padding-top: 4px !important; padding-bottom: 8px !important; }
+  #ct-tabs .tab-wrapper { margin-bottom: 6px; }
+  #ct-tools { gap: 8px; }
   #ct-tabs { padding: 8px 12px 16px !important; }
   #ct-tabs button[role="tab"] { font-size: var(--ct-text-sm); padding-inline: 8px; }
   #ct-chat .placeholder .ct-intro { padding: var(--ct-space-3) 0 var(--ct-space-1); gap: 4px; }
@@ -577,7 +676,8 @@ with gr.Blocks(title="CouncilTriagent") as demo:
     chat = gr.ChatInterface(
         respond,
         # Fill the screen, leaving room for the header, message box and controls (all visible at 1280x800).
-        chatbot=gr.Chatbot(height="calc(100vh - 400px)", min_height=360, show_label=False, placeholder=WELCOME, elem_id="ct-chat",
+        # Height is set in CSS from the space left on screen (FIT_CHAT_JS); these are only Gradio's starting values.
+        chatbot=gr.Chatbot(height="calc(100dvh - 430px)", min_height=240, show_label=False, placeholder=WELCOME, elem_id="ct-chat",
                            layout="bubble", group_consecutive_messages=True),
         # Text plus photos: the paperclip opens the camera or gallery on a phone. Photos go through photo_notes().
         multimodal=True,
@@ -595,7 +695,8 @@ with gr.Blocks(title="CouncilTriagent") as demo:
 
     tools_row.render()
     # ChatInterface blanks the placeholder when a message is sent and never restores it; put it back.
-    chat.chatbot.change(lambda history: gr.MultimodalTextbox(placeholder=REPLY_PLACEHOLDER if history else FIRST_PLACEHOLDER),
+    # While the "still working" bubble is showing, say so, so the user knows the turn hasn't finished.
+    chat.chatbot.change(lambda history: gr.MultimodalTextbox(placeholder=chat_placeholder(history)),
                         chat.chatbot, chat.textbox, show_progress="hidden", queue=False)
     location_pin.change(lambda v: gr.Accordion(label=location_label(v)), location_pin, location_panel,
                         show_progress="hidden", queue=False)

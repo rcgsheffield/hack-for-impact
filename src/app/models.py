@@ -108,6 +108,8 @@ def chat_model(tier: str, model: str | None = None, **kwargs):
 
         # Fast tiers skip "thinking": measured on the Spark it is most of a small model's time per step.
         kwargs.setdefault("reasoning", thinks(tier))
+        # A timeout, so a busy or stuck shared Ollama ends the turn instead of leaving the chat waiting forever.
+        kwargs.setdefault("client_kwargs", {"timeout": config.LLM_TIMEOUT})
 
         return ChatOllama(model=name, base_url=s.base_url, temperature=0, **kwargs)
     from langchain_openai import ChatOpenAI
