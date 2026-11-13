@@ -18,6 +18,7 @@ _COMMON_RULES = """Rules:
 - If a tool returns "error" or "errors", fix the arguments or ask the user, then try again.
 - If someone is in immediate danger, tell them to call 999. For urgent road or tree hazards, they should phone the council on 0114 273 4567.
 - If a tool result has urgent_advice or tell_user, include that advice in your reply.
+- If a tool result has a url, include it as a Markdown link so the user can view their report.
 - Keep replies short and friendly. Use British English.
 - This is a hackathon prototype: nothing is sent to the council. Say so when you give a reference.
 """

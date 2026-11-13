@@ -7,6 +7,7 @@ Stack: **Python, FastAPI and a [Gradio](https://www.gradio.app/) chat UI, with t
 | `src/app/main.py` | FastAPI app: chat UI at `/`, status at `/health` |
 | `src/app/usage.py` | Serves the dummy council site (`src/mock/`) at `/mock/` and logs page loads and submissions to `data/usage.jsonl` |
 | `src/app/submissions.py` | Submissions dashboard at `/dashboard` (JSON at `/api/submissions`): what the agents have submitted to the mock forms |
+| `src/app/static/report-card.js` | Front-end library: `ReportCard.render(item, {audience: "staff" | "resident"})` draws one report as a card (styles in `report-card.css`) |
 | `src/app/agent.py` | System prompt and tool-calling loop |
 | `src/app/tools.py` | Agent tools: `route_report`, `assess_pothole`, `file_report` |
 | `src/app/config.py` | Settings from environment variables |
@@ -51,6 +52,12 @@ POTHOLE_FORM_URL=http://127.0.0.1:8000/mock/report_pothole_crack.html uv run pyt
 - forms submitted by hand in a browser at `/mock/` (reference only, from `data/usage.jsonl`), plus page-view counts split into agent (HeadlessChrome) and person.
 
 A map plots every filtered submission that has coordinates (the mock forms' `le_gis`), coloured by form; a row's "map" link zooms to it. Chat-agent and by-hand submissions have no coordinates, so the note under the map counts them instead. The map loads Leaflet from unpkg.com and Esri tiles, so it needs internet access; the rest of the dashboard doesn't.
+
+Expanding a row shows the report as a card (`static/report-card.js`, staff view) with the raw record folded away, and a link to the resident view.
+
+### Viewing one report
+
+`/reports/<reference>` (JSON at `/api/reports/<reference>`) shows a single report to the resident who filed it: reference number, what was recorded, severity and a prototype notice, without agent or source details. `file_report` returns this link as `url` and the chat agent passes it on. To render reports on another page, include `/static/report-card.css` and `/static/report-card.js`, then set `el.innerHTML = ReportCard.render(item, { audience: "resident" })` with an item from either API.
 
 ## Settings
 
