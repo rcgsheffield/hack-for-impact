@@ -128,7 +128,7 @@
     }
     #ip-label {
       position: absolute;
-      left: 140px;
+      left: 200px;
       top: 120px;
       font-size: 88px;
       font-weight: 900;
@@ -136,7 +136,7 @@
     }
     #ip-sub {
       position: absolute;
-      left: 144px;
+      left: 204px;
       top: 230px;
       font-size: 40px;
       font-weight: 400;
@@ -144,7 +144,7 @@
     }
     #ip-call {
       position: absolute;
-      left: 1250px;
+      left: 1150px;
       top: 150px;
       padding: 22px 34px;
       border-radius: 20px;
@@ -165,6 +165,91 @@
     #ip-timer {
       font-family: "JetBrains Mono", monospace;
       color: #f3d98b;
+    }
+    #ip-arm {
+      position: absolute;
+      left: 1540px;
+      top: 600px;
+      width: 70px;
+      height: 200px;
+      border-radius: 35px;
+      background: #6a4f93;
+      transform-origin: 50% 90%;
+    }
+    #ip-years {
+      position: absolute;
+      left: 204px;
+      top: 300px;
+      font-size: 40px;
+      font-weight: 700;
+      color: #f3d98b;
+      opacity: 0;
+    }
+    #ip-weeks {
+      position: absolute;
+      left: 340px;
+      top: 560px;
+      padding: 14px 28px;
+      border-radius: 14px;
+      background: #f3d98b;
+      color: #1f2530;
+      font-size: 40px;
+      font-weight: 900;
+      opacity: 0;
+    }
+    #ip-scrim {
+      position: absolute;
+      inset: 0;
+      background: #0b0f0a;
+    }
+    #ip-hold {
+      position: absolute;
+      left: 600px;
+      top: 120px;
+      width: 720px;
+      height: 840px;
+      border-radius: 64px;
+      background: #1d2129;
+      border: 12px solid #9aa3b1;
+      padding: 70px 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      color: #f1f4f8;
+    }
+    #ip-hold-who {
+      font-size: 34px;
+      font-weight: 700;
+      color: #c9d1dc;
+    }
+    #ip-hold-state {
+      margin-top: 14px;
+      font-size: 30px;
+      color: #f3d98b;
+      font-family: "JetBrains Mono", monospace;
+    }
+    #ip-hold-lead {
+      margin-top: 80px;
+      font-size: 52px;
+      font-weight: 700;
+    }
+    #ip-hold-num {
+      font-size: 260px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: #e04b4b;
+    }
+    #ip-hold-tail {
+      font-size: 52px;
+      font-weight: 700;
+    }
+    #ip-hold-notes {
+      margin-top: auto;
+      font-size: 56px;
+      color: #9aa3b1;
+      letter-spacing: 0.3em;
     }
   </style>
   <div id="root" data-composition-id="irene-phone" data-width="1920" data-height="1080">
@@ -190,29 +275,64 @@
         <div id="ip-mouth"></div>
       </div>
     </div>
+    <div id="ip-weeks">3 weeks and counting</div>
+    <div id="ip-arm"></div>
     <div id="ip-phone"></div>
     <div id="ip-label">This is Irene.</div>
-    <div id="ip-sub">Abbeydale Road, Sheffield</div>
+    <div id="ip-sub">Crookes Road, Sheffield</div>
+    <div id="ip-years">40 years on the same street</div>
     <div id="ip-call">
       <div id="ip-dot"></div>
       <span id="ip-calltext">Calling the council…</span>
     </div>
+    <div id="ip-scrim"></div>
+    <div id="ip-hold">
+      <div id="ip-hold-who">Sheffield City Council</div>
+      <div id="ip-hold-state">ON HOLD · 00:41</div>
+      <div id="ip-hold-lead">You are number</div>
+      <div id="ip-hold-num">14</div>
+      <div id="ip-hold-tail">in the queue</div>
+      <div id="ip-hold-notes">♪ ♫ ♪</div>
+    </div>
   </div>
   <script>
     (function () {
+      // Scene-local seconds. Retime by editing these numbers only.
+      const CUE = {
+        c01a: 0.30, //  VO 01a narrator: "This is Irene..."
+        years: 3.74, // beat: "for forty years"
+        weeks: 6.11, // beat: "for three weeks there's been a pothole" tag
+        sigh: 7.29, //  beat: she looks at the pothole ("outside her gate"), sighs
+        lift: 8.86, //  beat: phone comes up, just before 01b
+        c01b: 9.46, //  VO 01b Irene: "Right. I'm ringing the council."
+        ring: 10.39, // beat: call pill + ringing
+        c01c: 11.74, // VO 01c handler: "You are... number fourteen... in the queue."
+        num: 14.63, //  beat: "number fourteen" lands
+      };
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#ip-pothole", { scale: 0.85, opacity: 1 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power3.out" }, 0);
-      tl.fromTo("#ip-cone", { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "bounce.out" }, 0.4);
-      tl.fromTo("#ip-irene", { x: 40, opacity: 1 }, { x: 0, opacity: 1, duration: 1.2, ease: "power3.out" }, 0.3);
-      tl.fromTo("#ip-label", { y: 20, opacity: 1 }, { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" }, 0);
-      tl.fromTo("#ip-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.9);
+      tl.fromTo("#ip-pothole", { scale: 0.85, opacity: 1 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power3.out" }, CUE.c01a - 0.3);
+      tl.fromTo("#ip-cone", { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "bounce.out" }, CUE.c01a + 0.1);
+      tl.fromTo("#ip-irene", { x: 40, opacity: 1 }, { x: 0, opacity: 1, duration: 1.2, ease: "power3.out" }, CUE.c01a);
+      tl.fromTo("#ip-label", { y: 20, opacity: 1 }, { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" }, CUE.c01a - 0.3);
+      tl.fromTo("#ip-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, CUE.c01a + 0.6);
+      tl.fromTo("#ip-years", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, CUE.years);
+      tl.fromTo("#ip-weeks", { opacity: 0, y: 20, rotation: -2 }, { opacity: 1, y: 0, rotation: -2, duration: 0.4, ease: "expo.out" }, CUE.weeks);
+      tl.fromTo("#ip-weeks", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.c01c - 0.3);
       // She looks at the pothole, sighs
-      tl.fromTo("#ip-irene", { rotation: 0 }, { rotation: -4, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.8);
-      // Phone lifts to her ear
-      tl.fromTo("#ip-phone", { x: 0, y: 200, opacity: 0, rotation: 0 }, { x: -20, y: -150, opacity: 1, rotation: -15, duration: 0.7, ease: "back.out(1.6)" }, 3.6);
-      tl.fromTo("#ip-call", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 4.0);
-      tl.fromTo("#ip-dot", { scale: 1 }, { scale: 1.5, duration: 0.25, yoyo: true, repeat: 7, ease: "sine.inOut" }, 4.0);
-      tl.fromTo("#ip-phone", { rotation: -15 }, { rotation: -10, duration: 0.08, yoyo: true, repeat: 9, ease: "none" }, 4.4);
+      tl.fromTo("#ip-irene", { rotation: 0 }, { rotation: -4, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, CUE.sigh);
+      // She picks up the phone: arm swings up, phone travels to her ear
+      tl.fromTo("#ip-arm", { rotation: 0, y: 0 }, { rotation: -28, y: -150, duration: 0.6, ease: "power3.out" }, CUE.lift);
+      tl.fromTo("#ip-phone", { x: 0, y: 200, opacity: 0, rotation: 0 }, { x: -40, y: -170, opacity: 1, rotation: -15, duration: 0.6, ease: "power3.out" }, CUE.lift);
+      tl.fromTo("#ip-call", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, CUE.ring);
+      tl.fromTo("#ip-dot", { scale: 1 }, { scale: 1.5, duration: 0.25, yoyo: true, repeat: 3, ease: "sine.inOut" }, CUE.ring);
+      tl.fromTo("#ip-phone", { rotation: -15 }, { rotation: -10, duration: 0.08, yoyo: true, repeat: 7, ease: "none", immediateRender: false }, CUE.ring + 0.2);
+      // Hold screen: the street dims, the phone screen fills the frame
+      tl.fromTo("#ip-scrim", { opacity: 0 }, { opacity: 0.7, duration: 0.5, ease: "power2.inOut" }, CUE.c01c - 0.3);
+      tl.fromTo("#ip-hold", { y: 260, scale: 0.6, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, CUE.c01c - 0.2);
+      tl.fromTo("#ip-hold-lead", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.c01c + 0.5);
+      tl.fromTo("#ip-hold-num", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: "power4.out" }, CUE.num);
+      tl.fromTo("#ip-hold-tail", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.num + 0.6);
+      tl.fromTo("#ip-hold-notes", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 }, CUE.c01c + 0.4);
       window.__timelines["irene-phone"] = tl;
     })();
   </script>
