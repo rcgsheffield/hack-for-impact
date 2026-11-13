@@ -64,21 +64,34 @@
     #fx-say-irene .fx-who {
       color: #7b5ea7;
     }
-    /* question stickers for 02c */
-    .fx-q {
-      position: absolute;
-      left: 200px;
-      padding: 18px 30px;
-      border-radius: 14px;
-      background: #f3d98b;
+    #fx-say-irene2 {
+      top: 520px;
+      left: 470px;
+      width: 420px;
+      background: #f1f4f8;
       color: #1f2530;
       font-size: 44px;
-      font-weight: 900;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      opacity: 0;
     }
-    #fx-q1 { top: 240px; }
-    #fx-q2 { top: 350px; }
-    #fx-q3 { top: 460px; }
+    #fx-say-irene2 .fx-who {
+      display: block;
+      font-size: 28px;
+      font-weight: 400;
+      margin-bottom: 8px;
+      color: #7b5ea7;
+    }
+    /* question marks around Irene */
+    .fx-qm {
+      position: absolute;
+      font-size: 96px;
+      font-weight: 900;
+      color: #f3d98b;
+      opacity: 0;
+      text-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+    #fx-qm1 { left: 160px; top: 440px; }
+    #fx-qm2 { left: 900px; top: 420px; }
+    #fx-qm3 { left: 520px; top: 760px; }
     /* Irene */
     #fx-irene {
       position: absolute;
@@ -170,82 +183,104 @@
       border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
       background: #8fd0f0;
     }
-    /* form windows */
-    .fx-win {
+    /* phone */
+    #fx-phone {
       position: absolute;
-      top: 120px;
-      width: 840px;
-      height: 860px;
-      border-radius: 18px;
-      background: #f5f6f8;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      left: 1060px;
+      top: 50px;
+      width: 640px;
+      height: 980px;
+      border-radius: 64px;
+      background: #14171c;
+      padding: 18px;
+      box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+    }
+    #fx-screen {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 48px;
+      background: #ffffff;
       overflow: hidden;
     }
-    #fx-winx {
-      left: 860px;
-    }
-    #fx-winy {
-      left: 880px;
-      top: 170px;
-    }
-    #fx-winz {
-      left: 900px;
-      top: 220px;
-    }
-    .fx-bar {
+    #fx-url {
       position: relative;
-      z-index: 2;
-      height: 90px;
-      padding: 0 36px;
-      display: flex;
-      align-items: center;
-      background: #d8dde5;
-      font-size: 32px;
-      font-weight: 700;
+      z-index: 3;
+      height: 96px;
+      padding: 30px 36px 0;
+      background: #eceef2;
+      font-size: 30px;
+      color: #4a5263;
+    }
+    #fx-url b {
       color: #1f2530;
     }
-    .fx-scroll {
-      padding: 30px 36px;
-    }
-    .fx-field {
-      margin-bottom: 26px;
-    }
-    .fx-lab {
-      font-size: 28px;
-      font-weight: 700;
-      color: #333b48;
-      margin-bottom: 8px;
-    }
-    .fx-box {
-      height: 52px;
-      border: 3px solid #a9b1bf;
-      border-radius: 8px;
-      background: #fff;
-    }
-    .fx-hot .fx-lab {
-      color: #8a5a00;
-    }
-    .fx-hot .fx-box {
-      border-color: #d99a00;
-    }
-    .fx-err .fx-box {
-      border-color: #c62828;
-    }
-    .fx-err .fx-lab::after {
-      content: "  · Required";
-      color: #c62828;
-    }
-    #fx-stamp {
+    #fx-pages {
       position: absolute;
-      left: 1040px;
-      top: 500px;
-      padding: 18px 40px;
-      border: 10px solid #c62828;
-      border-radius: 14px;
-      color: #c62828;
-      font-size: 72px;
+      left: 0;
+      top: 96px;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+    .fx-page {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 28px 32px;
+    }
+    .fx-h1 {
+      font-size: 48px;
       font-weight: 900;
-      background: rgba(255, 255, 255, 0.9);
+      line-height: 1.1;
+      color: #1f2530;
+    }
+    .fx-h2 {
+      margin-top: 26px;
+      margin-bottom: 8px;
+      font-size: 34px;
+      font-weight: 800;
+      color: #1f2530;
+    }
+    .fx-cat {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #dfe3ea;
+      font-size: 32px;
+      color: #1d4e9e;
+      white-space: nowrap;
+    }
+    .fx-chev {
+      color: #737b8c;
+      font-size: 40px;
+    }
+    #fx-roads {
+      opacity: 0;
+    }
+    .fx-link {
+      margin-top: 16px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 30px;
+      line-height: 1.25;
+      color: #1d4e9e;
+      text-decoration: underline;
+    }
+    #fx-tap {
+      position: absolute;
+      z-index: 4;
+      left: 300px;
+      top: 448px;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 6px solid #f3a300;
+      background: rgba(243, 163, 0, 0.25);
+      opacity: 0;
     }
   </style>
   <div id="root" data-composition-id="form-x" data-width="1920" data-height="1080">
@@ -272,71 +307,80 @@
       </div>
     </div>
     <div class="fx-bubble" id="fx-say-irene"><span class="fx-who">Irene</span>Form X? What's form X?</div>
+    <div class="fx-bubble" id="fx-say-irene2"><span class="fx-who">Irene</span>Which one's form X?</div>
+    <div class="fx-qm" id="fx-qm1">?</div>
+    <div class="fx-qm" id="fx-qm2">?</div>
+    <div class="fx-qm" id="fx-qm3">?</div>
 
-    <div class="fx-win" id="fx-winx" data-layout-allow-overflow data-layout-allow-overlap>
-      <div class="fx-bar">Form X · Highway defect report (1 of 4)</div>
-      <div class="fx-scroll" id="fx-scrollx">
-        <div class="fx-field"><div class="fx-lab">Full name</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Unique property reference</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-hot" id="fx-f1"><div class="fx-lab">Road or pavement?</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Road classification</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Grid reference (easting)</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Grid reference (northing)</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-hot" id="fx-f2"><div class="fx-lab">Depth (mm)?</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Defect width (mm)</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Asset ID</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-hot" id="fx-f3"><div class="fx-lab">Who owns this road?</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Ward</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Date first observed</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Service area code</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Previous reference</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Upload evidence (max 2 MB)</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Declaration</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Preferred contact method</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Accessibility needs</div><div class="fx-box"></div></div>
+    <!-- Irene's phone. Page text is the real wording on sheffield.gov.uk and /roads-pavements (13 Nov 2026); no council logo or branding. -->
+    <div id="fx-phone">
+      <div id="fx-screen">
+        <div id="fx-url">sheffield.gov.uk</div>
+        <div id="fx-pages">
+          <div class="fx-page" id="fx-home" data-layout-allow-overflow>
+            <div class="fx-h1">For you and your city</div>
+            <div class="fx-h2">Find services</div>
+            <div class="fx-cat"><span>Benefits</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Bins, waste and recycling</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Births, deaths, marriages and citizenship</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Business</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Children, young people and families</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Clean Air Zone</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Council housing</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Council Tax</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Cost of living</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Disability and mental health</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Housing</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Libraries and archives</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Licensing</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Parking</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Parks, sport and recreation</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Planning and development</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Pollution and nuisance</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Privacy and data</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Public health</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat" id="fx-cat-roads"><span>Roads and pavements</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Schools and childcare</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Social care</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Travel and transport</span><span class="fx-chev">›</span></div>
+            <div class="fx-cat"><span>Your City Council</span><span class="fx-chev">›</span></div>
+          </div>
+          <div class="fx-page" id="fx-roads">
+            <div class="fx-h1">Roads and pavements</div>
+            <div class="fx-link" id="fx-l1">Find roadworks in Sheffield</div>
+            <div class="fx-link" id="fx-l2">Report a problem with a road, pavement or cycle lane</div>
+            <div class="fx-link" id="fx-l3">Request road improvements and requests</div>
+            <div class="fx-link" id="fx-l4">Report a fault with a traffic light or road sign</div>
+            <div class="fx-link" id="fx-l5">Report faulty street lights</div>
+            <div class="fx-link" id="fx-l6">Report faults with bridges, subways and retaining walls</div>
+            <div class="fx-h2">Services</div>
+            <div class="fx-link" id="fx-l7">Report road and pavement problems</div>
+            <div class="fx-link" id="fx-l8">Street trees</div>
+          </div>
+        </div>
+        <div id="fx-tap"></div>
       </div>
     </div>
-    <div class="fx-win" id="fx-winy" data-layout-allow-overflow data-layout-allow-overlap data-layout-allow-occlusion>
-      <div class="fx-bar">Form Y · Supplementary information</div>
-      <div class="fx-scroll">
-        <div class="fx-field fx-err"><div class="fx-lab">Form X reference</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Section 58 defence notice</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Witness details</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Vehicle registration</div><div class="fx-box"></div></div>
-      </div>
-    </div>
-    <div class="fx-win" id="fx-winz" data-layout-allow-overflow data-layout-allow-overlap data-layout-allow-occlusion>
-      <div class="fx-bar">Form X annex B · Landowner details</div>
-      <div class="fx-scroll">
-        <div class="fx-field fx-err"><div class="fx-lab">Highway authority</div><div class="fx-box"></div></div>
-        <div class="fx-field fx-err"><div class="fx-lab">Adoption status</div><div class="fx-box"></div></div>
-        <div class="fx-field"><div class="fx-lab">Land Registry title number</div><div class="fx-box"></div></div>
-      </div>
-    </div>
-
-    <div class="fx-q" id="fx-q1">Road or pavement?</div>
-    <div class="fx-q" id="fx-q2">Depth (mm)?</div>
-    <div class="fx-q" id="fx-q3">Who owns this road?</div>
-
-    <div id="fx-stamp">ERROR 422</div>
   </div>
   <script>
     (function () {
-      // Scene-local seconds. Retime by editing these numbers only.
       const CUE = {
-        c02a: 0.40, //   VO 02a handler: "Potholes? ... It's form X."
-        formx: 5.98, //  beat: "form X" spoken, form window slides in
-        c02b: 7.92, //   VO 02b Irene: "Form X? What's form X?"
-        c02c: 10.21, //   VO 02c narrator: "Twenty minutes on hold, then a website..."
-        q1: 12.51, //    beat: "Is it a road or a pavement?"
-        q2: 13.99, //    beat: "How deep is it, in millimetres?"
-        q3: 15.79, //    beat: "Who even owns this road?"
-        drop: 16.61, //  beat: Irene's face drops, forms multiply
-        stamp: 18.09, // beat: ERROR 422
+        c02a: 0.40, //    VO 02a handler: "Potholes? ... report that online, love. It's form X."
+        phone: 3.00, //   beat: "online": the phone comes up
+        scroll: 5.00, //  beat: the 24 service categories scroll past, no "Report" anywhere
+        c02b: 7.92, //    VO 02b Irene: "Form X? What's form X?"
+        tap: 10.00, //    beat: she taps "Roads and pavements"
+        roads: 10.50, //  beat: the Roads and pavements page
+        c02c: 11.80, //   VO 02c Irene: "Report a problem with a road…"
+        link2: 11.90, //  beat: "Report a problem with a road" highlighted
+        link7: 14.10, //  beat: "…or report road and pavement problems?" highlighted
+        whichOne: 15.90, // beat: "Which one's form X?": face drops
       };
       const tl = gsap.timeline({ paused: true });
+      // Rows are 76 px under the page header: this scroll leaves "Roads and pavements" (row 19) under the tap ring.
+      const SCROLL_TO_ROADS = -1240;
 
-      // Hold clock races to 20:14 (pays off "twenty minutes on hold" in 02c)
+      // Hold clock races while the handler talks
       const hold = { s: 0 };
       const drawHold = () => {
         const v = Math.floor(hold.s);
@@ -346,38 +390,45 @@
       tl.fromTo("#fx-hold", { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.3 }, 0);
       tl.fromTo(hold, { s: 41 }, { s: 20 * 60 + 14, duration: 3.0, ease: "power1.in", onUpdate: drawHold }, CUE.c02a);
 
-      // 02a: handler bubble
+      // 02a: handler bubble, then the phone
       tl.fromTo("#fx-irene", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.1);
       tl.fromTo("#fx-say-handler", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.c02a);
-      tl.fromTo("#fx-winx", { x: 240, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, CUE.formx);
+      tl.fromTo("#fx-phone", { y: 300, opacity: 0, rotation: 4 }, { y: 0, opacity: 1, rotation: 0, duration: 0.8, ease: "expo.out" }, CUE.phone);
+
+      // the categories scroll past
+      tl.fromTo("#fx-home", { y: 0 }, { y: SCROLL_TO_ROADS, duration: 4.6, ease: "power1.inOut" }, CUE.scroll);
 
       // 02b: Irene reacts: brows up, mouth "o", her bubble
+      tl.fromTo("#fx-say-handler", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.c02b - 0.3);
       tl.fromTo(["#fx-brow-l", "#fx-brow-r"], { y: 0 }, { y: -16, duration: 0.25, ease: "power3.out" }, CUE.c02b);
       tl.fromTo("#fx-mouth-flat", { opacity: 1 }, { opacity: 0, duration: 0.1 }, CUE.c02b);
       tl.fromTo("#fx-mouth-o", { opacity: 0 }, { opacity: 1, duration: 0.1 }, CUE.c02b);
       tl.fromTo("#fx-head", { rotation: 0 }, { rotation: 6, duration: 0.3, ease: "power2.out" }, CUE.c02b);
       tl.fromTo("#fx-say-irene", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.6)" }, CUE.c02b);
 
-      // 02c: bubbles clear, the form scrolls, questions pop as they are spoken
-      tl.fromTo(["#fx-say-handler", "#fx-say-irene"], { opacity: 1 }, { opacity: 0, duration: 0.25, ease: "power2.in", immediateRender: false }, CUE.c02c);
-      tl.fromTo("#fx-scrollx", { y: 0 }, { y: -720, duration: CUE.q3 - CUE.c02c + 0.6, ease: "power1.inOut" }, CUE.c02c);
-      tl.fromTo(".fx-err .fx-box", { backgroundColor: "#ffffff" }, { backgroundColor: "#fde7e7", duration: 0.2, stagger: 0.5 }, CUE.c02c + 0.6);
-      [["#fx-q1", "#fx-f1", CUE.q1], ["#fx-q2", "#fx-f2", CUE.q2], ["#fx-q3", "#fx-f3", CUE.q3]].forEach(([q, f, at]) => {
-        tl.fromTo(q, { opacity: 0, x: -40, rotation: -3 }, { opacity: 1, x: 0, rotation: -2, duration: 0.4, ease: "expo.out" }, at);
-        tl.fromTo(f + " .fx-box", { backgroundColor: "#ffffff" }, { backgroundColor: "#fff3cc", duration: 0.3 }, at);
-      });
+      // tap "Roads and pavements", the page changes
+      tl.fromTo("#fx-tap", { opacity: 0, scale: 1.6 }, { opacity: 1, scale: 1, duration: 0.25, ease: "power3.out" }, CUE.tap);
+      tl.fromTo("#fx-cat-roads", { backgroundColor: "rgba(243,163,0,0)" }, { backgroundColor: "rgba(243,163,0,0.3)", duration: 0.15 }, CUE.tap + 0.1);
+      tl.to("#fx-tap", { opacity: 0, scale: 1.3, duration: 0.25 }, CUE.roads - 0.1);
+      tl.fromTo("#fx-home", { opacity: 1, x: 0 }, { opacity: 0, x: -120, duration: 0.3, ease: "power2.in", immediateRender: false }, CUE.roads);
+      tl.fromTo("#fx-roads", { opacity: 0, x: 120 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, CUE.roads + 0.2);
 
-      // Irene's face drops; the forms multiply
-      tl.fromTo("#fx-mouth-o", { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, CUE.drop);
-      tl.fromTo("#fx-mouth-sad", { opacity: 0 }, { opacity: 1, duration: 0.15 }, CUE.drop);
-      tl.fromTo(["#fx-brow-l", "#fx-brow-r"], { y: -16, rotation: 0 }, { y: 4, rotation: (i) => (i ? -14 : 14), duration: 0.4, ease: "power2.out", immediateRender: false }, CUE.drop);
-      tl.fromTo("#fx-head", { rotation: 6, y: 0 }, { rotation: -4, y: 26, duration: 0.8, ease: "power2.inOut", immediateRender: false }, CUE.drop);
-      tl.fromTo("#fx-sweat", { opacity: 0, y: 0 }, { opacity: 1, y: 40, duration: 1.4, ease: "power1.in" }, CUE.drop + 0.2);
-      tl.fromTo("#fx-winx", { rotation: 0 }, { rotation: -2, duration: 0.3 }, CUE.drop);
-      tl.fromTo("#fx-winy", { y: 300, opacity: 0 }, { y: 0, opacity: 1, rotation: 1.5, duration: 0.6, ease: "expo.out" }, CUE.drop);
-      tl.fromTo("#fx-winz", { y: 300, opacity: 0 }, { y: 0, opacity: 1, rotation: -1, duration: 0.6, ease: "expo.out" }, CUE.drop + 0.7);
-      tl.fromTo("#fx-stamp", { scale: 2.4, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: -8, duration: 0.3, ease: "power4.in" }, CUE.stamp);
-      tl.fromTo(".fx-win", { x: 0 }, { x: 10, duration: 0.05, yoyo: true, repeat: 5, immediateRender: false }, CUE.stamp + 0.3);
+      // 02c: the two near-identical links, in turn
+      tl.fromTo("#fx-say-irene", { opacity: 1 }, { opacity: 0, duration: 0.2, immediateRender: false }, CUE.c02c - 0.2);
+      tl.fromTo("#fx-l2", { backgroundColor: "rgba(243,163,0,0)" }, { backgroundColor: "rgba(243,163,0,0.35)", duration: 0.3 }, CUE.link2);
+      tl.fromTo("#fx-l7", { backgroundColor: "rgba(243,163,0,0)" }, { backgroundColor: "rgba(243,163,0,0.35)", duration: 0.3 }, CUE.link7);
+      tl.fromTo("#fx-phone", { x: 0 }, { x: 8, duration: 0.06, yoyo: true, repeat: 3, immediateRender: false }, CUE.link7);
+      tl.fromTo("#fx-qm1", { opacity: 0, scale: 0.4, rotation: -20 }, { opacity: 1, scale: 1, rotation: -10, duration: 0.35, ease: "back.out(2)" }, CUE.link7 + 0.2);
+      tl.fromTo("#fx-qm2", { opacity: 0, scale: 0.4, rotation: 20 }, { opacity: 1, scale: 1, rotation: 12, duration: 0.35, ease: "back.out(2)" }, CUE.link7 + 0.9);
+
+      // "Which one's form X?": face drops
+      tl.fromTo("#fx-say-irene2", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(1.6)" }, CUE.whichOne);
+      tl.fromTo("#fx-qm3", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, rotation: -6, duration: 0.35, ease: "back.out(2)" }, CUE.whichOne + 0.2);
+      tl.fromTo("#fx-mouth-o", { opacity: 1 }, { opacity: 0, duration: 0.15, immediateRender: false }, CUE.whichOne);
+      tl.fromTo("#fx-mouth-sad", { opacity: 0 }, { opacity: 1, duration: 0.15 }, CUE.whichOne);
+      tl.fromTo(["#fx-brow-l", "#fx-brow-r"], { y: -16, rotation: 0 }, { y: 4, rotation: (i) => (i ? -14 : 14), duration: 0.4, ease: "power2.out", immediateRender: false }, CUE.whichOne);
+      tl.fromTo("#fx-head", { rotation: 6, y: 0 }, { rotation: -4, y: 26, duration: 0.8, ease: "power2.inOut", immediateRender: false }, CUE.whichOne);
+      tl.fromTo("#fx-sweat", { opacity: 0, y: 0 }, { opacity: 1, y: 40, duration: 1.4, ease: "power1.in" }, CUE.whichOne + 0.2);
       window.__timelines["form-x"] = tl;
     })();
   </script>
