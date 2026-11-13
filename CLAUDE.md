@@ -14,4 +14,4 @@ Hackathon project (NVIDIA Hack for Impact Sheffield, 13 Nov 2026): an agentic AI
 - Prefer local inference over hosted APIs where practical, since local compute is a judging criterion.
 - Every push to `main` deploys to the DGX Spark and `rsync --delete`s the target. Don't push to `main` unless asked.
 - Never commit secrets or raw datasets.
-- Update the "Chosen track and idea" and "Getting started" sections of `README.md` once decided.
+- Update the "Chosen track and idea" and "Getting started" sections of `README.md` (details in `docs/getting-started.md`) once decided.
