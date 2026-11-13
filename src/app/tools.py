@@ -10,6 +10,8 @@ import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 
+import httpx
+
 from . import config
 
 COUNCIL_PHONE = "0114 273 4567"
@@ -163,7 +165,45 @@ def _new_reference() -> str:
     return f"SCC-{datetime.now(timezone.utc):%Y%m%d}-{secrets.token_hex(2).upper()}"
 
 
-def file_report(surface: str, depth_band: str, location: str, description: str, suggested_category: int | None = None) -> dict:
+def _gis_fields(lat: float | None, lon: float | None) -> dict:
+    """The form's hidden map fields (le_gis_lat / le_gis_lon) for a point, or {} if none was given."""
+    if lat is None and lon is None:
+        return {}
+    if lat is None or lon is None:
+        raise ValueError("give both lat and lon, or neither")
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        raise ValueError("lat must be -90..90 and lon -180..180")
+    return {"le_gis_lat": f"{lat:.6f}", "le_gis_lon": f"{lon:.6f}"}
+
+
+PHOTON_REVERSE = "https://photon.komoot.io/reverse"
+# Photon rejects httpx's default user agent with 403.
+PHOTON_HEADERS = {"User-Agent": "CouncilTriagent/0.1 (hackathon prototype)"}
+
+
+def nearest_address(lat: float, lon: float) -> dict:
+    """Turn a map point (e.g. the user's device location) into the nearest street address, via OpenStreetMap."""
+    _gis_fields(lat, lon)  # validates
+    try:
+        r = httpx.get(PHOTON_REVERSE, params={"lat": lat, "lon": lon, "limit": 1, "lang": "en"},
+                      headers=PHOTON_HEADERS, timeout=8)
+        features = r.raise_for_status().json().get("features", [])
+    except (httpx.HTTPError, ValueError) as e:
+        return {"error": f"Address lookup unavailable ({type(e).__name__}). Ask the user for the street name."}
+    if not features:
+        return {"error": "No address found near that point. Ask the user for the street name."}
+    p = features[0]["properties"]
+    street = p.get("street") or p.get("name") or ""
+    house = p.get("housenumber") or ""
+    parts = [f"{house} {street}".strip(), p.get("city") or p.get("district") or "", p.get("postcode") or ""]
+    return {"address": ", ".join(x for x in parts if x), "street": street, "postcode": p.get("postcode", ""),
+            "source": "OpenStreetMap (Photon)", "note": "Nearest address to the point, not necessarily exact.",
+            "next_step": (f"Use this address as the location, and pass lat={lat} and lon={lon} to file_report, "
+                          "file_tree_report or the form's set_..._location tool so the report is pinned on the map.")}
+
+
+def file_report(surface: str, depth_band: str, location: str, description: str, suggested_category: int | None = None,
+                lat: float | None = None, lon: float | None = None) -> dict:
     """Record a completed road or pavement defect report and return its reference number."""
     if surface not in FORM_SURFACE:
         raise ValueError("surface must be 'road' or 'pavement'")
@@ -188,6 +228,7 @@ def file_report(surface: str, depth_band: str, location: str, description: str, 
             depth_field: depth_band,
             "txt_find_address_about_the_location": location.strip(),
             "txta_details_about_the_location": description.strip(),
+            **_gis_fields(lat, lon),
         },
     }
     return _save_report(record)
@@ -245,7 +286,7 @@ def assess_tree(tree_location: str, problem: str | None = None, blocking: bool |
 
 
 def file_tree_report(tree_location: str, problem: str, location: str, description: str,
-                     blocking: bool | None = None) -> dict:
+                     blocking: bool | None = None, lat: float | None = None, lon: float | None = None) -> dict:
     """Record a completed street tree report and return its reference number."""
     assessment = assess_tree(tree_location, problem, blocking)
     if not assessment["can_file"]:
@@ -260,7 +301,7 @@ def file_tree_report(tree_location: str, problem: str, location: str, descriptio
     if problem in TREE_BLOCKING_PROBLEMS:
         payload["rad_tree_blocking"] = "Yes" if blocking else "No"
     payload |= {"txt_find_address_about_the_location": location.strip(),
-                "txta_details_about_the_location": description.strip()}
+                "txta_details_about_the_location": description.strip(), **_gis_fields(lat, lon)}
     result = _save_report({
         "reference": _new_reference(),
         "filed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -273,9 +314,26 @@ def file_tree_report(tree_location: str, problem: str, location: str, descriptio
     return result
 
 
-TOOLS = {f.__name__: f for f in (route_report, convert_to_mm, assess_pothole, file_report, assess_tree, file_tree_report)}
+TOOLS = {f.__name__: f for f in (route_report, convert_to_mm, nearest_address, assess_pothole, file_report,
+                                  assess_tree, file_tree_report)}
+
+LATLON_HELP = ("The problem's map position. Only use the user's shared device location, and only if they are at "
+               "the problem now (e.g. 'right here', 'in front of me').")
 
 SCHEMAS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "nearest_address",
+            "description": ("Find the nearest street address to a map point, such as the user's shared device "
+                            "location. Use it when the user is at the problem but hasn't said the street."),
+            "parameters": {
+                "type": "object",
+                "properties": {"lat": {"type": "number"}, "lon": {"type": "number"}},
+                "required": ["lat", "lon"],
+            },
+        },
+    },
     {
         "type": "function",
         "function": {
@@ -337,6 +395,8 @@ SCHEMAS = [
                     "location": {"type": "string", "description": "Address or street plus a landmark"},
                     "description": {"type": "string", "description": "Short description of the problem for the inspector"},
                     "suggested_category": {"type": "integer", "enum": [1, 2]},
+                    "lat": {"type": "number", "description": LATLON_HELP},
+                    "lon": {"type": "number", "description": LATLON_HELP},
                 },
                 "required": ["surface", "depth_band", "location", "description"],
             },
@@ -379,6 +439,8 @@ SCHEMAS = [
                     "blocking": {"type": "boolean"},
                     "location": {"type": "string", "description": "Address or street plus a landmark"},
                     "description": {"type": "string", "description": "Short description of the problem for the inspector"},
+                    "lat": {"type": "number", "description": LATLON_HELP},
+                    "lon": {"type": "number", "description": LATLON_HELP},
                 },
                 "required": ["tree_location", "problem", "location", "description"],
             },

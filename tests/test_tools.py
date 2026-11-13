@@ -134,3 +134,39 @@ def test_file_tree_report_records_the_form_fields(reports_path):
 def test_file_tree_report_refuses_redirected_trees():
     assert "can't be filed" in tools.call_tool("file_tree_report", {
         "tree_location": "Highway", "problem": "Nuisance", "location": "x", "description": "y"})["error"]
+
+
+def test_filing_tools_record_the_map_point(reports_path):
+    tools.file_report("road", "Greater than 40mm", "Fargate", "Deep pothole", lat=53.3811, lon=-1.4701)
+    tools.file_tree_report("Highway", "Roots", "Derbyshire Lane", "Roots lifting slabs", lat=53.346, lon=-1.479)
+    pothole, tree = (json.loads(line)["form_payload"] for line in reports_path.read_text().splitlines())
+    assert (pothole["le_gis_lat"], pothole["le_gis_lon"]) == ("53.381100", "-1.470100")
+    assert tree["le_gis_lat"] == "53.346000"
+
+
+def test_map_point_is_optional_but_must_be_complete_and_valid(reports_path):
+    tools.file_report("road", "Less than 40mm", "Fargate", "Small pothole")
+    assert "le_gis_lat" not in json.loads(reports_path.read_text())["form_payload"]
+    assert "both" in tools.call_tool("file_report", {"surface": "road", "depth_band": "Less than 40mm",
+                                                     "location": "x", "description": "y", "lat": 53.4})["error"]
+    assert "error" in tools.call_tool("nearest_address", {"lat": 200, "lon": 0})
+
+
+def test_nearest_address_reads_photon(monkeypatch):
+    class Response:
+        def raise_for_status(self):
+            return self
+
+        def json(self):
+            return {"features": [{"properties": {"housenumber": "12", "street": "Derbyshire Lane",
+                                                 "city": "Sheffield", "postcode": "S8 9EH"}}]}
+
+    monkeypatch.setattr(tools.httpx, "get", lambda *a, **k: Response())
+    assert tools.nearest_address(53.346, -1.479)["address"] == "12 Derbyshire Lane, Sheffield, S8 9EH"
+
+
+def test_nearest_address_failure_is_an_error_for_the_model(monkeypatch):
+    def offline(*a, **k):
+        raise tools.httpx.ConnectError("offline")
+    monkeypatch.setattr(tools.httpx, "get", offline)
+    assert "unavailable" in tools.nearest_address(53.346, -1.479)["error"]

@@ -106,3 +106,13 @@ def test_chat_agent_tree_report_keeps_its_form(logs):
                                                                     "rad_tree_problem": "Fallen"}}) + "\n")
     report = TestClient(main.app).get("/api/reports/SCC-20261113-TREE").json()["report"]
     assert (report["form"], report["title"], report["problem"]) == ("report_tree", "Problem with a tree", "Fallen")
+
+
+def test_chat_agent_report_with_a_shared_location_goes_on_the_map(logs):
+    from app import tools
+
+    tools.file_report("road", "Greater than 40mm", "Chesterfield Road", "Deep pothole", lat=53.346012, lon=-1.479034)
+    reports = {i["reference"]: i for i in load_submissions()["submissions"] if i["source"] == "chat_agent"}
+    pinned = [i for i in reports.values() if i["lat"] is not None]
+    assert [(i["lat"], i["lon"]) for i in pinned] == [(53.346012, -1.479034)]
+    assert reports["SCC-20261113-ABCD"]["lat"] is None  # no location shared
