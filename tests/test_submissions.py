@@ -24,6 +24,7 @@ def logs(tmp_path, monkeypatch, mock_submissions_path):
     save_submission(MOCK_RECORD)
     (tmp_path / "reports.jsonl").write_text(json.dumps({
         "reference": "SCC-20261113-ABCD", "filed_at": "2026-11-13T13:00:00+00:00", "suggested_category": 1,
+        "geo": {"lat": 53.3814, "lon": -1.4694, "matched": "Fargate, Sheffield", "source": "photon"},
         "form_payload": {"rad_problem_location": "Road Surface", "rad_road_pothole_depth": "Greater than 40mm",
                          "txt_find_address_about_the_location": "10 Fargate",
                          "txta_details_about_the_location": "Deep pothole"}}) + "\nnot json\n")
@@ -32,7 +33,8 @@ def logs(tmp_path, monkeypatch, mock_submissions_path):
         {"ts": "2026-11-13T11:05:00+00:00", "event": "view", "page": "report_tree.html", "user_agent": "Firefox"},
         # Same reference as the agent's record: not listed twice.
         {"ts": "2026-11-13T12:00:01+00:00", "event": "submit", "page": "report_tree.html", "reference": "123456789"},
-        {"ts": "2026-11-13T14:00:00+00:00", "event": "submit", "page": "report_pothole_crack.html", "reference": "987654321"},
+        {"ts": "2026-11-13T14:00:00+00:00", "event": "submit", "page": "report_pothole_crack.html", "reference": "987654321",
+         "location": "88 London Road", "lat": 53.3672, "lon": -1.4775, "geo_source": "form"},
     ]) + "\n")
     return tmp_path
 
@@ -44,6 +46,17 @@ def test_saved_record_has_no_personal_details(mock_submissions_path):
     assert saved["recorded_at"]
     assert "txt_firstname" not in saved["fields"] and "eml_address" not in saved["fields"]
     assert saved["fields"]["rad_tree_problem"] == "Fallen"
+
+
+def test_save_geocodes_a_typed_address(mock_submissions_path):
+    """The form agent fell back to "use what I typed", so the form has no coordinates."""
+    typed = {**MOCK_RECORD, "le_gis": "",
+             "fields": {**MOCK_RECORD["fields"], "txt_full_address_about_the_location": "12 Derbyshire Lane"}}
+    save_submission(typed)
+    [saved] = [json.loads(line) for line in mock_submissions_path.read_text().splitlines()]
+    assert (saved["le_gis"], saved["geo_source"]) == ("53.346,-1.479", "sample")
+    [item] = load_submissions()["submissions"]
+    assert (item["lat"], item["lon"], item["geo_source"]) == (53.346, -1.479, "sample")
 
 
 def test_save_never_raises(monkeypatch, tmp_path):
@@ -58,7 +71,9 @@ def test_loads_all_sources_newest_first(logs):
     browser, chat, tree = data["submissions"]
     assert tree["problem"] == "Fallen, blocking"
     assert tree["location"] == "Derbyshire Lane"
-    assert (tree["lat"], tree["lon"]) == (53.38, -1.47)
+    assert (tree["lat"], tree["lon"], tree["geo_source"]) == (53.38, -1.47, "form")
+    assert (chat["lat"], chat["lon"], chat["geo_source"]) == (53.3814, -1.4694, "photon")
+    assert (browser["lat"], browser["lon"], browser["location"]) == (53.3672, -1.4775, "88 London Road")
     assert chat["problem"] == "Road: Greater than 40mm"
     assert browser["form"] == "report_pothole_crack"
     assert data["views"] == {"report_tree": {"agent": 1, "person": 1}}

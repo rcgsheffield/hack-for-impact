@@ -317,6 +317,7 @@
     return `<strong>${esc(formName(i.form))}${i.problem ? ` · ${esc(i.problem)}` : ""}</strong>`
       + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
       + (i.location ? `<br>${esc(i.location)}` : "")
+      + (i.geo_source && i.geo_source !== "form" ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
       + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "");
   }
 
@@ -324,7 +325,7 @@
     const pts = items.filter(located), missing = items.length - pts.length;
     $("map-note").textContent = !items.length ? "No submissions to map."
       : `${pts.length} of ${items.length} shown submission${items.length === 1 ? "" : "s"} mapped.`
-        + (missing ? ` ${missing} ha${missing === 1 ? "s" : "ve"} no coordinates (chat-agent reports and hand submissions record only text).` : "");
+        + (missing ? ` ${missing} ha${missing === 1 ? "s" : "ve"} no coordinates (the location couldn't be found from what was typed).` : "");
     const keys = [...new Set(items.map(i => i.form))];
     $("map-legend").innerHTML = keys.length < 2 ? "" : keys.map(f =>
       `<span><span class="sw" style="background:${color(f)};border-radius:50%"></span>${esc(formName(f))}</span>`).join("");

@@ -43,6 +43,35 @@ def test_submit_is_logged(client, log):
     assert record["reference"] == "123456789"
 
 
+def test_submit_records_location(client, log):
+    r = client.post("/mock/events", json={"event": "submit", "page": "report_tree.html", "reference": "1",
+                                          "lat": 53.38, "lon": -1.47, "location": "Derbyshire Lane"})
+    assert r.status_code == 204
+    [record] = lines(log)
+    assert (record["lat"], record["lon"], record["geo_source"]) == (53.38, -1.47, "form")
+    assert record["location"] == "Derbyshire Lane"
+
+
+def test_submit_with_only_text_is_geocoded(client, log):
+    client.post("/mock/events", json={"event": "submit", "page": "road-report-agent.html", "reference": "MOCK-1",
+                                      "location": "12 Derbyshire Lane"})
+    [record] = lines(log)
+    assert (record["lat"], record["lon"], record["geo_source"]) == (53.346, -1.479, "sample")
+
+
+def test_submit_with_unknown_place_is_still_logged(client, log):
+    client.post("/mock/events", json={"event": "submit", "page": "report_tree.html", "reference": "2",
+                                      "location": "somewhere"})
+    [record] = lines(log)
+    assert record["lat"] is None and record["geo_source"] is None
+
+
+def test_out_of_range_coordinates_are_rejected(client, log):
+    r = client.post("/mock/events", json={"event": "submit", "page": "report_tree.html", "lat": 91, "lon": 0})
+    assert r.status_code == 422
+    assert lines(log) == []
+
+
 @pytest.mark.parametrize("name", ["missing.html", "..%2Fapp%2Fconfig.py", "%2E%2E%2Fapp%2Fconfig.py", "README"])
 def test_unknown_pages_are_404_and_not_logged(client, log, name):
     assert client.get(f"/mock/{name}").status_code == 404

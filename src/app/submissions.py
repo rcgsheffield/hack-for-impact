@@ -4,11 +4,14 @@ Sources, all JSON lines under data/ (git-ignored):
 - config.MOCK_SUBMISSIONS_PATH: full mock-form records saved by the form agents (council_form.py), source "form_agent".
 - config.REPORTS_PATH: reports filed by the chat agent's file_report tool (tools.py), source "chat_agent".
 - config.USAGE_PATH: the /mock/ access log (usage.py). Submit events whose reference isn't in the files above
-  (someone filling in the form by hand in a browser) appear with source "browser" and only a reference.
+  (someone filling in the form by hand in a browser) appear with source "browser", with the location the form sent.
   Page views feed the view counts.
 
 GET /dashboard serves static/dashboard.html, which polls GET /api/submissions.
 Reporter details (name, date of birth, phone, email) are never written to disk by save_submission.
+
+Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
+address search or map, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
 from . import config
+from .geocode import geocode, le_gis
 
 log = logging.getLogger(__name__)
 
@@ -47,10 +51,22 @@ def without_personal_details(record: dict) -> dict:
     return {**record, "fields": fields}
 
 
+def _typed_location(fields: dict) -> str:
+    return fields.get("txt_full_address_about_the_location") or fields.get("txt_find_address_about_the_location") or ""
+
+
 def save_submission(record: dict) -> None:
-    """Append a mock-form record (as read back from the browser) to MOCK_SUBMISSIONS_PATH. Never raises."""
+    """Append a mock-form record (as read back from the browser) to MOCK_SUBMISSIONS_PATH. Never raises.
+
+    If the form has no coordinates (the agent used the address as typed), the typed address is geocoded.
+    """
     try:
-        line = json.dumps({"recorded_at": _now(), **without_personal_details(record)})
+        record = without_personal_details(record)
+        if not record.get("le_gis"):
+            geo = geocode(_typed_location(record["fields"]))
+            if geo:
+                record = {**record, "le_gis": le_gis(geo), "geo_source": geo["source"]}
+        line = json.dumps({"recorded_at": _now(), **record})
         path = Path(config.MOCK_SUBMISSIONS_PATH)
         with _write_lock:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,12 +92,19 @@ def _read_jsonl(path: Path) -> list[dict]:
     return out
 
 
-def _latlon(le_gis: str) -> tuple[float | None, float | None]:
+def _latlon(value) -> tuple[float | None, float | None]:
     try:
-        lat, lon = (float(x) for x in str(le_gis).split(","))
+        lat, lon = (float(x) for x in str(value).split(","))
         return lat, lon
     except ValueError:
         return None, None
+
+
+def _number(value) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _problem(fields: dict) -> str:
@@ -104,49 +127,55 @@ def _from_mock(r: dict) -> dict:
         "reference": str(r.get("reference", "")),
         "submitted_at": r.get("txt_finish_date_and_time") or r.get("recorded_at", ""),
         "title": r.get("le_title", ""),
-        "location": fields.get("txt_full_address_about_the_location") or fields.get("txt_find_address_about_the_location", ""),
+        "location": _typed_location(fields),
         "details": fields.get("txta_details_about_the_location", ""),
         "problem": _problem(fields),
         "anonymous": r.get("anonymous"),
         "lat": lat,
         "lon": lon,
+        "geo_source": (r.get("geo_source") or "form") if lat is not None else None,
         "raw": without_personal_details(r),
     }
 
 
 def _from_report(r: dict) -> dict:
     payload = r.get("form_payload") or {}
+    geo = r.get("geo") or {}
+    lat, lon = _number(geo.get("lat")), _number(geo.get("lon"))
     return {
         "source": "chat_agent",
-        "form": "report_pothole_crack",
+        "form": r.get("form") or "report_pothole_crack",  # file_tree_report sets "report_tree"
         "reference": str(r.get("reference", "")),
         "submitted_at": r.get("filed_at", ""),
-        "title": "Pothole or crack on the highway",
+        "title": "Problem with a tree" if r.get("form") == "report_tree" else "Pothole or crack on the highway",
         "location": payload.get("txt_find_address_about_the_location", ""),
         "details": payload.get("txta_details_about_the_location", ""),
         "problem": _problem(payload),
         "anonymous": None,
-        "lat": None,
-        "lon": None,
+        "lat": lat,
+        "lon": lon,
+        "geo_source": geo.get("source") if lat is not None and lon is not None else None,
         "raw": r,
     }
 
 
 def _from_usage(r: dict) -> dict:
     form = str(r.get("page", "")).removesuffix(".html")
+    lat, lon = _number(r.get("lat")), _number(r.get("lon"))
     return {
         "source": "browser",
         "form": form,
         "reference": str(r.get("reference", "")),
         "submitted_at": r.get("ts", ""),
         "title": FORM_NAMES.get(form, form),
-        "location": "",
+        "location": str(r.get("location") or ""),
         "details": "",
         "problem": "",
         "anonymous": None,
-        "lat": None,
-        "lon": None,
-        "raw": {k: r.get(k) for k in ("ts", "event", "page", "reference", "user_agent")},
+        "lat": lat,
+        "lon": lon,
+        "geo_source": r.get("geo_source") if lat is not None and lon is not None else None,
+        "raw": {k: r.get(k) for k in ("ts", "event", "page", "reference", "user_agent", "location", "lat", "lon", "geo_source")},
     }
 
 

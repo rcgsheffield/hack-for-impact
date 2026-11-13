@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import config
+from .geocode import geocode, le_gis
 
 COUNCIL_PHONE = "0114 273 4567"
 POTHOLE_FORM = "https://forms.sheffield.gov.uk/site/portal/form/report_pothole_crack"
@@ -194,11 +195,24 @@ def file_report(surface: str, depth_band: str, location: str, description: str, 
 
 
 def _save_report(record: dict) -> dict:
+    """Geocode the report's location, append it to REPORTS_PATH and return the tool result.
+
+    The report is filed whether or not its location can be placed on the map (geo is then null).
+    """
+    payload = record["form_payload"]
+    geo = geocode(payload.get("txt_find_address_about_the_location"))
+    record["geo"] = geo
+    payload["le_gis"] = le_gis(geo)
     path = Path(config.REPORTS_PATH)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    return {"reference": record["reference"], "status": "recorded (prototype: not sent to the council)"}
+    result = {"reference": record["reference"], "status": "recorded (prototype: not sent to the council)"}
+    if geo:
+        result["located_at"] = geo["matched"]
+    else:
+        result["location_note"] = "Couldn't place this on the map; the inspector will use the description."
+    return result
 
 
 # The council's tree form (src/mock/report_tree.html): option values, and the advice it shows instead of
@@ -327,7 +341,7 @@ SCHEMAS = [
         "type": "function",
         "function": {
             "name": "file_report",
-            "description": "File the road or pavement defect report. Only call after route_report returned can_file=true and assess_pothole gave a depth_band.",
+            "description": "File the road or pavement defect report. Only call after route_report returned can_file=true and assess_pothole gave a depth_band. The result's located_at is where the report was placed on the map.",
             "parameters": {
                 "type": "object",
                 "properties": {

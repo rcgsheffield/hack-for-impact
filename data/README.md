@@ -7,8 +7,9 @@ Place local datasets here. Raw data files are git-ignored (see `.gitignore`); on
 - **`sheffield_issues_only.json`** - 11 Sheffield-specific issues (filtered by coordinates)
 - **`sheffield_fixmystreet_issues.json`** - All 1,000 issues in the "sheffield" jurisdiction
 - **`fixmystreet_services_list.txt`** - 2,594 available service types on FixMyStreet
-- **`usage.jsonl`** - Access log of the dummy council site at `/mock/`, written by the app (`src/app/usage.py`). Not committed.
-- **`mock_submissions.jsonl`** - Mock-form submissions made by the form agents (`src/app/council_form.py`), without reporter details. Shown at `/dashboard`. Not committed.
+- **`usage.jsonl`** - Access log of the dummy council site at `/mock/`, written by the app (`src/app/usage.py`). Submit events include the problem's location (`location`, `lat`, `lon`, `geo_source`). Not committed.
+- **`mock_submissions.jsonl`** - Mock-form submissions made by the form agents (`src/app/council_form.py`), without reporter details. Coordinates in `le_gis` ("lat,lon"); `geo_source` is set when they were geocoded from typed text. Shown at `/dashboard`. Not committed.
+- **`reports.jsonl`** - Reports filed by the chat agent's `file_report` tool (`src/app/tools.py`). `geo` holds `lat`, `lon`, the matched address and the lookup `source`, or `null` if the location couldn't be found. Not committed.
 
 ## Sheffield Issues Data Schema
 
