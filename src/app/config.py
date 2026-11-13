@@ -17,6 +17,10 @@ USAGE_PATH = Path(os.environ.get("USAGE_PATH", "data/usage.jsonl"))
 # Read by the submissions dashboard at /dashboard (src/app/submissions.py).
 MOCK_SUBMISSIONS_PATH = Path(os.environ.get("MOCK_SUBMISSIONS_PATH", "data/mock_submissions.jsonl"))
 
+# Look up typed locations with postcodes.io and Photon (OpenStreetMap) to put reports on the map (src/app/geocode.py).
+# "0" keeps to the built-in sample addresses, e.g. offline or in tests.
+GEOCODE_LIVE = (os.environ.get("GEOCODE_LIVE") or "1").lower() not in ("0", "false", "no")
+
 # Deployed commit, set by deploy.sh and reported by /health.
 GIT_SHA = os.environ.get("GIT_SHA", "unknown")
 
