@@ -91,10 +91,11 @@ MODES = ("chat", "form")
 
 def mode_tools(mode: str) -> list[BaseTool]:
     if mode == "chat":
-        return langchain_tools(["route_report", "convert_to_mm", "assess_pothole", "file_report",
+        return langchain_tools(["route_report", "convert_to_mm", "nearest_address", "assess_pothole", "file_report",
                                 "assess_tree", "file_tree_report"])
     if mode == "form":
-        return langchain_tools(["route_report", "convert_to_mm"]) + pothole_form_tools() + tree_form_tools()
+        return (langchain_tools(["route_report", "convert_to_mm", "nearest_address"])
+                + pothole_form_tools() + tree_form_tools())
     raise ValueError(f"mode must be one of {MODES}")
 
 

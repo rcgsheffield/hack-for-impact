@@ -192,7 +192,8 @@ class CouncilFormSession:
             return self._click_next("page_sign_in")
         return self._run(step)
 
-    def set_location(self, location: str, details: str, address_choice: str | None = None) -> dict:
+    def set_location(self, location: str, details: str, address_choice: str | None = None,
+                     lat: float | None = None, lon: float | None = None) -> dict:
         if not location.strip():
             raise FormStepError("location is required: ask the user where the problem is")
         if not details.strip():
@@ -222,6 +223,9 @@ class CouncilFormSession:
                 chosen = next(o for o in options if o["value"] == "typed")
             p.select_option("#sel_search_results_about_the_location", chosen["value"])
             p.click("#but_set_address")
+            if lat is not None and lon is not None:
+                # Pin the map at the user's device location, keeping the chosen address (mock hook: mockSetPoint).
+                p.evaluate("([lat, lon]) => window.mockSetPoint(lat, lon)", [lat, lon])
             p.fill("#txta_details_about_the_location", details.strip())
             selected = (p.text_content("#selected_address span") or "").strip()
             matches = [o["text"] for o in options if o["value"] != "typed"][:8]
@@ -268,7 +272,7 @@ class CouncilFormSession:
             p.wait_for_selector("#page_complete:not([hidden])")
             record = p.evaluate("() => window.mockSubmissions[window.mockSubmissions.length - 1]")
             save_submission(record)  # for the dashboard; the browser's own copy is lost when the session closes
-            return self._state(reference=record["reference"],
+            return self._state(reference=record["reference"], url=f"/reports/{record['reference']}",
                                status="submitted to the mock form (test only: not sent to the council)",
                                record=record)
         return self._run(step)
@@ -292,6 +296,9 @@ class LocationArgs(BaseModel):
     details: str = Field(description="Further information for the inspector: what it looks like and exactly where")
     address_choice: str | None = Field(
         None, description="Optional text to pick one of the address matches. Leave empty to use the location as typed.")
+    lat: float | None = Field(None, ge=-90, le=90, description=(
+        "The problem's map position. Only use the user's shared device location, and only if they are at the problem now."))
+    lon: float | None = Field(None, ge=-180, le=180, description="See lat.")
 
 
 class ReporterArgs(BaseModel):

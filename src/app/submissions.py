@@ -121,6 +121,8 @@ def _from_mock(r: dict) -> dict:
 def _from_report(r: dict) -> dict:
     payload = r.get("form_payload") or {}
     form = r.get("form") or "report_pothole_crack"  # file_tree_report sets "report_tree"; older records have no form
+    # The chat tools store the user's shared device location in the form's hidden map fields, when there is one.
+    lat, lon = _latlon(f"{payload['le_gis_lat']},{payload['le_gis_lon']}") if payload.get("le_gis_lat") else (None, None)
     return {
         "source": "chat_agent",
         "form": form,
@@ -131,8 +133,8 @@ def _from_report(r: dict) -> dict:
         "details": payload.get("txta_details_about_the_location", ""),
         "problem": _problem(payload),
         "anonymous": None,
-        "lat": None,
-        "lon": None,
+        "lat": lat,
+        "lon": lon,
         "raw": r,
     }
 

@@ -98,7 +98,7 @@ def test_frontend_keeps_one_thread_per_chat_and_resets_on_mismatch(monkeypatch):
     monkeypatch.setattr(main, "get_agent", lambda mode="chat": agent)
 
     def turn(message, history, thread_id):
-        shown, thread_id = list(main.respond(message, history, "chat", thread_id))[-1]
+        shown, thread_id = list(main.respond(message, history, "chat", None, thread_id))[-1]
         return shown[-1].content, thread_id
 
     reply, thread = turn("hello", [], None)
@@ -170,3 +170,18 @@ def test_chat_mode_files_a_tree_report(monkeypatch):
 
     assert events[0].result["urgent_advice"]
     assert events[1].result["reference"].startswith("SCC-")
+
+
+def test_shared_location_goes_to_the_model_not_the_chat(monkeypatch):
+    from app import main
+
+    assert "lat 53.381100, lon -1.470100, accuracy about 12 m" in main.location_note("53.381100, -1.470100 (±12 m)")
+    assert main.location_note("Not available: permission denied") == ""
+    assert main.location_note(None) == ""
+
+    agent = make_agent([AIMessage(content="ok")], monkeypatch)
+    monkeypatch.setattr(main, "get_agent", lambda mode="chat": agent)
+    _, thread = list(main.respond("pothole right here", [], "chat", "53.38, -1.47 (±9 m)", None))[-1]
+
+    sent = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"][0].content
+    assert sent.startswith("pothole right here") and "[Device location shared by the user: lat 53.38, lon -1.47" in sent
