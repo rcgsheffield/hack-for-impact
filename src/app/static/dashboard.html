@@ -228,12 +228,18 @@
   const prioOf = i => (i.triage && PRIO[i.triage.priority]) ? i.triage.priority : "P3";
   const badge = i => { const p = prioOf(i); return `<span class="prio prio-${p}"><span class="ic" aria-hidden="true">${PRIO[p].icon}</span>${p} ${PRIO[p].label}</span>`; };
   const ago = ms => { const m = Math.max(0, Math.round(ms / 60000)); return m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 1440)} d ${Math.floor(m % 1440 / 60)} h`; };
-  function triageHtml(i) {
+  function engineLabel(engine) {
+  if (engine === "fallback") return "a fallback (triage failed)";
+  const extra = { llm: "the local AI model", context: "map context" };
+  const parts = String(engine || "rules").split("+").slice(1).map(p => extra[p]).filter(Boolean);
+  return parts.length ? "rules plus " + parts.join(" and ") : "rules";
+}
+function triageHtml(i) {
     const t = i.triage; if (!t) return "";
     const p = prioOf(i);
     return `<div class="triage" style="--pc:var(--${p.toLowerCase()})"><div>${badge(i)} <strong>${esc(t.response_target)}</strong></div>`
       + `<ul>${(t.reasons || []).map(r => `<li>${esc(r)}</li>`).join("")}</ul>`
-      + `<div class="muted">Suggested by ${t.engine === "rules+llm" ? "rules plus the local AI model" : t.engine === "fallback" ? "a fallback (triage failed)" : "rules"}`
+      + `<div class="muted">Suggested by ${engineLabel(t.engine)}`
       + ` · score ${esc(t.score)} · the council decides after inspection</div></div>`;
   }
 
@@ -469,7 +475,7 @@
         <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
         <td class="num">${esc(i.reference)}</td>
         <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
-        <td>${esc(i.problem) || '<span class="muted">–</span>'}</td>
+        <td>${esc(i.problem) || '<span class="muted">–</span>'}${i.report_count > 1 ? `<div class="muted" title="Cluster ${esc(i.cluster_id)}">Reported ${i.report_count} times here</div>` : ""}</td>
         <td>${esc(i.location) || '<span class="muted">–</span>'}${mapLink}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
         <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
       </tr>`;

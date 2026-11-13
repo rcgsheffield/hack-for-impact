@@ -15,6 +15,9 @@ Reporter details (name, date of birth, phone, email) are never written to disk b
 Every item has a triage dict (triage.py): stored on the record when it was filed, or worked out when read.
 Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
 address search or map, "device" when the chat user shared their device location, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
+Every item has road_class (OSM highway=*, or None), cluster_id and report_count (triage_context.py): reports of the
+same form at the same spot within 30 days share a cluster_id, so the dashboard can group them. The response has
+repeat_clusters, the number of clusters with more than one report.
 """
 
 from __future__ import annotations
@@ -29,7 +32,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
-from . import config
+from . import config, triage_context
 from .geocode import geocode, le_gis
 from .triage import by_priority, combine_signals, safe_triage
 from .triage_llm import cached_signals, enrich_in_background
@@ -73,6 +76,8 @@ def save_submission(record: dict) -> None:
             geo = geocode(_typed_location(record["fields"]))
             if geo:
                 record = {**record, "le_gis": le_gis(geo), "geo_source": geo["source"]}
+                if geo.get("road_class"):
+                    record["road_class"] = geo["road_class"]
         record = {**record, "triage": safe_triage({"form": record.get("form"), "fields": record["fields"],
                                                     "reference": record.get("reference")})}
         line = json.dumps({"recorded_at": _now(), **record})
@@ -144,6 +149,7 @@ def _from_mock(r: dict) -> dict:
         "lat": lat,
         "lon": lon,
         "geo_source": (r.get("geo_source") or "form") if lat is not None else None,
+        "road_class": r.get("road_class"),
         "raw": without_personal_details(r),
     }
 
@@ -168,6 +174,7 @@ def _from_report(r: dict) -> dict:
         "lat": lat,
         "lon": lon,
         "geo_source": geo.get("source") if lat is not None and lon is not None else None,
+        "road_class": geo.get("road_class"),
         "raw": r,
     }
 
@@ -188,6 +195,7 @@ def _from_usage(r: dict) -> dict:
         "lat": lat,
         "lon": lon,
         "geo_source": r.get("geo_source") if lat is not None and lon is not None else None,
+        "road_class": None,
         "raw": {k: r.get(k) for k in ("ts", "event", "page", "reference", "user_agent", "location", "lat", "lon", "geo_source")},
     }
 
@@ -213,11 +221,16 @@ def load_submissions() -> dict[str, Any]:
             who = "agent" if any(m in str(r.get("user_agent", "")) for m in AGENT_UA_MARKERS) else "person"
             page = views.setdefault(str(r.get("page", "")).removesuffix(".html"), {"agent": 0, "person": 0})
             page[who] += 1
-    for i in items:  # stored when filed; worked out now for older records and browser submissions
-        sig = combine_signals(cached_signals(i["reference"]))
+    contexts = triage_context.annotate(items, _ts)  # sets cluster_id/report_count; road class and repeat signals
+    for i, context in zip(items, contexts):
+        # Stored when filed, or worked out now for older records and browser submissions. Re-worked when the local
+        # LLM (#26) or the map context (#27) adds signals, since both arrive after the report was filed.
+        sig = combine_signals(cached_signals(i["reference"]), context)
         i["triage"] = safe_triage(i, sig) if sig else (i["raw"] or {}).get("triage") or safe_triage(i)
     items.sort(key=_ts, reverse=True)
+    clusters = len({i["cluster_id"] for i in items if i["report_count"] > 1})
     return {"generated_at": _now(), "count": len(items), "by_priority": by_priority(items), "forms": FORM_NAMES,
+            "repeat_clusters": clusters,
             "views": views, "submissions": items}
 
 
