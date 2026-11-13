@@ -61,6 +61,9 @@ def test_completes_and_submits_form(tools):
     fields = result["record"]["fields"]
     assert (fields["rad_tree_location"], fields["rad_tree_problem"], fields["rad_tree_blocking"]) == ("Highway", "Fallen", "Yes")
     assert result["record"]["form"] == "report_tree"
+    # A fallen tree across the way is P1: the resident hears the priority and the phone advice.
+    assert result["priority_plain"] == "Emergency: made safe within 24 hours"
+    assert any("0114 273 4567" in advice for advice in result["tell_user"])
 
 
 @pytest.mark.parametrize(

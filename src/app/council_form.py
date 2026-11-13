@@ -28,6 +28,9 @@ from langchain_core.tools import BaseTool, StructuredTool
 from pydantic import BaseModel, Field
 
 from .submissions import save_submission
+from .triage import safe_triage
+from .urgency import COUNCIL_PHONE
+from .urgency import summary as triage_summary
 
 
 def _env(name: str, default: str | None = None) -> str | None:
@@ -88,7 +91,9 @@ class CouncilFormSession:
             "page_review": f"If the user has already confirmed the answers, call submit_{n}_form now. Otherwise call "
                            f"review_{n}_form, tell the user the answers and ask them to confirm. Never make up a "
                            f"reference number: only submit_{n}_form gives one.",
-            "page_complete": "Tell the user the reference number, and that this test form sends nothing to the council.",
+            "page_complete": ("Tell the user the reference number, the suggested priority in plain words (priority_plain) "
+                              "and that it is a suggestion only: the council decides after inspection. If there is "
+                              "urgent_advice, repeat it. Say this test form sends nothing to the council."),
         }.get(page, "")
 
     def __init__(self, url: str | None = None, headless: bool = HEADLESS, channel: str | None = BROWSER_CHANNEL,
@@ -290,9 +295,14 @@ class CouncilFormSession:
             p.wait_for_selector("#page_complete:not([hidden])")
             record = p.evaluate("() => window.mockSubmissions[window.mockSubmissions.length - 1]")
             save_submission(record)  # for the dashboard; the browser's own copy is lost when the session closes
+            # Same rules as the stored triage, so the resident hears the priority their report page shows.
+            t = triage_summary(safe_triage({"form": record.get("form"), "fields": record.get("fields") or {}}))
+            for advice in t.pop("tell_user", []):  # P1: phone advice, unless a step already gave it
+                if not any(COUNCIL_PHONE in told for told in self.tell_user):
+                    self.tell_user.append(advice)
             return self._state(reference=record["reference"], url=f"/reports/{record['reference']}",
                                status="submitted to the mock form (test only: not sent to the council)",
-                               record=record)
+                               record=record, **t)
         return self._run(step)
 
     def status(self) -> dict:
