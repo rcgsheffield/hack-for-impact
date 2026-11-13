@@ -1,14 +1,21 @@
-"""Triage signals from the resident's own words, read by the local model (issue #26).
+"""Model readings of the resident's words for triage (issue #26): the model decider.
 
-extract_signals(text) asks Ollama (config.OLLAMA_URL / OLLAMA_MODEL) for structured JSON at temperature 0 and turns
-the model's fields into a signals dict for triage.triage(). The model only reports facts (was someone hurt, who is
-at risk, is it blocking); the points come from the fixed mapping below, so the rules engine still decides the
-priority. A hazard the keyword rules already found in the same text is not counted twice.
+The questions come from the report's rubric (triage_rubric.py): every node with model=True becomes one typed choice,
+an enum of the node's options plus a probability. This is the "System One" shape: the model only picks options, the
+rubric holds the points, and adding a node to a rubric adds a question here with no other code. triage.explain()
+uses a model's answer only where the form and keyword rules left a node open, and only at p >= MIN_CONFIDENCE.
 
-Results are cached by report reference in config.TRIAGE_SIGNALS_PATH (JSON lines). enrich(reference, text) runs the
-extraction and writes the cache; it runs in a background thread after filing (enrich_in_background), so the resident
-never waits. cached_signals(reference) is read by submissions.load_submissions. Nothing here raises: on any failure
-triage falls back to the rules only.
+Two backends, chosen by config.TRIAGE_DECIDER:
+- "ollama" (default): the local model on the organisers' Ollama (config.OLLAMA_URL / OLLAMA_MODEL), structured JSON
+  via Ollama's `format` schema at temperature 0. A general LLM's p is self-reported, not calibrated.
+- "jev": TypeSafe's hosted System One model (triage_jev.py), with calibrated probabilities per option. Off by
+  default: it sends report text to a US service.
+
+Results are cached by report reference in config.TRIAGE_SIGNALS_PATH (JSON lines). enrich() runs the reading and
+writes the cache; it runs in a background thread after filing (enrich_in_background), so the resident never waits.
+cached_signals(reference) is read by submissions.load_submissions. Old cache lines (fixed "reasons" from triage v1's
+five questions) still load: triage() applies them as reasons. Nothing here raises; on any failure triage falls back
+to the rules.
 """
 
 from __future__ import annotations
@@ -22,115 +29,92 @@ from pathlib import Path
 import httpx
 
 from . import config
-from .triage import _keyword_rules
+from .triage_deciders import Decision, signals_from
+from .triage_rubric import Rubric, rubric_for
 
 log = logging.getLogger(__name__)
 
 ENGINE = "llm"
-MIN_CONFIDENCE = 0.5          # below this the model's reading is ignored
 MAX_TEXT_CHARS = 2000         # the details box is short; cap what goes to the model
 
-# Points for each fact the model reports. Same weights as the matching keyword rule in triage.KEYWORD_RULES,
-# so the model finds hazards the regexes miss without counting more than a rule would.
-INJURY_POINTS = 30
-HAZARD_FACTS = {"injury"}  # an immediate risk on its own: may make a report P1 (triage.HAZARD_REASONS)
-BLOCKING_POINTS = 20
-VULNERABLE_POINTS = 15
-CYCLIST_POINTS = 15
-HIGH_TRAFFIC_POINTS = 15
+PROMPT_HEAD = """You read a resident's report of a problem to a city council ({title}).
+Report only what the text says; do not guess. For each question pick exactly one option and give p, the probability
+from 0 to 1 that your option is right. Pick the "nothing reported" option when the text does not say.
+Questions:"""
 
-# Model fact -> (points, reason shown on the dashboard, keyword rule reason that already covers it).
-MAPPING = {
-    "injury": (INJURY_POINTS, "Someone has been hurt (read by local AI)", "Someone has been hurt"),
-    "blocking": (BLOCKING_POINTS, "Blocking the road or pavement (read by local AI)", "Blocking the road or pavement"),
-    "vulnerable": (VULNERABLE_POINTS, "Affects children, elderly or disabled people (read by local AI)",
-                   "Affects children or disabled people"),
-    "cyclists": (CYCLIST_POINTS, "Risk to cyclists or motorcyclists (read by local AI)",
-                 "Risk to cyclists or motorcyclists"),
-    "traffic": (HIGH_TRAFFIC_POINTS, "Busy road or heavy traffic (read by local AI)",
-                "Busy road, bus route or traffic swerving"),
-}
-VULNERABLE_GROUPS = {"children", "elderly", "disabled"}
-CYCLIST_GROUPS = {"cyclists", "motorcyclists"}
 
-SCHEMA = {
-    "type": "object",
-    "properties": {
-        "injury_reported": {"type": "boolean"},
-        "vulnerable_users": {"type": "array", "items": {
-            "type": "string", "enum": ["children", "elderly", "disabled", "cyclists", "motorcyclists", "pedestrians"]}},
-        "blocking": {"type": "boolean"},
-        "traffic_exposure": {"type": "string", "enum": ["low", "medium", "high"]},
-        "hazard_summary": {"type": "string"},
-        "confidence": {"type": "number"},
-    },
-    "required": ["injury_reported", "vulnerable_users", "blocking", "traffic_exposure", "hazard_summary", "confidence"],
-}
+def schema_for(rubric: Rubric) -> dict:
+    """Ollama `format` JSON schema: one {option, p} object per model node, plus a short hazard summary."""
+    props = {n.id: {"type": "object", "properties": {"option": {"type": "string", "enum": list(n.options)},
+                                                     "p": {"type": "number"}},
+                    "required": ["option", "p"]} for n in rubric.model_nodes()}
+    props["hazard_summary"] = {"type": "string"}
+    return {"type": "object", "properties": props, "required": list(props)}
 
-PROMPT = """You read a resident's report of a road, pavement or tree problem to a city council.
-Report only what the text says; do not guess. Fields:
-- injury_reported: true only if the text says a person or animal was actually hurt, fell or came off a bike.
-- vulnerable_users: groups the text says are affected or at risk (children, elderly, disabled, cyclists,
-  motorcyclists, pedestrians). Empty if none are mentioned.
-- blocking: true if the problem blocks or narrows a road, lane, pavement or path.
-- traffic_exposure: "high" for a busy or main road, bus route, junction or cars swerving; "low" for a quiet street
-  or path; otherwise "medium".
-- hazard_summary: the hazard in at most 15 words.
-- confidence: 0 to 1, how clearly the text supports these answers.
-Reply with JSON only."""
+
+def prompt_for(rubric: Rubric) -> str:
+    lines = [PROMPT_HEAD.format(title=rubric.title.lower())]
+    for n in rubric.model_nodes():
+        lines.append(f"- {n.id}: {n.question}")
+        lines += [f"    {k}: {o.description}" for k, o in n.options.items()]
+    lines.append("- hazard_summary: the hazard in at most 15 words.\nReply with JSON only.")
+    return "\n".join(lines)
+
+
+SCHEMA = schema_for(rubric_for(None))   # the shared text questions, for reports without a known form
+
+
+def to_decisions(raw: dict, rubric: Rubric, source: str = ENGINE) -> dict[str, Decision]:
+    """The model's answers -> Decisions for options it actually reported. Anything malformed is skipped; any
+    points or priority the model sends are ignored (they are not in the schema and nothing reads them)."""
+    out = {}
+    for n in rubric.model_nodes():
+        a = raw.get(n.id)
+        if not isinstance(a, dict) or a.get("option") not in n.options or a.get("option") == n.default:
+            continue
+        try:
+            p = min(1.0, max(0.0, float(a.get("p"))))
+        except (TypeError, ValueError):
+            continue
+        out[n.id] = Decision(n.id, a["option"], p, source)
+    return out
+
+
+def _ollama(text: str, rubric: Rubric) -> dict | None:
+    resp = httpx.post(f"{config.OLLAMA_URL}/api/chat", timeout=config.TRIAGE_LLM_TIMEOUT, json={
+        "model": config.OLLAMA_MODEL,
+        "messages": [{"role": "system", "content": prompt_for(rubric)},
+                     {"role": "user", "content": text[:MAX_TEXT_CHARS]}],
+        "format": schema_for(rubric),
+        "stream": False,
+        "options": {"temperature": 0},
+    })
+    resp.raise_for_status()
+    raw = json.loads(resp.json()["message"]["content"])
+    if not isinstance(raw, dict):
+        return None
+    return signals_from(ENGINE, to_decisions(raw, rubric), raw)
+
+
+def extract_signals(text: str, form: str | None = None) -> dict | None:
+    """Model decisions for the report text, using the form's rubric. None on empty text, nothing found, or failure."""
+    text = (text or "").strip()
+    if not text:
+        return None
+    rubric = rubric_for(form)
+    if config.TRIAGE_DECIDER == "jev":
+        from . import triage_jev
+        return triage_jev.extract_signals(text, rubric)
+    try:
+        return _ollama(text, rubric)
+    except Exception:
+        log.warning("LLM triage signals unavailable; using rules only", exc_info=True)
+        return None
+
 
 _lock = threading.Lock()
 _cache: dict[str, dict] = {}
 _cache_key: tuple | None = None   # (path, mtime_ns, size) the cache was loaded from
-
-
-def to_signals(raw: dict, text: str = "") -> dict | None:
-    """The model's fields -> {"engine": "llm", "reasons": [...], "raw": {...}}; None if unusable or low confidence."""
-    try:
-        confidence = float(raw.get("confidence", 0))
-    except (TypeError, ValueError):
-        return None
-    if confidence < MIN_CONFIDENCE:
-        return None
-    groups = {str(g).lower() for g in raw.get("vulnerable_users") or [] if isinstance(g, str)}
-    facts = []
-    if raw.get("injury_reported") is True:
-        facts.append("injury")
-    if raw.get("blocking") is True:
-        facts.append("blocking")
-    if groups & VULNERABLE_GROUPS:
-        facts.append("vulnerable")
-    if groups & CYCLIST_GROUPS:
-        facts.append("cyclists")
-    if raw.get("traffic_exposure") == "high":
-        facts.append("traffic")
-    already = {reason for _, reason in _keyword_rules(text)}
-    reasons = [{"points": MAPPING[f][0], "reason": MAPPING[f][1], "hazard": f in HAZARD_FACTS}
-               for f in facts if MAPPING[f][2] not in already]
-    return {"engine": ENGINE, "reasons": reasons, "raw": raw}
-
-
-def extract_signals(text: str) -> dict | None:
-    """Ask the local model for hazard signals in the report text. None on empty text or any failure."""
-    text = (text or "").strip()
-    if not text:
-        return None
-    try:
-        resp = httpx.post(f"{config.OLLAMA_URL}/api/chat", timeout=config.TRIAGE_LLM_TIMEOUT, json={
-            "model": config.OLLAMA_MODEL,
-            "messages": [{"role": "system", "content": PROMPT}, {"role": "user", "content": text[:MAX_TEXT_CHARS]}],
-            "format": SCHEMA,
-            "stream": False,
-            "options": {"temperature": 0},
-        })
-        resp.raise_for_status()
-        raw = json.loads(resp.json()["message"]["content"])
-        if not isinstance(raw, dict):
-            return None
-        return to_signals(raw, text)
-    except Exception:
-        log.warning("LLM triage signals unavailable; using rules only", exc_info=True)
-        return None
 
 
 def _load() -> dict[str, dict]:
@@ -164,16 +148,17 @@ def cached_signals(reference: str) -> dict | None:
         return None
 
 
-def enrich(reference: str, text: str) -> dict | None:
-    """Extract signals for one report and append them to the cache. Never raises; None if nothing was stored."""
+def enrich(reference: str, text: str, form: str | None = None) -> dict | None:
+    """Read one report and append the signals to the cache. Never raises; None if nothing was stored."""
     try:
         if not reference:
             return None
-        signals = extract_signals(text)
+        signals = extract_signals(text, form)
         if signals is None:
             return None
+        model = config.JEV_MODEL if config.TRIAGE_DECIDER == "jev" else config.OLLAMA_MODEL
         line = json.dumps({"reference": str(reference), "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                           "model": config.OLLAMA_MODEL, "signals": signals})
+                           "model": model, "form": form, "signals": signals})
         path = Path(config.TRIAGE_SIGNALS_PATH)
         with _lock:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -185,10 +170,11 @@ def enrich(reference: str, text: str) -> dict | None:
         return None
 
 
-def enrich_in_background(reference: str, text: str) -> None:
+def enrich_in_background(reference: str, text: str, form: str | None = None) -> None:
     """Start enrich() on a daemon thread if config.TRIAGE_LLM is on, so filing returns at once. Never raises."""
     try:
         if config.TRIAGE_LLM and reference and (text or "").strip():
-            threading.Thread(target=enrich, args=(reference, text), daemon=True, name=f"triage-llm-{reference}").start()
+            threading.Thread(target=enrich, args=(reference, text, form), daemon=True,
+                             name=f"triage-llm-{reference}").start()
     except Exception:
         log.exception("could not start LLM triage for %s", reference)
