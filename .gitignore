@@ -230,3 +230,6 @@ video/out/*
 video/composition/node_modules/
 video/composition/renders/
 video/composition/.hyperframes/
+
+# Claude Code personal settings
+.claude/settings.local.json

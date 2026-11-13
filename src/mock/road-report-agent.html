@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report a problem with a road, pavement or cycle lane (agent prototype)</title>
+<style>
+  /* Visual language modelled on the council's public site (accent purple, Georgia headings,
+     square buttons, yellow focus ring). Colour tokens read from its published CSS on 13 Nov 2026.
+     No logo or crest is used, and the banner below states this is an unofficial prototype. */
+  :root {
+    color-scheme: light;
+    --accent: #652c95; --accent-2: #ffe146; --green: #048a04; --red: #e4251b; --orange: #ed7522;
+    --blue: #297bbb; --white: #fff; --grey-lightest: #f9f9f9; --grey-lighter: #eaeaea;
+    --grey-light: #cecfd0; --grey-medium: #b1b4b6; --grey-dark: #505a5f; --black: #0b0c0c;
+    --link: #652c95; --focus: #fd0;
+    --font: roboto, oxygen, ubuntu, cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    --serif: georgia, "Times New Roman", times, serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--white); color: var(--black); font: 1rem/1.5 var(--font); overflow-wrap: break-word; }
+  a { color: var(--link); }
+  .container { max-width: 73.75rem; margin: 0 auto; padding: 0 1rem; }
+
+  .proto { background: var(--accent-2); color: var(--black); font-size: .9rem; padding: .5rem 0; border-bottom: 1px solid var(--grey-medium); }
+  .proto b { font-weight: 700; }
+
+  .site-header { background: var(--accent); color: var(--white); padding: 1rem 0; }
+  .site-header .container { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .brand { font-family: var(--serif); font-size: 1.3125rem; font-weight: 700; }
+  .site-header nav { display: flex; gap: 1.25rem; font-size: .95rem; }
+  .site-header nav span { border-bottom: 2px solid transparent; }
+  .site-header nav span.on { border-color: var(--accent-2); }
+
+  .breadcrumbs { padding: .75rem 0; font-size: 1rem; }
+  .breadcrumbs ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; }
+  .breadcrumbs li + li::before { content: "\00bb"; padding: 0 .5rem; color: var(--grey-dark); }
+
+  h1, h2, h3 { font-family: var(--serif); }
+  h1 { font-size: clamp(1.6875rem, 6vw, 2.875rem); font-weight: 700; line-height: 1.15; margin: .5rem 0 1rem; }
+  h2 { font-size: clamp(1.3125rem, 4vw, 1.6875rem); font-weight: 700; margin: 0 0 1rem; }
+  h3 { font-size: 1.3125rem; margin: 0 0 .5rem; }
+  .subheader { font-size: 1.3125rem; margin: 0 0 1.5rem; color: var(--black); }
+
+  .layout { display: grid; gap: 2rem; grid-template-columns: 1fr; padding-bottom: 3rem; }
+  @media (min-width: 860px) { .layout { grid-template-columns: 2fr 1fr; } }
+
+  .panel { border: 1px solid var(--grey-medium); padding: 1.25rem; margin-bottom: 1.5rem; background: var(--white); }
+  .panel.grey { background: var(--grey-lightest); }
+  .panel.accent { border-left: 6px solid var(--accent); }
+
+  label { display: block; font-weight: 700; margin: 1rem 0 .25rem; }
+  .hint { color: var(--grey-dark); font-weight: 400; display: block; font-size: .95rem; }
+  textarea, input[type=text], select { width: 100%; padding: .6rem; border: 2px solid var(--black); border-radius: 0; background: var(--white); color: var(--black); font: inherit; }
+  textarea { min-height: 7rem; resize: vertical; }
+  input[type=file] { font: inherit; }
+  #preview { max-width: 100%; max-height: 220px; margin-top: .5rem; display: none; border: 1px solid var(--grey-medium); }
+
+  .btn { display: inline-flex; align-items: center; gap: .5rem; background: var(--accent); color: var(--white); border: 2px solid var(--accent); border-radius: 0; padding: .625rem 1.25rem; font: 700 1rem var(--font); cursor: pointer; margin-top: 1rem; }
+  .btn:hover { background: #4d2073; border-color: #4d2073; }
+  .btn.secondary { background: var(--white); color: var(--accent); }
+  .btn.secondary:hover { background: var(--grey-lighter); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .row { display: flex; gap: .75rem; flex-wrap: wrap; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 0; box-shadow: 0 0 0 6px var(--black); }
+
+  .cats { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--grey-light); }
+  .cats li { border-bottom: 1px solid var(--grey-light); }
+  .cats button { all: unset; box-sizing: border-box; display: flex; justify-content: space-between; width: 100%; padding: .75rem .25rem; cursor: pointer; color: var(--link); text-decoration: underline; }
+  .cats button:hover { background: var(--grey-lightest); }
+  .cats button[aria-pressed=true] { font-weight: 700; background: var(--grey-lighter); }
+  .cats button:focus-visible { outline: 3px solid var(--focus); box-shadow: 0 0 0 6px var(--black); }
+
+  .step { border-left: 4px solid var(--grey-light); padding: .15rem 0 .15rem .85rem; margin: .85rem 0; }
+  .step b { display: block; font-family: var(--serif); font-size: 1.1rem; }
+  .tag { display: inline-block; padding: .1rem .55rem; font: 700 .8rem var(--font); color: var(--white); margin-left: .4rem; vertical-align: middle; }
+  .tag.ok { background: var(--green); } .tag.warn { background: #a35200; } .tag.bad { background: #b01a12; }
+  .step.s-ok { border-color: var(--green); } .step.s-warn { border-color: var(--orange); } .step.s-bad { border-color: var(--red); }
+  .muted { color: var(--grey-dark); font-size: .95rem; }
+  pre { background: var(--grey-lightest); border: 1px solid var(--grey-medium); padding: .75rem; overflow: auto; font-size: .8rem; }
+  .hidden { display: none; }
+
+  aside .panel h3 { font-size: 1.15rem; }
+  aside ul { margin: .25rem 0 0; padding-left: 1.2rem; }
+  .phone { font: 700 1.5rem var(--font); }
+
+  footer { background: var(--grey-dark); color: var(--white); padding: 1.5rem 0; font-size: .9rem; }
+</style>
+</head>
+<body>
+
+<div class="proto" role="note">
+  <div class="container"><b>Unofficial hackathon prototype.</b> Not affiliated with or endorsed by any council. Nothing is submitted anywhere and your photo never leaves this page. Triage is rule-based; <code>analyseImage()</code> is a stub for a local vision model.</div>
+</div>
+
+<header class="site-header">
+  <div class="container">
+    <span class="brand">Report a problem (agent prototype)</span>
+    <nav aria-label="Prototype sections"><span>Home</span><span class="on">Roads and pavements</span><span>Contact</span></nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container">
+    <nav class="breadcrumbs" aria-label="Breadcrumbs">
+      <ol>
+        <li><a href="https://www.sheffield.gov.uk/">Home</a></li>
+        <li><a href="https://www.sheffield.gov.uk/roads-pavements">Roads and pavements</a></li>
+        <li><a href="https://www.sheffield.gov.uk/roads-pavements/report-problems">Report road and pavement problems</a></li>
+        <li aria-current="page">Report a problem with a road, pavement or cycle lane</li>
+      </ol>
+    </nav>
+
+    <h1>Report a problem with a road, pavement or cycle lane</h1>
+    <p class="subheader">Let us know about any problems with roads, pavements or cycle lanes to help us keep you safe.</p>
+
+    <div class="layout">
+      <div>
+        <h2>What would you like to report?</h2>
+
+        <section class="panel accent" aria-labelledby="in-h">
+          <h3 id="in-h">Describe it in your own words</h3>
+          <p class="muted" style="margin-top:0">Add a description, a photo, or both. The agent works out which form is right, who is responsible and how urgent it looks.</p>
+
+          <label for="desc">What is the problem? <span class="hint">For example: deep pothole near the chip shop, a cyclist nearly came off.</span></label>
+          <textarea id="desc"></textarea>
+
+          <label for="photo">Photo (optional) <span class="hint">Stays in your browser in this prototype.</span></label>
+          <input id="photo" type="file" accept="image/*">
+          <img id="preview" alt="Preview of the uploaded photo">
+
+          <label for="loc">Where is it? <span class="hint">Street, nearest address or landmark.</span></label>
+          <input id="loc" type="text">
+
+          <p id="chosen" class="muted hidden"></p>
+
+          <div class="row">
+            <button id="go" class="btn" type="button">Analyse my report</button>
+            <button id="demo" class="btn secondary" type="button">Fill example</button>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="out-h" aria-live="polite">
+          <h3 id="out-h">What the agent decided</h3>
+          <p id="empty" class="muted">Waiting for a description.</p>
+          <div id="result" class="hidden"></div>
+        </section>
+
+        <h2>Or choose a category</h2>
+        <p class="muted" style="margin-top:0">Choosing one tells the agent what you mean, and it will use that instead of guessing.</p>
+        <ul class="cats" id="cats"></ul>
+      </div>
+
+      <aside aria-label="Related information">
+        <div class="panel grey">
+          <h3>We can't help with</h3>
+          <ul>
+            <li>Private (unadopted) roads and car parks</li>
+            <li>Motorways, the A631 Tinsley Viaduct lower deck and the A616 Stocksbridge Bypass. Report these to National Highways.</li>
+          </ul>
+        </div>
+        <div class="panel grey">
+          <h3>Other things to report</h3>
+          <ul>
+            <li>Faulty street lights</li>
+            <li>Traffic lights, crossings and road signs</li>
+            <li>Fly-tipping and graffiti</li>
+          </ul>
+          <p class="muted">The agent will redirect these if it spots them.</p>
+        </div>
+        <div class="panel grey">
+          <h3>Urgent or can't use the form?</h3>
+          <p class="phone" style="margin:.25rem 0">0114 273 4567</p>
+          <p class="muted" style="margin:0">Number shown on the council's report page. Check it there before relying on it.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<footer><div class="container">Prototype built for NVIDIA Hack for Impact Sheffield. Triage rules and timescales are taken from the council's public report pages (read 13 Nov 2026) and are not guaranteed current.</div></footer>
+
+<script>
+"use strict";
+
+// Categories as listed on the council road-problems page (hub page, read 13 Nov 2026).
+const CATEGORIES = [
+  { id: "pothole",  label: "Pothole or crack on a road, pavement or cycle lane", words: ["pothole","crack","hole in the road","hole in the pavement"] },
+  { id: "surface",  label: "Problem with the road or pavement surface", words: ["surface","uneven","paving","slab","loose","tarmac","subsid"] },
+  { id: "drain",    label: "Drainage problem or blocked drain", words: ["drain","gully","flood","standing water","blocked"] },
+  { id: "markings", label: "Missing or damaged road markings or cat's eyes", words: ["marking","white line","yellow line","cat's eye","cats eye","faded"] },
+  { id: "kerb",     label: "Damaged or missing kerb", words: ["kerb","curb"] },
+  { id: "manhole",  label: "Manhole or stopcock cover", words: ["manhole","stopcock","cover","rocking lid"] },
+  { id: "hedge",    label: "Hedges, plants or grassed areas", words: ["hedge","overgrown","grass","bush","branch"] },
+  { id: "litter",   label: "General or dangerous litter", words: ["litter","glass","needle","syringe"] }
+];
+
+// Problems that belong to a different form entirely.
+const REDIRECTS = [
+  { words: ["street light","streetlight","lamp post","lamppost","light is out","lights out"], to: "Faulty street light form", why: "Lighting faults use a separate form." },
+  { words: ["fly-tip","fly tip","flytip","mattress","dumped","sofa","bags of rubbish"], to: "Fly-tipping form", why: "Dumped waste is handled as fly-tipping, with location, date, time, description and quantity." },
+  { words: ["abandoned car","abandoned vehicle","untaxed","burnt out car"], to: "Abandoned vehicle form (or DVLA / police)", why: "Untaxed or SORN goes to the DVLA; burnt-out or suspicious vehicles go to police on 101." },
+  { words: ["traffic light","traffic signal","road sign","crossing","belisha"], to: "Traffic light, crossing or road sign fault form", why: "Signals and signs use a separate form." },
+  { words: ["missed bin","bin not collected","bin wasn't collected"], to: "Missed bin collection (waste services)", why: "Check service alerts first; report only if the bin was not emptied and no tag was left." },
+  { words: ["graffiti"], to: "Graffiti report", why: "Graffiti has its own report page." }
+];
+
+// Roads the council says it does not maintain.
+const NOT_COUNCIL = [
+  { words: ["motorway","m1 ","m18","m1,","a631","tinsley viaduct","a616","stocksbridge bypass"], owner: "National Highways", why: "Motorways, the A631 Tinsley Viaduct lower deck and the A616 Stocksbridge Bypass are reported to National Highways directly." },
+  { words: ["private road","unadopted","private drive","car park"], owner: "The landowner or road owner", why: "Private (unadopted) roads and car parks are not council-maintained." }
+];
+
+const URGENT = ["deep","wheel","cyclist","bike","motorbike","injur","fell","tripped","damaged my","car damage","burst","sinkhole","collapse","exposed","missing cover","open manhole","dangerous","nearly","school","busy"];
+
+const $ = id => document.getElementById(id);
+let photoMeta = null;
+let chosenCat = null;
+
+function hit(text, words) { return words.filter(w => text.includes(w)); }
+
+// STUB: replace with a call to a local vision model (e.g. a VLM served on the DGX Spark).
+// Expected return: { category: id, urgent: boolean, notes: string[] }.
+// The uploaded image is available as a File; it is deliberately not read here.
+async function analyseImage(file) {
+  return null;
+}
+
+async function triage(desc, loc, file) {
+  const text = (desc + " " + loc).toLowerCase();
+  const steps = [];
+  const out = { steps, redirect: null, owner: null, category: null, urgent: false, missing: [], reasons: [] };
+
+  for (const r of REDIRECTS) {
+    const m = hit(text, r.words);
+    if (m.length) {
+      out.redirect = r;
+      steps.push({ t: "Routing", d: `Matched "${m[0]}". ${r.why}`, tone: "warn" });
+      return out;
+    }
+  }
+
+  for (const n of NOT_COUNCIL) {
+    const m = hit(text + " ", n.words);
+    if (m.length) {
+      out.owner = n;
+      steps.push({ t: "Ownership", d: `Matched "${m[0].trim()}". ${n.why}`, tone: "bad" });
+      return out;
+    }
+  }
+  steps.push({ t: "Ownership", d: "No private-road or National Highways cue found. Assumed adopted road (not verified against the adoption map).", tone: "ok" });
+
+  const vision = file ? await analyseImage(file) : null;
+  if (file && !vision) steps.push({ t: "Image", d: "Photo attached. Vision model not wired in this prototype, so it is stored but not analysed.", tone: "warn" });
+
+  let best = null, bestHits = 0;
+  for (const c of CATEGORIES) {
+    const m = hit(text, c.words).length;
+    if (m > bestHits) { best = c; bestHits = m; }
+  }
+  if (vision && vision.category) best = CATEGORIES.find(c => c.id === vision.category) || best;
+  if (chosenCat) best = CATEGORIES.find(c => c.id === chosenCat) || best;
+  out.category = best;
+  steps.push(best
+    ? { t: "Category", d: best.label + (chosenCat ? " (chosen by you)" : ""), tone: "ok" }
+    : { t: "Category", d: "Could not tell from the description. Please choose one below.", tone: "warn" });
+
+  const urg = hit(text, URGENT);
+  out.urgent = urg.length > 0 || !!(vision && vision.urgent);
+  out.reasons = urg;
+  steps.push(out.urgent
+    ? { t: "Severity (suggested)", d: `Category 1 candidate: immediate safety risk cues (${urg.join(", ")}). Council says Category 1 is made safe within 24 hours, permanent repair usually within 28 days.`, tone: "bad" }
+    : { t: "Severity (suggested)", d: "Category 2 candidate: no immediate-risk cues. Council says these are usually fixed through planned maintenance, with no stated timescale.", tone: "ok" });
+
+  if (loc.trim().length < 4) out.missing.push("location");
+  if (desc.trim().length < 10 && !chosenCat) out.missing.push("description");
+  if (out.missing.length) steps.push({ t: "Missing", d: `Need: ${out.missing.join(", ")}.`, tone: "warn" });
+  return out;
+}
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+function stepsHtml(steps) {
+  const label = { ok: "OK", bad: "Stop / urgent", warn: "Check" };
+  return steps.map(s => `<div class="step s-${s.tone}"><b>${esc(s.t)}<span class="tag ${s.tone}">${label[s.tone]}</span></b>${esc(s.d)}</div>`).join("");
+}
+
+function render(out, desc, loc) {
+  $("empty").classList.add("hidden");
+  const box = $("result");
+  box.classList.remove("hidden");
+
+  let html = stepsHtml(out.steps);
+
+  if (out.redirect) {
+    html += `<p><b>Next step:</b> use the <b>${esc(out.redirect.to)}</b>. This prototype only covers road and pavement defects.</p>`;
+    box.innerHTML = html; return;
+  }
+  if (out.owner) {
+    html += `<p><b>Next step:</b> report to <b>${esc(out.owner.owner)}</b>, not the council.</p>`;
+    box.innerHTML = html; return;
+  }
+
+  const opts = CATEGORIES.map(c => `<option value="${c.id}" ${out.category && out.category.id === c.id ? "selected" : ""}>${esc(c.label)}</option>`).join("");
+  html += `
+    <h3 style="margin-top:1.25rem">Pre-filled report (check and edit)</h3>
+    <label for="f-cat">Category</label><select id="f-cat">${out.category ? "" : '<option value="">Choose...</option>'}${opts}</select>
+    <label for="f-sev">Severity</label>
+    <select id="f-sev">
+      <option value="1" ${out.urgent ? "selected" : ""}>Category 1: immediate safety risk</option>
+      <option value="2" ${out.urgent ? "" : "selected"}>Category 2: no immediate risk</option>
+    </select>
+    <label for="f-loc">Location</label><input id="f-loc" type="text" value="${esc(loc)}">
+    <label for="f-desc">Description</label><textarea id="f-desc">${esc(desc)}</textarea>
+    <p class="muted">Photo: ${photoMeta ? esc(photoMeta.name) + " (" + Math.round(photoMeta.size / 1024) + " KB)" : "none"}</p>
+    <button id="submit" class="btn" type="button">Confirm and send (mock)</button>
+    <div id="done" class="hidden"></div>`;
+  box.innerHTML = html;
+
+  $("submit").addEventListener("click", () => {
+    const loc2 = $("f-loc").value.trim();
+    if (!$("f-cat").value || loc2.length < 4) { alert("Choose a category and give a location first."); return; }
+    const payload = {
+      form: "report_pothole_crack (assumed schema, real field list unverified)",
+      category: $("f-cat").value,
+      severity_category: Number($("f-sev").value),
+      location_text: loc2,
+      description: $("f-desc").value.trim(),
+      photo: photoMeta,
+      agent: { suggested_urgent: out.urgent, cues: out.reasons, image_analysed: false },
+      submitted: false
+    };
+    const ref = "MOCK-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    $("submit").disabled = true;
+    const done = $("done");
+    done.classList.remove("hidden");
+    done.innerHTML = `<p><span class="tag ok" style="margin:0">Mock reference ${ref}</span></p>
+      <p class="muted">Nothing was sent. This is the payload an integration would hand to the real form for you to confirm:</p>
+      <pre>${esc(JSON.stringify(payload, null, 2))}</pre>`;
+  });
+}
+
+function renderCats() {
+  $("cats").innerHTML = CATEGORIES.map(c =>
+    `<li><button type="button" data-id="${c.id}" aria-pressed="${chosenCat === c.id}">${esc(c.label)}<span aria-hidden="true">&rsaquo;</span></button></li>`).join("");
+  const chosen = $("chosen");
+  const c = CATEGORIES.find(x => x.id === chosenCat);
+  chosen.classList.toggle("hidden", !c);
+  if (c) chosen.textContent = "Category chosen by you: " + c.label;
+}
+
+$("cats").addEventListener("click", e => {
+  const b = e.target.closest("button[data-id]");
+  if (!b) return;
+  chosenCat = chosenCat === b.dataset.id ? null : b.dataset.id;
+  renderCats();
+});
+
+$("photo").addEventListener("change", e => {
+  const f = e.target.files[0];
+  const img = $("preview");
+  if (!f) { photoMeta = null; img.style.display = "none"; return; }
+  photoMeta = { name: f.name, type: f.type, size: f.size };
+  img.src = URL.createObjectURL(f);
+  img.style.display = "block";
+});
+
+$("go").addEventListener("click", async () => {
+  const desc = $("desc").value, loc = $("loc").value;
+  if (!desc.trim() && !$("photo").files[0] && !chosenCat) { alert("Describe the problem, attach a photo or choose a category."); return; }
+  const out = await triage(desc, loc, $("photo").files[0] || null);
+  render(out, desc, loc);
+});
+
+$("demo").addEventListener("click", () => {
+  $("desc").value = "Deep pothole, a cyclist nearly came off and it has already damaged a wheel";
+  $("loc").value = "Abbeydale Road, outside number 120";
+});
+
+renderCats();
+</script>
+</body>
+</html>
