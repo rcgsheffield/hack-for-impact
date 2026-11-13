@@ -56,6 +56,20 @@ Keep downloaded datasets in `data/`. Raw files are git-ignored by default, so re
 
 _Setup instructions to be added once the stack is chosen._
 
+### Deployment (DGX Spark)
+
+Every push to `main` deploys to the DGX Spark through a GitHub Actions [self-hosted runner](https://docs.github.com/en/actions/hosting-your-own-runners) on that machine (`.github/workflows/deploy.yml`). The runner connects out to GitHub, so the Spark needs no inbound access. The workflow runs [`deploy.sh`](deploy.sh), which syncs the code to `~/hack-for-impact` on the Spark (its local `data/` is kept) and then starts the app. To redeploy without pushing, use **Actions → Deploy to DGX Spark → Run workflow**.
+
+One-time runner setup, done on the Spark over SSH:
+
+1. In GitHub, go to **Settings → Actions → Runners → New self-hosted runner**, choose **Linux / ARM64**, and follow the download steps it shows.
+2. Configure the runner with the `spark` label and install it as a service:
+   ```bash
+   ./config.sh --url https://github.com/rcgsheffield/hack-for-impact --token <TOKEN> --labels spark --unattended
+   sudo ./svc.sh install && sudo ./svc.sh start
+   ```
+3. Make sure `rsync` is installed. If the app will use Docker, add the runner's user to the `docker` group.
+
 ## Team
 
 _Add team members here._
