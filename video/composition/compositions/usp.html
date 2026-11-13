@@ -1,0 +1,179 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #us-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #us-kicker {
+      position: absolute;
+      left: 192px;
+      top: 120px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    #us-title {
+      position: absolute;
+      left: 192px;
+      top: 166px;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .us-col {
+      position: absolute;
+      top: 300px;
+      width: 730px;
+      height: 580px;
+      border-radius: 28px;
+      padding: 44px 48px;
+    }
+    #us-them {
+      left: 192px;
+      background: #121512;
+      border: 3px solid #2e332c;
+      color: #9aa394;
+    }
+    #us-us {
+      left: 998px;
+      background: rgba(118, 185, 0, 0.06);
+      border: 4px solid #76b900;
+    }
+    .us-head {
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      margin-bottom: 30px;
+    }
+    #us-us .us-head {
+      color: #76b900;
+    }
+    .us-row {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      font-size: 34px;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-top: 22px;
+    }
+    #us-them .us-row {
+      margin-top: 34px;
+    }
+    .us-mark {
+      flex: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: 900;
+    }
+    #us-them .us-mark {
+      background: #262a24;
+      color: #9aa394;
+    }
+    #us-us .us-mark {
+      background: #76b900;
+      color: #0b0f0a;
+    }
+    #us-us .us-row {
+      color: #eef5e6;
+    }
+    #us-vs {
+      position: absolute;
+      left: 922px;
+      top: 556px;
+      width: 76px;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: #6f7a68;
+    }
+  </style>
+  <div id="root" data-composition-id="usp" data-width="1920" data-height="1080">
+    <div id="us-grid"></div>
+    <div id="us-kicker">What makes us different</div>
+    <div id="us-title">Not another chatbot.</div>
+    <div class="us-col" id="us-them">
+      <div class="us-head">Typical council chatbot</div>
+      <div class="us-row" id="us-t1"><div class="us-mark">✕</div>Answers FAQs</div>
+      <div class="us-row" id="us-t2"><div class="us-mark">✕</div>Forwards an email</div>
+      <div class="us-row" id="us-t3"><div class="us-mark">✕</div>Staff still triage by hand</div>
+      <div class="us-row" id="us-t4"><div class="us-mark">✕</div>Cloud API</div>
+    </div>
+    <div id="us-vs">vs</div>
+    <div class="us-col" id="us-us">
+      <div class="us-head">CouncilTriagent</div>
+      <div class="us-row" id="us-u1"><div class="us-mark">✓</div>Routes to whoever owns it</div>
+      <div class="us-row" id="us-u2"><div class="us-mark">✓</div>De-duplicates reports</div>
+      <div class="us-row" id="us-u3"><div class="us-mark">✓</div>Prioritises P1 to P4</div>
+      <div class="us-row" id="us-u4"><div class="us-mark">✓</div>Files the real form</div>
+      <div class="us-row" id="us-u5"><div class="us-mark">✓</div>On council-owned hardware</div>
+      <div class="us-row" id="us-u6"><div class="us-mark">✓</div>Open311 standard</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // Scene 09 (usp), clip 09: 18.83 s, ~0.45 s per word from the anchor. Seconds from scene start.
+      const CUE = {
+        vo09: 0.50, // "That's what sets us apart."
+        them: 2.75, // "Most council chatbots"
+        faq: 4.10, // "answer questions"
+        email: 5.45, // "and forward an email,"
+        triage: 7.25, // "and staff still triage everything by hand."
+        cloud: 8.60, // (beat) cloud API
+        us: 9.95, // "CouncilTriagent does the back-office work."
+        routes: 12.65, // "It routes,"
+        dedup: 13.10, // "de-duplicates,"
+        prio: 13.55, // "prioritises"
+        files: 14.45, // "and files,"
+        hardware: 15.35, // "on hardware the council owns,"
+        open311: 18.05, // "using the Open311 standard."
+      };
+      const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" };
+
+      tl.fromTo("#us-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.vo09);
+      tl.fromTo("#us-title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.out" }, CUE.vo09 + 0.2);
+
+      tl.fromTo("#us-them", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, CUE.them);
+      [["#us-t1", CUE.faq], ["#us-t2", CUE.email], ["#us-t3", CUE.triage], ["#us-t4", CUE.cloud]].forEach(([sel, at]) => {
+        tl.fromTo(sel, { opacity: 0, x: -20 }, IN, at);
+      });
+
+      tl.fromTo("#us-vs", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.us - 0.4);
+      tl.fromTo("#us-us", { opacity: 0, scale: 0.96 }, { opacity: 1, scale: 1, duration: 0.6, ease: "expo.out" }, CUE.us);
+      tl.to("#us-them", { opacity: 0.55, duration: 0.6 }, CUE.us);
+      [
+        ["#us-u1", CUE.routes],
+        ["#us-u2", CUE.dedup],
+        ["#us-u3", CUE.prio],
+        ["#us-u4", CUE.files],
+        ["#us-u5", CUE.hardware],
+        ["#us-u6", CUE.open311],
+      ].forEach(([sel, at]) => {
+        tl.fromTo(sel, { opacity: 0, x: -20 }, IN, at);
+        tl.fromTo(sel + " .us-mark", { scale: 0 }, { scale: 1, duration: 0.35, ease: "back.out(2)" }, at + 0.05);
+      });
+      // final emphasis on our column
+      tl.fromTo("#us-us", { boxShadow: "0 0 0 0 rgba(118,185,0,0.5)" }, { boxShadow: "0 0 0 28px rgba(118,185,0,0)", duration: 1.0 }, CUE.open311 + 0.6);
+      window.__timelines["usp"] = tl;
+    })();
+  </script>
+</template>

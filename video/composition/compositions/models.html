@@ -1,0 +1,228 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #md-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #md-kicker {
+      position: absolute;
+      left: 192px;
+      top: 120px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    #md-title {
+      position: absolute;
+      left: 192px;
+      top: 166px;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .md-card {
+      position: absolute;
+      top: 300px;
+      width: 500px;
+      height: 520px;
+      border-radius: 24px;
+      background: #141c11;
+      border: 3px solid #3a4a30;
+      padding: 30px 24px;
+    }
+    #md-c1 { left: 192px; }
+    #md-c2 { left: 722px; }
+    #md-c3 { left: 1252px; }
+    .md-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 46px;
+    }
+    .md-badge {
+      padding: 6px 16px;
+      border-radius: 12px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      background: #2a3324;
+      color: #cfe3b8;
+    }
+    #md-b1 {
+      background: #76b900;
+      color: #0b0f0a;
+    }
+    .md-size {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      color: #a0aa98;
+    }
+    .md-name {
+      margin-top: 22px;
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    .md-id {
+      margin-top: 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      color: #a8c48a;
+      overflow-wrap: anywhere;
+    }
+    .md-list {
+      margin-top: 26px;
+    }
+    .md-pt {
+      position: relative;
+      padding-left: 30px;
+      margin-top: 14px;
+      font-size: 30px;
+      line-height: 1.25;
+    }
+    .md-pt::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 13px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #76b900;
+    }
+    #md-foot {
+      position: absolute;
+      left: 192px;
+      top: 860px;
+      width: 1560px;
+      padding: 22px 30px;
+      border-radius: 20px;
+      border: 3px solid #76b900;
+      background: rgba(118, 185, 0, 0.06);
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    #md-foot span {
+      color: #76b900;
+    }
+    #md-foot-sub {
+      margin-top: 6px;
+      font-size: 28px;
+      font-weight: 500;
+      color: #a8c48a;
+    }
+  </style>
+  <div id="root" data-composition-id="models" data-width="1920" data-height="1080">
+    <div id="md-grid"></div>
+    <div id="md-kicker">Model evaluation</div>
+    <div id="md-title">Three open models, one Spark</div>
+
+    <div class="md-card" id="md-c1">
+      <div class="md-top"><div class="md-badge" id="md-b1">CHOSEN</div><div class="md-size">25 GB</div></div>
+      <div class="md-name">Nemotron 3.5 Lightning</div>
+      <div class="md-id">nemotron-3.5-lightning:30b</div>
+      <div class="md-list">
+        <div class="md-pt" id="md-p11">NVIDIA open model</div>
+        <div class="md-pt" id="md-p12">Reliable tool calls, with guards in code</div>
+        <div class="md-pt" id="md-p13">Filled the pothole form in 12–13 actions</div>
+      </div>
+    </div>
+    <div class="md-card" id="md-c2">
+      <div class="md-top"><div class="md-badge" id="md-b2">FALLBACK</div><div class="md-size">22 GB</div></div>
+      <div class="md-name">Qwen 3.6</div>
+      <div class="md-id">qwen3.6:35b-a3b</div>
+      <div class="md-list">
+        <div class="md-pt" id="md-p21">Mixture of experts: ~3B active per token</div>
+        <div class="md-pt" id="md-p22">Fast: few parameters active at once</div>
+      </div>
+    </div>
+    <div class="md-card" id="md-c3">
+      <div class="md-top"><div class="md-badge" id="md-b3">SMOKE TESTS</div><div class="md-size">24 GB</div></div>
+      <div class="md-name">Nemotron Nano</div>
+      <div class="md-id">nemotron-3-nano:30b</div>
+      <div class="md-list">
+        <div class="md-pt" id="md-p31">Older Nemotron</div>
+        <div class="md-pt" id="md-p32">Default model in our smoke tests</div>
+      </div>
+    </div>
+
+    <div id="md-foot">
+      Rules set the priority, the LLM only adds facts: <span>triage keeps working if the model is down</span>.
+      <div id="md-foot-sub">30/31 labelled cases agree (rules only) · all on the organisers' shared Ollama</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      // Scene 12, clip 12 (25.73 s, ~0.33 s a word). Seconds from scene start, set against the real clip.
+      const CUE = {
+        vo12: 0.50, // "We tried three open models on the Spark."
+        chosen: 3.10, // "We chose Nemotron three point five Lightning,"
+        nvidia: 5.39, // "an NVIDIA model:"
+        guards: 6.37, // "with a few guards in code,"
+        dozen: 8.32, // "it fills in a council form in about a dozen steps."
+        qwen: 11.90, // "Qwen three point six activates only three billion parameters at a time,"
+        fast: 15.50, // "so it's fast,"
+        fallback: 16.80, // "and it's our fallback."
+        nano: 18.10, // "The older Nemotron Nano"
+        smoke: 19.40, // "runs our smoke tests."
+        rules: 20.70, // "And because rules set the priority, triage keeps working even if the model is down."
+      };
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#md-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.vo12);
+      tl.fromTo("#md-title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.out" }, CUE.vo12 + 0.2);
+
+      // three cards arrive dim, then each takes focus as it is named
+      tl.fromTo([".md-card"], { opacity: 0, y: 40 }, { opacity: 0.4, y: 0, duration: 0.6, stagger: 0.15, ease: "power3.out" }, CUE.vo12 + 0.6);
+      tl.set([".md-pt", ".md-badge", "#md-foot"], { opacity: 0 }, 0);
+      const focus = (card, at) => {
+        tl.fromTo(card, { opacity: 0.4, borderColor: "#3a4a30" }, { opacity: 1, borderColor: "#76b900", duration: 0.4, ease: "power2.out" }, at);
+        tl.fromTo(card, { y: 0 }, { y: -12, duration: 0.4, ease: "power3.out" }, at);
+      };
+      const done = (card, at) => {
+        tl.fromTo(card, { borderColor: "#76b900", y: -12 }, { borderColor: "#3a4a30", y: 0, duration: 0.4, ease: "power2.inOut" }, at);
+      };
+      const point = (sel, at) => tl.fromTo(sel, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, at);
+      const badge = (sel, at) => tl.fromTo(sel, { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, at);
+
+      // Nemotron 3.5 Lightning
+      focus("#md-c1", CUE.chosen);
+      badge("#md-b1", CUE.chosen + 0.3);
+      point("#md-p11", CUE.nvidia);
+      point("#md-p12", CUE.guards);
+      point("#md-p13", CUE.dozen);
+      done("#md-c1", CUE.qwen - 0.2);
+      // Qwen 3.6
+      focus("#md-c2", CUE.qwen);
+      point("#md-p21", CUE.qwen + 0.6);
+      point("#md-p22", CUE.fast);
+      badge("#md-b2", CUE.fallback);
+      done("#md-c2", CUE.nano - 0.2);
+      // Nemotron Nano
+      focus("#md-c3", CUE.nano);
+      point("#md-p31", CUE.nano + 0.3);
+      badge("#md-b3", CUE.smoke);
+      point("#md-p32", CUE.smoke + 0.3);
+      done("#md-c3", CUE.rules - 0.2);
+      // the chosen model keeps its green edge; the footer lands on the rules line
+      tl.fromTo("#md-c1", { borderColor: "#3a4a30" }, { borderColor: "#76b900", duration: 0.4 }, CUE.rules);
+      tl.fromTo("#md-foot", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, CUE.rules);
+      window.__timelines["models"] = tl;
+    })();
+  </script>
+</template>

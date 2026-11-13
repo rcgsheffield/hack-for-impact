@@ -41,10 +41,13 @@ EST_WORDS_PER_SECOND = 2.6
 MIN_SCENE_TAIL = 1.0
 # Some scenes squeezed their beats to fit a short slot: the span (from the
 # clip's anchor) that the estimated speech covers in that scene.
-EST_SPAN_OVERRIDE = {"05": 13.2, "11": 21.5}
+EST_SPAN_OVERRIDE = {}
+# Scenes whose cues were written against the real clip lengths (measured with
+# ffprobe), not estimates: their speech isn't stretched, only shifted.
+REAL_TIMED = {"form-x", "intro", "chat", "browser-agent", "council-view", "usp", "agent-flow", "data-workflow", "models", "business"}
 # Scenes whose visuals keep building after the narration ends: the gaps between
 # post-speech cues are scaled by this factor to keep the video under 5 minutes.
-POST_SPEECH_SCALE = {"agent-flow": 0.45, "council-view": 0.5}
+POST_SPEECH_SCALE = {}
 # In those scenes, the hold after the last cue is capped at this (s).
 COMPRESSED_TAIL = 3.0
 # Clip 04 lives in a scene without a CUE object: fixed offset from scene start.
@@ -53,17 +56,19 @@ FIXED_ANCHORS = {"another-way": {"04": 1.0}}
 # Scene order, baseline duration (s) and {clip id: anchor cue name}.
 SCENES = [
     ("irene-phone", 15, {"01a": "c01a", "01b": "c01b", "01c": "c01c"}),
-    ("form-x", 20, {"02a": "c02a", "02b": "c02b", "02c": "c02c"}),
+    ("form-x", 18.5, {"02a": "c02a", "02b": "c02b", "02c": "c02c"}),
     ("council-inbox", 15, {"03a": "c03a", "03b": "c03b"}),
     ("another-way", 4, {}),
-    ("intro", 14, {"05": "c05"}),
-    ("chat", 57, {"06a": "vo06a", "06b": "vo06b", "06c": "vo06c", "06d": "vo06d", "06e": "vo06e", "06f": "vo06f", "06g": "vo06g"}),
-    ("chat-routing", 25, {"07a": "vo07a", "07b": "vo07b", "07c": "vo07c"}),
-    ("council-view", 15, {"08": "vo08"}),
-    ("agent-flow", 30, {"09": "howWork"}),
-    ("tool-trace", 35, {"10": "intro"}),
-    ("impact", 25, {"11": "residents"}),
-    ("close", 15, {"12": "hold"}),
+    ("intro", 20.5, {"05": "c05"}),
+    ("chat", 43.5, {"06a": "vo06a", "06b": "vo06b", "06c": "vo06c", "06d": "vo06d", "06f": "vo06f", "06g": "vo06g"}),
+    ("browser-agent", 20.5, {"07": "vo07"}),
+    ("council-view", 22, {"08": "vo08", "08b": "vo08b"}),
+    ("usp", 20.5, {"09": "vo09"}),
+    ("agent-flow", 26.5, {"10": "vo10"}),
+    ("data-workflow", 24, {"11": "vo11"}),
+    ("models", 27.25, {"12": "vo12"}),
+    ("business", 26.5, {"13": "vo13"}),
+    ("close", 10.2, {"14": "hold"}),
 ]
 
 # Music: (id, file, section start scene, volume). Each section's tracks are laid
@@ -130,7 +135,7 @@ def word_counts() -> dict[str, int]:
     return {cid: len(text.split()) for cid, text in clips.items()}
 
 
-def retime_scene(base_cues, base_dur, anchors, actual, words, est_override, post_scale=1.0):
+def retime_scene(base_cues, base_dur, anchors, actual, words, est_override, post_scale=1.0, real_timed=False):
     """Return (new cues, new anchor times {clip: t}, new duration)."""
     order = sorted(anchors.items(), key=lambda kv: base_cues[kv[1]])
     # Piecewise map: [(old_start, old_end, new_start, new_end)] for each clip's speech.
@@ -141,7 +146,9 @@ def retime_scene(base_cues, base_dur, anchors, actual, words, est_override, post
         est = words[clip] / EST_WORDS_PER_SECOND
         if clip in est_override:
             est = est_override[clip]
-        if i + 1 < len(order):
+        if real_timed:
+            est = actual[clip]
+        if i + 1 < len(order) and not real_timed:
             span = base_cues[order[i + 1][1]] - start
             est = min(est, span - 0.3)
         new_start = start + shift
@@ -215,6 +222,16 @@ def main() -> None:
         BASELINE.write_text(json.dumps(baseline, indent=2) + "\n", encoding="utf-8")
         print(f"saved estimated cues to {BASELINE.relative_to(VIDEO_DIR)}")
     baseline = json.loads(BASELINE.read_text(encoding="utf-8"))
+    # Scenes added since the snapshot (or removed from it to be rebuilt): take their cues as written.
+    added = [scene for scene, _, _ in SCENES if scene not in baseline]
+    for scene in added:
+        baseline[scene] = read_cues(scene)
+    stale = [scene for scene in baseline if scene not in {name for name, _, _ in SCENES}]
+    for scene in stale:
+        del baseline[scene]
+    if (added or stale) and not args.dry_run:
+        BASELINE.write_text(json.dumps(baseline, indent=2) + "\n", encoding="utf-8")
+        print(f"baseline: added {added or 'none'}, removed {stale or 'none'}")
 
     words = word_counts()
     actual = {}
@@ -234,7 +251,8 @@ def main() -> None:
         else:
             est_override = {c: v for c, v in EST_SPAN_OVERRIDE.items() if c in anchors}
             cues, anchor_t, dur = retime_scene(
-                baseline[scene], base_dur, anchors, actual, words, est_override, POST_SPEECH_SCALE.get(scene, 1.0)
+                baseline[scene], base_dur, anchors, actual, words, est_override, POST_SPEECH_SCALE.get(scene, 1.0),
+                scene in REAL_TIMED,
             )
         scene_starts[scene], scene_ends[scene] = round(t, 2), round(t + dur, 2)
         for clip, at in anchor_t.items():

@@ -1,0 +1,351 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #dw-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #dw-kicker {
+      position: absolute;
+      left: 192px;
+      top: 120px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    #dw-title {
+      position: absolute;
+      left: 192px;
+      top: 166px;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .dw-node {
+      position: absolute;
+      top: 340px;
+      width: 226px;
+      height: 260px;
+      border-radius: 22px;
+      background: #141c11;
+      border: 3px solid #3a4a30;
+      padding: 18px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .dw-num {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      color: #76b900;
+      margin-bottom: 10px;
+    }
+    .dw-name {
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .dw-sub {
+      margin-top: 12px;
+      font-size: 28px;
+      line-height: 1.25;
+      color: #a8c48a;
+    }
+    .dw-tight {
+      margin-top: 6px;
+    }
+    .dw-mono {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+    }
+    #dw-n1 { left: 160px; }
+    #dw-n2 { left: 436px; }
+    #dw-n3 { left: 712px; }
+    #dw-n4 { left: 988px; }
+    #dw-n5 { left: 1264px; }
+    #dw-n6 { left: 1540px; }
+    .dw-arrow {
+      position: absolute;
+      top: 467px;
+      width: 42px;
+      height: 6px;
+      border-radius: 3px;
+      background: #76b900;
+      transform-origin: 0 50%;
+    }
+    .dw-arrow::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: -9px;
+      border-left: 16px solid #76b900;
+      border-top: 12px solid transparent;
+      border-bottom: 12px solid transparent;
+    }
+    #dw-a1 { left: 388px; }
+    #dw-a2 { left: 664px; }
+    #dw-a3 { left: 940px; }
+    #dw-a4 { left: 1216px; }
+    #dw-a5 { left: 1492px; }
+    .dw-drop {
+      position: absolute;
+      top: 602px;
+      width: 6px;
+      height: 76px;
+      border-radius: 3px;
+      transform-origin: 50% 0;
+    }
+    #dw-d1 { left: 546px; background: #e0a526; }
+    #dw-d2 { left: 1374px; background: #ff5a4d; }
+    #dw-branch {
+      position: absolute;
+      left: 250px;
+      top: 680px;
+      width: 600px;
+      padding: 22px 26px;
+      border-radius: 22px;
+      border: 3px dashed #e0a526;
+      background: rgba(224, 165, 38, 0.06);
+    }
+    .dw-btitle {
+      font-size: 30px;
+      font-weight: 800;
+      color: #f2c45a;
+    }
+    #dw-owners {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .dw-owner {
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: #2a2410;
+      font-size: 28px;
+      color: #f5e3b8;
+      text-align: center;
+    }
+    #dw-stop {
+      margin-top: 16px;
+      font-size: 30px;
+      font-weight: 800;
+      color: #eef5e6;
+    }
+    #dw-p1 {
+      position: absolute;
+      left: 1150px;
+      top: 680px;
+      width: 500px;
+      padding: 22px 26px;
+      border-radius: 22px;
+      border: 3px solid #ff5a4d;
+      background: rgba(255, 90, 77, 0.08);
+    }
+    #dw-p1-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 12px;
+      background: #c62828;
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 800;
+    }
+    #dw-p1-text {
+      margin-top: 14px;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .dw-packet {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+    }
+    #dw-packet {
+      left: 256px;
+      top: 323px;
+      background: #d7ff7a;
+      box-shadow: 0 0 24px 8px rgba(160, 230, 60, 0.6);
+    }
+    #dw-packet-b {
+      left: 532px;
+      top: 585px;
+      background: #ffd36b;
+      box-shadow: 0 0 24px 8px rgba(240, 190, 60, 0.6);
+    }
+    #dw-packet-r {
+      left: 1360px;
+      top: 585px;
+      background: #ff8a7a;
+      box-shadow: 0 0 24px 8px rgba(255, 90, 77, 0.6);
+    }
+  </style>
+  <div id="root" data-composition-id="data-workflow" data-width="1920" data-height="1080">
+    <div id="dw-grid"></div>
+    <div id="dw-kicker">Data workflow</div>
+    <div id="dw-title">One report, start to finish</div>
+
+    <div class="dw-node" id="dw-n1">
+      <div class="dw-num">01</div>
+      <div class="dw-name">Describe</div>
+      <div class="dw-sub">own words, map pin</div>
+    </div>
+    <div class="dw-arrow" id="dw-a1"></div>
+    <div class="dw-node" id="dw-n2">
+      <div class="dw-num">02</div>
+      <div class="dw-name">Who owns it?</div>
+      <div class="dw-sub dw-mono">route_report</div>
+    </div>
+    <div class="dw-arrow" id="dw-a2"></div>
+    <div class="dw-node" id="dw-n3">
+      <div class="dw-num">03</div>
+      <div class="dw-name">Duplicate check</div>
+      <div class="dw-sub">within 60&nbsp;m<br />and 30&nbsp;days</div>
+    </div>
+    <div class="dw-arrow" id="dw-a3"></div>
+    <div class="dw-node" id="dw-n4">
+      <div class="dw-num">04</div>
+      <div class="dw-name">File</div>
+      <div class="dw-sub">tool or browser</div>
+    </div>
+    <div class="dw-arrow" id="dw-a4"></div>
+    <div class="dw-node" id="dw-n5">
+      <div class="dw-num">05</div>
+      <div class="dw-name">Triage</div>
+      <div class="dw-sub dw-mono">P1–P4</div>
+      <div class="dw-sub dw-tight">rules + local LLM + road context</div>
+    </div>
+    <div class="dw-arrow" id="dw-a5"></div>
+    <div class="dw-node" id="dw-n6">
+      <div class="dw-num">06</div>
+      <div class="dw-name">Council dashboard</div>
+      <div class="dw-sub">sorted queue, grouped map</div>
+    </div>
+
+    <div class="dw-drop" id="dw-d1"></div>
+    <div id="dw-branch">
+      <div class="dw-btitle">Not the council's?</div>
+      <div id="dw-owners">
+        <div class="dw-owner" id="dw-o1">National Highways</div>
+        <div class="dw-owner" id="dw-o2">Police (101)</div>
+        <div class="dw-owner" id="dw-o3">DVLA</div>
+        <div class="dw-owner" id="dw-o4">Landowner</div>
+      </div>
+      <div id="dw-stop">Tell the resident. Stop.</div>
+    </div>
+
+    <div class="dw-drop" id="dw-d2"></div>
+    <div id="dw-p1">
+      <div id="dw-p1-badge">P1 Emergency</div>
+      <div id="dw-p1-text">Phone now: 0114&nbsp;273&nbsp;4567,<br />or 999 if anyone is in danger</div>
+    </div>
+
+    <div class="dw-packet" id="dw-packet" data-layout-ignore></div>
+    <div class="dw-packet" id="dw-packet-b" data-layout-ignore></div>
+    <div class="dw-packet" id="dw-packet-r" data-layout-ignore></div>
+  </div>
+  <script>
+    (function () {
+      // Scene 11, clip 11 (21.76 s, ~0.36 s a word). Seconds from scene start, set against the real clip.
+      const CUE = {
+        vo11: 0.50, // "Here's the journey of one report."
+        describe: 1.20, // the report enters at Describe
+        owns: 2.64, // "First, who owns it?"
+        branches: 4.07, // "If it's National Highways, the police or the DVLA,"
+        stop: 7.28, // "the agent tells the resident and stops."
+        council: 9.78, // "If it's the council's,"
+        dup: 10.85, // "it checks for duplicates within sixty metres and thirty days,"
+        file: 14.80, // "files the report,"
+        triage: 15.85, // "then triages it."
+        phone: 16.90, // "Emergencies get phone advice straight away,"
+        dashboard: 19.06, // "and everything lands on the council's dashboard."
+      };
+      const tl = gsap.timeline({ paused: true });
+      const NODES = ["#dw-n1", "#dw-n2", "#dw-n3", "#dw-n4", "#dw-n5", "#dw-n6"];
+      // packet x offsets to each node centre (node pitch 276 px)
+      const X = [0, 276, 552, 828, 1104, 1380];
+
+      tl.fromTo("#dw-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.vo11);
+      tl.fromTo("#dw-title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.out" }, CUE.vo11 + 0.2);
+
+      // the whole path appears dim, then each stage lights up as the narration reaches it
+      // the first node arrives lit with the report (see "01 describe"), the rest arrive dim
+      tl.fromTo(NODES.slice(1), { opacity: 0, y: 30 }, { opacity: 0.4, y: 0, duration: 0.5, stagger: 0.08, ease: "power3.out" }, CUE.vo11 + 0.3);
+      tl.set(["#dw-a1", "#dw-a2", "#dw-a3", "#dw-a4", "#dw-a5", "#dw-d1", "#dw-d2"], { opacity: 0 }, 0);
+      tl.set(["#dw-branch", "#dw-p1", ".dw-owner", "#dw-stop", "#dw-packet", "#dw-packet-b", "#dw-packet-r"], { opacity: 0 }, 0);
+      const light = (i, at) => {
+        tl.fromTo(NODES[i], { opacity: 0.4, borderColor: "#3a4a30" }, { opacity: 1, borderColor: "#76b900", duration: 0.35, ease: "power2.out" }, at);
+        tl.fromTo(NODES[i], { scale: 1 }, { scale: 1.06, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.inOut" }, at);
+      };
+      const arrow = (sel, at) => {
+        tl.fromTo(sel, { opacity: 1, scaleX: 0 }, { opacity: 1, scaleX: 1, duration: 0.35, ease: "power2.inOut" }, at);
+      };
+      const move = (i, at, dur) => {
+        tl.fromTo("#dw-packet", { x: X[i - 1] }, { x: X[i], duration: dur, ease: "power2.inOut", immediateRender: false }, at);
+      };
+
+      // 01 describe
+      tl.fromTo("#dw-packet", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, CUE.describe);
+      tl.fromTo("#dw-n1", { opacity: 0, y: 30, borderColor: "#76b900" }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, CUE.describe - 0.4);
+      // 02 who owns it?
+      arrow("#dw-a1", CUE.owns - 0.5);
+      move(1, CUE.owns - 0.5, 0.5);
+      light(1, CUE.owns);
+
+      // branch: another owner -> tell the resident, stop
+      tl.fromTo("#dw-d1", { opacity: 1, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.35, ease: "power2.out" }, CUE.branches);
+      tl.fromTo("#dw-branch", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, CUE.branches + 0.2);
+      tl.fromTo(".dw-owner", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.45, ease: "back.out(1.6)" }, CUE.branches + 0.4);
+      tl.fromTo("#dw-packet-b", { opacity: 0, y: 0 }, { opacity: 1, y: 0, duration: 0.2 }, CUE.branches + 0.2);
+      tl.fromTo("#dw-packet-b", { y: 0 }, { y: 100, duration: 0.6, ease: "power2.in", immediateRender: false }, CUE.branches + 0.4);
+      tl.fromTo("#dw-packet-b", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.branches + 1.0);
+      tl.fromTo("#dw-stop", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.4, ease: "power3.out" }, CUE.stop);
+      tl.fromTo("#dw-branch", { opacity: 1 }, { opacity: 0.55, duration: 0.5, immediateRender: false }, CUE.council - 0.2);
+
+      // 03 the council's: duplicate check
+      arrow("#dw-a2", CUE.council);
+      move(2, CUE.council, 0.9);
+      light(2, CUE.dup);
+      // 04 file
+      arrow("#dw-a3", CUE.file - 0.5);
+      move(3, CUE.file - 0.5, 0.5);
+      light(3, CUE.file);
+      // 05 triage
+      arrow("#dw-a4", CUE.triage - 0.4);
+      move(4, CUE.triage - 0.4, 0.4);
+      light(4, CUE.triage);
+
+      // P1 branch: phone now
+      tl.fromTo("#dw-d2", { opacity: 1, scaleY: 0 }, { opacity: 1, scaleY: 1, duration: 0.35, ease: "power2.out" }, CUE.phone);
+      tl.fromTo("#dw-p1", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, CUE.phone + 0.2);
+      tl.fromTo("#dw-packet-r", { opacity: 0, y: 0 }, { opacity: 1, y: 0, duration: 0.2 }, CUE.phone);
+      tl.fromTo("#dw-packet-r", { y: 0 }, { y: 100, duration: 0.6, ease: "power2.in", immediateRender: false }, CUE.phone + 0.2);
+      tl.fromTo("#dw-packet-r", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.phone + 0.8);
+      tl.fromTo("#dw-p1-badge", { scale: 1 }, { scale: 1.08, duration: 0.25, yoyo: true, repeat: 1, transformOrigin: "0% 50%" }, CUE.phone + 0.9);
+
+      // 06 dashboard
+      arrow("#dw-a5", CUE.dashboard - 0.5);
+      move(5, CUE.dashboard - 0.5, 0.5);
+      light(5, CUE.dashboard);
+      tl.fromTo("#dw-packet", { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, CUE.dashboard + 0.5);
+      tl.fromTo("#dw-n6", { boxShadow: "0 0 0 0 rgba(118,185,0,0.6)" }, { boxShadow: "0 0 0 26px rgba(118,185,0,0)", duration: 1.0 }, CUE.dashboard + 0.4);
+      window.__timelines["data-workflow"] = tl;
+    })();
+  </script>
+</template>

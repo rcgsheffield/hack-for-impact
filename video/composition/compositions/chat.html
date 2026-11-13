@@ -269,18 +269,18 @@
             </div>
             <div class="ch-chip" id="ch-c2">
               <svg viewBox="0 0 24 24"><path fill="#4d7a00" d="M22.7 19.3l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3l4.3 4.3-3 3-4.4-4.3C.4 7.4.9 10.4 2.9 12.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
-              <span>assess_pothole → <b>&gt;40 mm · Cat 1</b></span>
+              <span>assess_pothole → <b>100 mm &gt; 40 mm limit</b></span>
             </div>
             <div class="ch-chip" id="ch-c3">
               <svg viewBox="0 0 24 24"><path fill="#4d7a00" d="M22.7 19.3l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3l4.3 4.3-3 3-4.4-4.3C.4 7.4.9 10.4 2.9 12.4c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
-              <span>file_report</span>
+              <span>file_report → <b>triage: P1</b></span>
             </div>
           </div>
           <div class="ch-slot" data-layout-allow-overlap>
             <div class="ch-typing" id="ch-t2"><div class="ch-dot"></div><div class="ch-dot"></div><div class="ch-dot"></div></div>
             <div id="ch-done">
               <div>Thanks, Irene. I've reported it to <b>Sheffield City Council</b>. Ref <span id="ch-ref">SCC-20261113-500D</span>.</div>
-              <div id="ch-badge">Urgent · Category 1 — made safe within 24 hours</div>
+              <div id="ch-badge">P1 Emergency · made safe within 24 hours · phone 0114 273 4567 or 999 if anyone is in danger</div>
               <div id="ch-note">Prototype: not sent to the council</div>
             </div>
           </div>
@@ -294,7 +294,7 @@
   </div>
   <script>
     (function () {
-      // Seconds from scene start. Voice clips are estimates (~2.6 words/s); retime by editing these.
+      // Seconds from scene start, set against the real clip lengths (tools/retime.py keeps them in step).
       const CUE = {
         enter: 0.00, // window slides in
         vo06a: 0.60, // 06a narrator: "Now Irene just tells the agent what's wrong."
@@ -302,14 +302,14 @@
         think1: 8.99, // agent typing dots
         vo06c: 9.79, // 06c agent: "Sorry to hear that, Irene. Roughly how deep is it?"
         vo06d: 14.00, // 06d Irene: "About ten centimetres."
-        vo06e: 16.29, // 06e narrator: "Behind the scenes…"
-        toolRoute: 17.39, // 06e "…checks who's responsible for the road"
-        toolAssess: 20.26, // 06e "…measures the depth against the council's own criteria"
-        toolFile: 22.63, // file_report chip, then typing dots
-        vo06f: 24.10, // 06f agent: confirmation with reference
-        ref: 28.54, // 06f "Your reference is S C C…"
-        urgent: 38.56, // 06f "…so I've flagged it as urgent"
-        vo06g: 44.13, // 06g narrator: "No forms. No hold music…"
+        vo06e: 15.60, // caption swaps to "Behind the scenes" (no voice since 06e was cut)
+        toolRoute: 16.00, // route_report chip
+        toolAssess: 16.90, // assess_pothole chip
+        toolFile: 17.80, // file_report chip, then typing dots
+        vo06f: 19.60, // 06f agent: confirmation with reference
+        ref: 25.40, // 06f "…your reference is on screen"
+        urgent: 32.10, // 06f "…so it's marked as an emergency"
+        vo06g: 38.00, // 06g narrator: "No forms. No hold music…"
       };
       // Feed scroll offsets (px) so the newest item stays above the composer.
       const SCROLL = { tools: -150, file: -230, done: -370 };

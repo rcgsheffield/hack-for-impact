@@ -106,10 +106,10 @@
       <div id="in-rule"></div>
       <div id="in-tag">
         <span class="in-w">Report it in your own words.</span>
-        <span class="in-w">We'll get it to the right place.</span>
+        <span class="in-w">We'll do the paperwork.</span>
       </div>
       <div id="in-badges">
-        <div class="in-badge" id="in-b1"><span class="in-dot"></span>Public Services track</div>
+        <div class="in-badge" id="in-b1"><span class="in-dot"></span>Routes · de-duplicates · prioritises · files</div>
         <div class="in-badge" id="in-b2"><span class="in-dot"></span>Runs locally on NVIDIA DGX Spark</div>
       </div>
     </div>
@@ -119,12 +119,12 @@
       // Scene-local seconds. Retime by editing these numbers only.
       // Clip 05 is ~44 words: at ~2.6 words/s it runs ~17 s, longer than this 14 s slot.
       const CUE = {
-        c05: 0.30, //      VO 05 narrator: "Meet CouncilTriagent: ..."
+        c05: 0.30, //      VO 05 narrator: "Meet CouncilTriagent. ..." (cues set against the real 19 s clip)
         title: 0.63, //    beat: "CouncilTriagent"
-        tag1: 3.94, //     beat: "...a resident's report in their own words"
-        tag2: 6.15, //     beat: "works out who should fix it"
-        badge1: 11.67, //  beat: "built for the Public Services track"
-        badge2: 13.22, //  beat: "runs entirely on local compute"
+        tag1: 5.20, //     beat: "...a report in the resident's own words"
+        tag2: 9.30, //     beat: "...does the council's paperwork"
+        badge1: 11.60, //  beat: "routing, de-duplicating, prioritising and filing"
+        badge2: 16.40, //  beat: "runs entirely on local NVIDIA hardware"
       };
       const tl = gsap.timeline({ paused: true });
       tl.fromTo("#in-glow", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 1.4, ease: "power2.out" }, 0);

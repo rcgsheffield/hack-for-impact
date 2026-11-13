@@ -5,36 +5,41 @@
       inset: 0;
       overflow: hidden;
       font-family: Inter, sans-serif;
-      background: #2f4a4f;
-      color: #f1f4f8;
+      background: #0b0f0a;
+      color: #eef5e6;
     }
-    #cv-glow {
+    #cv-grid {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 25% 70%, #3f6a5c 0%, #2f4a4f 60%);
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
     }
-    #cv-title {
+    .cv-kicker {
       position: absolute;
-      left: 200px;
-      top: 120px;
-      width: 600px;
-      font-size: 64px;
-      line-height: 1.05;
+      left: 192px;
+      top: 110px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    .cv-title {
+      position: absolute;
+      left: 192px;
+      top: 156px;
+      width: 620px;
+      font-size: 60px;
+      line-height: 1.08;
       font-weight: 900;
       letter-spacing: -0.02em;
-    }
-    #cv-subtitle {
-      position: absolute;
-      left: 202px;
-      top: 270px;
-      font-size: 36px;
-      color: #cfe3d6;
     }
     /* worker at desk: same character as council-inbox */
     #cv-worker {
       position: absolute;
       left: 250px;
-      top: 340px;
+      top: 380px;
       width: 320px;
       height: 520px;
     }
@@ -103,16 +108,16 @@
     #cv-desk {
       position: absolute;
       left: 130px;
-      top: 800px;
+      top: 840px;
       width: 700px;
-      height: 280px;
+      height: 240px;
       background: #6b5444;
       border-radius: 10px 10px 0 0;
     }
     #cv-mug {
       position: absolute;
       left: 640px;
-      top: 720px;
+      top: 760px;
       width: 70px;
       height: 80px;
       border-radius: 6px 6px 16px 16px;
@@ -121,74 +126,152 @@
     #cv-mug-handle {
       position: absolute;
       left: 700px;
-      top: 738px;
+      top: 778px;
       width: 32px;
       height: 40px;
       border: 10px solid #e8eef0;
       border-left: none;
       border-radius: 0 20px 20px 0;
     }
-    /* triaged queue */
+    /* map (phase 2) */
+    #cv-map {
+      position: absolute;
+      left: 192px;
+      top: 340px;
+      width: 600px;
+      height: 600px;
+      border-radius: 22px;
+      background: #141c11;
+      border: 3px solid #3a4a30;
+      overflow: hidden;
+    }
+    #cv-map svg {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    #cv-map-label {
+      position: absolute;
+      left: 24px;
+      top: 18px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #a8c48a;
+    }
+    .cv-pin {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+    }
+    .cv-red {
+      background: #c62828;
+    }
+    .cv-blue {
+      background: #2e6fb0;
+    }
+    .cv-grey {
+      background: #6b7280;
+    }
+    #cv-cluster {
+      position: absolute;
+      left: 288px;
+      top: 398px;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      border: 4px solid #ffffff;
+      background: #e65100;
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #cv-ring {
+      position: absolute;
+      left: 236px;
+      top: 346px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 4px dashed #e65100;
+    }
+    #cv-cluster-label {
+      position: absolute;
+      left: 230px;
+      top: 484px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #eef5e6;
+    }
+    #cv-one {
+      position: absolute;
+      left: 24px;
+      top: 534px;
+      font-size: 32px;
+      font-weight: 900;
+      color: #76b900;
+    }
+    /* queue panel */
     #cv-queue {
       position: absolute;
       left: 860px;
       top: 120px;
       width: 860px;
-      height: 840px;
+      height: 880px;
       border-radius: 18px;
       background: #f5f6f8;
       color: #1f2530;
       overflow: hidden;
     }
     #cv-bar {
-      height: 100px;
+      height: 90px;
       padding: 0 32px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       background: #d8e5dc;
-      font-size: 36px;
+      font-size: 34px;
       font-weight: 700;
     }
     #cv-count {
-      padding: 8px 24px;
+      padding: 6px 22px;
       border-radius: 40px;
       background: #2e7d32;
       color: #fff;
-      font-size: 30px;
+      font-size: 28px;
       font-weight: 700;
     }
-    #cv-list {
-      padding: 24px 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .cv-row {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      padding: 16px 22px;
-      border-radius: 12px;
-      background: #fff;
-      border: 2px solid #cfd5de;
-      font-size: 28px;
-    }
-    .cv-tag {
-      flex: none;
+    .cv-pill {
+      display: inline-block;
       padding: 4px 14px;
       border-radius: 10px;
       font-size: 28px;
       font-weight: 700;
       color: #fff;
+      white-space: nowrap;
     }
-    .cv-c1 {
+    .cv-p1 {
       background: #c62828;
     }
-    .cv-c2 {
-      background: #b26a00;
+    .cv-p2 {
+      background: #e65100;
     }
+    .cv-p3 {
+      background: #2e6fb0;
+    }
+    .cv-p4 {
+      background: #5b6270;
+    }
+    /* phase 1: Irene's report open */
     #cv-open {
+      position: absolute;
+      left: 28px;
+      top: 116px;
+      width: 804px;
       border-radius: 14px;
       background: #fff;
       border: 3px solid #2e7d32;
@@ -203,9 +286,6 @@
       background: #eef6ef;
       font-size: 30px;
       font-weight: 700;
-    }
-    #cv-ref {
-      font-family: "JetBrains Mono", monospace;
     }
     #cv-fields {
       padding: 10px 22px 16px;
@@ -227,11 +307,74 @@
       color: #1f2530;
       font-weight: 700;
     }
+    #cv-ref {
+      font-family: "JetBrains Mono", monospace;
+    }
+    /* phase 2: the sorted queue */
+    .cv-row {
+      position: absolute;
+      left: 28px;
+      width: 804px;
+      height: 112px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 20px;
+      border-radius: 12px;
+      background: #fff;
+      border: 2px solid #cfd5de;
+    }
+    .cv-pillbox {
+      position: relative;
+      flex: none;
+      width: 230px;
+      height: 44px;
+    }
+    .cv-pillbox .cv-pill {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    .cv-text {
+      position: relative;
+      flex: 1;
+      height: 84px;
+    }
+    .cv-what {
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .cv-why {
+      position: absolute;
+      left: 0;
+      top: 44px;
+      padding: 0 6px;
+      margin-left: -6px;
+      border-radius: 6px;
+      font-size: 28px;
+      line-height: 1.3;
+      color: #4b5563;
+      white-space: nowrap;
+    }
+    #cv-r1 { top: 112px; }
+    #cv-r2 { top: 236px; }
+    #cv-r3 { top: 360px; }
+    #cv-r4 { top: 484px; }
+    #cv-r5 { top: 608px; }
+    #cv-r6 { top: 732px; }
+    /* hidden until the timeline reveals them */
+    #cv-smile, #cv-map, .cv-pin, #cv-ring, #cv-cluster, #cv-cluster-label, #cv-one, .cv-row, #cv-k2, #cv-t2, #cv-p5b, #cv-w5b {
+      opacity: 0;
+    }
   </style>
   <div id="root" data-composition-id="council-view" data-width="1920" data-height="1080">
-    <div id="cv-glow"></div>
-    <div id="cv-title">Back at the council…</div>
-    <div id="cv-subtitle">Every report, triaged.</div>
+    <div id="cv-grid"></div>
+    <div class="cv-kicker" id="cv-k1">Back at the council</div>
+    <div class="cv-title" id="cv-t1">Every report arrives ready.</div>
+    <div class="cv-kicker" id="cv-k2">Council dashboard</div>
+    <div class="cv-title" id="cv-t2">Triaged, grouped, sorted.</div>
+
     <div id="cv-desk"></div>
     <div id="cv-worker">
       <div class="cv-body"></div>
@@ -246,63 +389,152 @@
     </div>
     <div id="cv-mug"></div>
     <div id="cv-mug-handle"></div>
+
+    <div id="cv-map" data-layout-allow-overlap data-layout-allow-overflow>
+      <svg width="600" height="600" viewBox="0 0 600 600">
+        <path d="M-20 200 C 150 170, 300 260, 620 210" stroke="#2c3a26" stroke-width="16" fill="none" />
+        <path d="M120 -20 C 160 200, 260 380, 330 620" stroke="#2c3a26" stroke-width="16" fill="none" />
+        <path d="M-20 450 C 200 430, 420 460, 620 380" stroke="#2c3a26" stroke-width="12" fill="none" />
+        <path d="M480 -20 C 450 200, 520 400, 470 620" stroke="#2c3a26" stroke-width="10" fill="none" />
+      </svg>
+      <div id="cv-map-label">Map · Sheffield</div>
+      <div class="cv-pin cv-red" id="cv-m1" style="left: 130px; top: 120px"></div>
+      <div class="cv-pin cv-red" id="cv-m2" style="left: 420px; top: 160px"></div>
+      <div class="cv-pin cv-red" id="cv-m3" style="left: 170px; top: 290px"></div>
+      <div class="cv-pin cv-blue" id="cv-m4" style="left: 470px; top: 330px"></div>
+      <div class="cv-pin cv-grey" id="cv-m6" style="left: 60px; top: 380px"></div>
+      <div class="cv-pin cv-blue" id="cv-d1" style="left: 270px; top: 380px"></div>
+      <div class="cv-pin cv-blue" id="cv-d2" style="left: 345px; top: 405px"></div>
+      <div class="cv-pin cv-blue" id="cv-d3" style="left: 300px; top: 455px"></div>
+      <div id="cv-ring"></div>
+      <div id="cv-cluster">×3</div>
+      <div id="cv-cluster-label">Sharrow Vale Rd</div>
+      <div id="cv-one">3 reports → 1 job</div>
+    </div>
+
     <div id="cv-queue" data-hold>
-      <div id="cv-bar"><span>Reports · roads</span><span id="cv-count">All triaged</span></div>
-      <div id="cv-list">
-        <div id="cv-open">
-          <div id="cv-open-head"><span class="cv-tag cv-c1">Cat 1</span><span>Pothole · Crookes Road</span></div>
-          <div id="cv-fields">
-            <div class="cv-f" id="cv-f-ref"><span class="cv-k">Reference</span><span class="cv-v" id="cv-ref">SCC-20261113-500D</span></div>
-            <div class="cv-f" id="cv-f-loc"><span class="cv-k">Location</span><span class="cv-v">Outside 12 Crookes Road, Sheffield</span></div>
-            <div class="cv-f" id="cv-f-surf"><span class="cv-k">Surface</span><span class="cv-v">Road Surface</span></div>
-            <div class="cv-f" id="cv-f-depth"><span class="cv-k">Depth</span><span class="cv-v">Greater than 40mm</span></div>
-            <div class="cv-f" id="cv-f-cat"><span class="cv-k">Suggested</span><span class="cv-v">Category 1: made safe within 24 hours</span></div>
-            <div class="cv-f" id="cv-f-det"><span class="cv-k">Details</span><span class="cv-v">Large pothole in the road, about 100 mm deep. Trip hazard.</span></div>
-          </div>
+      <div id="cv-bar"><span>Reports · sorted by priority</span><span id="cv-count">All triaged</span></div>
+      <div id="cv-open">
+        <div id="cv-open-head"><span class="cv-pill cv-p1">P1 Emergency</span><span>Pothole · Crookes Road</span></div>
+        <div id="cv-fields">
+          <div class="cv-f" id="cv-f-ref"><span class="cv-k">Reference</span><span class="cv-v" id="cv-ref">SCC-20261113-500D</span></div>
+          <div class="cv-f" id="cv-f-loc"><span class="cv-k">Location</span><span class="cv-v">Outside 12 Crookes Road, Sheffield</span></div>
+          <div class="cv-f" id="cv-f-surf"><span class="cv-k">Surface</span><span class="cv-v">Road</span></div>
+          <div class="cv-f" id="cv-f-depth"><span class="cv-k">Depth</span><span class="cv-v">Greater than 40mm</span></div>
+          <div class="cv-f" id="cv-f-cat"><span class="cv-k">Priority</span><span class="cv-v">P1 Emergency · safe within 24 h</span></div>
+          <div class="cv-f" id="cv-f-why"><span class="cv-k">Why</span><span class="cv-v">Road pothole deeper than 40 mm</span></div>
         </div>
-        <div class="cv-row" id="cv-r2"><span class="cv-tag cv-c2">Cat 2</span><span>Pothole · Ecclesall Road</span></div>
-        <div class="cv-row" id="cv-r3"><span class="cv-tag cv-c2">Cat 2</span><span>Pavement crack · London Road</span></div>
+      </div>
+
+      <div class="cv-row" id="cv-r1">
+        <div class="cv-pillbox"><span class="cv-pill cv-p1 cv-pp1">P1 Emergency</span></div>
+        <div class="cv-text"><div class="cv-what">Fallen tree · Rustlings Road</div><div class="cv-why">Tree fallen across the road</div></div>
+      </div>
+      <div class="cv-row" id="cv-r2">
+        <div class="cv-pillbox"><span class="cv-pill cv-p1 cv-pp1">P1 Emergency</span></div>
+        <div class="cv-text"><div class="cv-what">Pothole · Ecclesall Road</div><div class="cv-why">Cyclist came off · deeper than 40 mm</div></div>
+      </div>
+      <div class="cv-row" id="cv-r3">
+        <div class="cv-pillbox"><span class="cv-pill cv-p1 cv-pp1">P1 Emergency</span></div>
+        <div class="cv-text"><div class="cv-what">Pothole · Crookes Road</div><div class="cv-why">Road pothole deeper than 40 mm</div></div>
+      </div>
+      <div class="cv-row" id="cv-r4">
+        <div class="cv-pillbox"><span class="cv-pill cv-p3">P3 Routine</span></div>
+        <div class="cv-text"><div class="cv-what">Pavement crack · London Road</div><div class="cv-why">No immediate risk</div></div>
+      </div>
+      <div class="cv-row" id="cv-r5" data-layout-allow-overlap>
+        <div class="cv-pillbox"><span class="cv-pill cv-p3" id="cv-p5a">P3 Routine</span><span class="cv-pill cv-p2" id="cv-p5b">P2 High</span></div>
+        <div class="cv-text"><div class="cv-what">Pothole · Sharrow Vale Road</div><div class="cv-why" id="cv-w5a">Depth not given</div><div class="cv-why" id="cv-w5b">Reported 3 times in 8 days</div></div>
+      </div>
+      <div class="cv-row" id="cv-r6">
+        <div class="cv-pillbox"><span class="cv-pill cv-p4" id="cv-p6">P4 Low</span></div>
+        <div class="cv-text"><div class="cv-what">Tree · private garden</div><div class="cv-why">Private land: redirected</div></div>
       </div>
     </div>
   </div>
   <script>
     (function () {
-      // Seconds from scene start. Voice clip 08 is an estimate (~2.6 words/s); retime by editing these.
+      // Scene 08: clip 08 (worker, 4.60 s) then 08b (narrator, 14.11 s, 0.328 s per word), set against the real lengths.
       const CUE = {
-        enter: 0.00, // title, worker and queue arrive
-        rows: 0.60, // queue rows settle in
-        open: 1.40, // Irene's report card opens
-        vo08: 2.00, // 08 worker: "Location, depth, priority, all in the right fields."
-        fLoc: 2.00, // 08 "Location"
-        fDepth: 2.48, // 08 "depth"
-        fCat: 2.88, // 08 "priority"
-        relax: 4.23, // 08 "I can actually get on with this."
+        enter: 0.00, // title, worker and Irene's report arrive
+        vo08: 0.50, // 08 worker: "Location, depth, priority, all in the right fields."
+        fLoc: 0.50, // 08 "Location"
+        fDepth: 0.81, // 08 "depth"
+        fCat: 1.11, // 08 "priority"
+        relax: 3.26, // 08 "I can actually get on with this."
+        swap: 5.30, // worker leaves, the dashboard takes over
+        vo08b: 5.60, // 08b narrator: "Every report arrives triaged,"
+        emergency: 7.24, // 08b "from Emergency"
+        low: 7.90, // 08b "to Low,"
+        reasons: 8.88, // 08b "with the reasons in plain English."
+        mapIn: 6.40, // map panel arrives with the queue, pins drop
+        grouped: 12.16, // 08b "are grouped on the map,": ring round the three Sharrow Vale pins
+        three: 13.80, // 08b "so three people reporting one pothole"
+        merge: 14.40, // the three pins merge
+        cluster: 15.00, // "×3" cluster badge
+        moves: 16.75, // 08b "one job that moves up the queue,"
+        emails: 18.06, // 08b "not three emails."
       };
+      const ROW = 124; // row pitch in px
 
       const tl = gsap.timeline({ paused: true });
-      tl.fromTo("#cv-title", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.enter);
-      tl.fromTo("#cv-subtitle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.enter + 0.3);
-      tl.fromTo("#cv-worker", { x: -80, opacity: 0, y: 20 }, { x: 0, opacity: 1, y: 20, duration: 0.6, ease: "power3.out" }, CUE.enter + 0.2);
-      tl.fromTo("#cv-queue", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, CUE.enter + 0.4);
-      tl.set(["#cv-open", "#cv-r2", "#cv-r3", ".cv-f", "#cv-smile"], { opacity: 0 }, 0);
 
-      // rows settle in, tidy and ordered
-      tl.fromTo(["#cv-r2", "#cv-r3"], { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: "power3.out" }, CUE.rows);
-      tl.fromTo("#cv-open", { opacity: 0, scale: 0.96, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "expo.out" }, CUE.open);
-      tl.fromTo(".cv-f", { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.07, ease: "power3.out" }, CUE.open + 0.2);
+      // phase 1: the worker with Irene's report
+      tl.fromTo("#cv-k1", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.enter);
+      tl.fromTo("#cv-t1", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.enter + 0.1);
+      tl.fromTo("#cv-worker", { x: -80, opacity: 0, y: 20 }, { x: 0, opacity: 1, y: 20, duration: 0.6, ease: "power3.out" }, CUE.enter + 0.1);
+      tl.fromTo("#cv-queue", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, CUE.enter + 0.2);
+      tl.fromTo(".cv-f", { opacity: 0, x: 20 }, { opacity: 1, x: 0, duration: 0.25, stagger: 0.04, ease: "power3.out" }, CUE.enter + 0.3);
 
-      // highlight each field as the worker names it
       const mark = (sel, at) =>
         tl.fromTo(sel, { backgroundColor: "rgba(118,185,0,0)" }, { backgroundColor: "rgba(118,185,0,0.28)", duration: 0.25, ease: "power2.out" }, at);
       mark("#cv-f-loc", CUE.fLoc);
       mark("#cv-f-depth", CUE.fDepth);
       mark("#cv-f-cat", CUE.fCat);
 
-      // worker relaxes: sits up, smiles
       tl.fromTo("#cv-worker", { y: 20, rotation: 0 }, { y: 0, rotation: -3, duration: 0.8, ease: "power2.inOut", immediateRender: false }, CUE.relax);
       tl.fromTo("#cv-flat", { opacity: 1 }, { opacity: 0, duration: 0.2 }, CUE.relax + 0.2);
       tl.fromTo("#cv-smile", { opacity: 0 }, { opacity: 1, duration: 0.25 }, CUE.relax + 0.2);
-      tl.fromTo("#cv-count", { scale: 1 }, { scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, CUE.relax + 0.4);
+
+      // phase 2: the dashboard
+      tl.fromTo(["#cv-worker", "#cv-desk", "#cv-mug", "#cv-mug-handle"], { opacity: 1 }, { opacity: 0, duration: 0.4, immediateRender: false }, CUE.swap);
+      tl.fromTo(["#cv-k1", "#cv-t1"], { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.swap);
+      tl.fromTo("#cv-k2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.swap + 0.25);
+      tl.fromTo("#cv-t2", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, CUE.swap + 0.3);
+      tl.fromTo("#cv-open", { opacity: 1 }, { opacity: 0, duration: 0.3 }, CUE.vo08b);
+      tl.fromTo(".cv-row", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.4, stagger: 0.09, ease: "power3.out" }, CUE.vo08b + 0.15);
+
+      // "from Emergency to Low, with the reasons"
+      tl.fromTo(".cv-pp1", { scale: 1 }, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "power2.out" }, CUE.emergency);
+      tl.fromTo("#cv-p6", { scale: 1 }, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "power2.out" }, CUE.low);
+      tl.fromTo("#cv-queue .cv-why:not(#cv-w5b)", { backgroundColor: "rgba(118,185,0,0)" }, { backgroundColor: "rgba(118,185,0,0.25)", duration: 0.3, stagger: 0.06, ease: "power2.out" }, CUE.reasons);
+      tl.fromTo("#cv-queue .cv-why:not(#cv-w5b)", { backgroundColor: "rgba(118,185,0,0.25)" }, { backgroundColor: "rgba(118,185,0,0)", duration: 0.5, immediateRender: false }, CUE.reasons + 1.4);
+
+      // the map: pins drop, three merge into one group
+      tl.fromTo("#cv-map", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, CUE.mapIn);
+      tl.fromTo(".cv-pin", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: "bounce.out" }, CUE.mapIn + 0.2);
+      tl.fromTo("#cv-ring", { opacity: 0, scale: 1.4 }, { opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }, CUE.grouped);
+      tl.fromTo("#cv-ring", { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, CUE.cluster);
+      tl.fromTo(["#cv-d1", "#cv-d2", "#cv-d3"], { scale: 1 }, { scale: 1.3, duration: 0.2, yoyo: true, repeat: 1, stagger: 0.1 }, CUE.three);
+      tl.fromTo("#cv-d1", { x: 0, y: 0 }, { x: 37, y: 37, duration: 0.5, ease: "power3.inOut", immediateRender: false }, CUE.merge);
+      tl.fromTo("#cv-d2", { x: 0, y: 0 }, { x: -38, y: 12, duration: 0.5, ease: "power3.inOut", immediateRender: false }, CUE.merge);
+      tl.fromTo("#cv-d3", { x: 0, y: 0 }, { x: 7, y: -38, duration: 0.5, ease: "power3.inOut", immediateRender: false }, CUE.merge);
+      tl.fromTo(["#cv-d1", "#cv-d2", "#cv-d3"], { opacity: 1 }, { opacity: 0, duration: 0.2, immediateRender: false }, CUE.cluster);
+      tl.fromTo("#cv-cluster", { opacity: 0, scale: 0.4 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)" }, CUE.cluster);
+      tl.fromTo("#cv-cluster-label", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35 }, CUE.cluster + 0.2);
+      tl.fromTo("#cv-r5", { borderColor: "#cfd5de" }, { borderColor: "#e65100", duration: 0.3 }, CUE.cluster + 0.2);
+
+      // the group's row moves up the queue: P3 to P2
+      tl.fromTo("#cv-r5", { y: 0 }, { y: -ROW, duration: 0.7, ease: "power3.inOut" }, CUE.moves);
+      tl.fromTo("#cv-r4", { y: 0 }, { y: ROW, duration: 0.7, ease: "power3.inOut" }, CUE.moves);
+      tl.fromTo("#cv-p5a", { opacity: 1 }, { opacity: 0, duration: 0.25 }, CUE.moves + 0.3);
+      tl.fromTo("#cv-p5b", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)" }, CUE.moves + 0.35);
+      tl.fromTo("#cv-w5a", { opacity: 1 }, { opacity: 0, duration: 0.25 }, CUE.moves + 0.3);
+      tl.fromTo("#cv-w5b", { opacity: 0 }, { opacity: 1, duration: 0.3 }, CUE.moves + 0.4);
+
+      // "not three emails"
+      tl.fromTo("#cv-one", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, CUE.emails);
+      tl.fromTo("#cv-count", { scale: 1 }, { scale: 1.12, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, CUE.emails + 0.3);
       window.__timelines["council-view"] = tl;
     })();
   </script>

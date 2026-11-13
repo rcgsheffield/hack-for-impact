@@ -1,0 +1,432 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #ba-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #ba-kicker {
+      position: absolute;
+      left: 192px;
+      top: 110px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    #ba-title {
+      position: absolute;
+      left: 192px;
+      top: 156px;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    /* chat panel (left) */
+    #ba-chat {
+      position: absolute;
+      left: 192px;
+      top: 280px;
+      width: 520px;
+      height: 620px;
+      border-radius: 24px;
+      background: #ffffff;
+      color: #13200f;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .ba-msg {
+      padding: 14px 20px;
+      border-radius: 22px;
+      font-size: 28px;
+      line-height: 1.3;
+    }
+    #ba-me {
+      align-self: flex-end;
+      max-width: 430px;
+      background: #13200f;
+      color: #ffffff;
+    }
+    .ba-bot {
+      align-self: flex-start;
+      max-width: 440px;
+      background: #eef3e6;
+    }
+    #ba-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .ba-chip {
+      padding: 6px 14px;
+      border-radius: 12px;
+      border: 2px solid #c9dcae;
+      background: #f7faf2;
+      color: #2d4a12;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+    }
+    /* browser window (right) */
+    #ba-win {
+      position: absolute;
+      left: 760px;
+      top: 280px;
+      width: 1000px;
+      height: 620px;
+      border-radius: 20px;
+      background: #ffffff;
+      color: #1f2530;
+      overflow: hidden;
+      border: 3px solid #3a4a30;
+    }
+    #ba-bar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 22px;
+      background: #1b2418;
+    }
+    .ba-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #4a5a40;
+    }
+    #ba-url {
+      margin-left: 14px;
+      flex: 1;
+      height: 46px;
+      border-radius: 23px;
+      background: #0b0f0a;
+      color: #cfe3b8;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      line-height: 46px;
+      padding: 0 20px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    #ba-page,
+    #ba-review {
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      top: 72px;
+      width: 994px;
+      height: 542px;
+      padding: 26px 40px;
+    }
+    .ba-h {
+      font-size: 36px;
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+    .ba-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      height: 76px;
+      margin-bottom: 10px;
+      padding: 0 14px;
+      border-radius: 10px;
+    }
+    .ba-label {
+      flex: none;
+      width: 300px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .ba-input {
+      position: relative;
+      flex: 1;
+      height: 56px;
+      border: 3px solid #8a94a3;
+      border-radius: 8px;
+      font-size: 28px;
+      line-height: 50px;
+      padding: 0 14px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .ba-radio {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 28px;
+      margin-right: 18px;
+    }
+    .ba-circle {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid #1f2530;
+    }
+    .ba-fill {
+      position: absolute;
+      left: 6px;
+      top: 6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #1f2530;
+    }
+    .ba-type {
+      display: inline-block;
+    }
+    #ba-err {
+      position: absolute;
+      left: 354px;
+      top: 78px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #c62828;
+    }
+    #ba-btn {
+      margin-top: 40px !important;
+    }
+    #ba-load {
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      top: 72px;
+      width: 994px;
+      height: 542px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      color: #5b6676;
+    }
+    #ba-btn,
+    #ba-submit {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 10px 30px;
+      border-radius: 8px;
+      background: #2e7d32;
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .ba-check {
+      display: flex;
+      gap: 20px;
+      padding: 10px 0;
+      border-bottom: 2px solid #e1e5ea;
+      font-size: 28px;
+    }
+    .ba-check span:first-child {
+      width: 300px;
+      color: #5b6676;
+    }
+    .ba-check span:last-child {
+      font-weight: 700;
+    }
+    #ba-wait {
+      display: inline-block;
+      margin-left: 18px;
+      padding: 8px 18px;
+      border-radius: 12px;
+      background: #13200f;
+      color: #d7ff7a;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    #ba-scan {
+      position: absolute;
+      left: 0;
+      top: 72px;
+      width: 1000px;
+      height: 10px;
+      background: linear-gradient(90deg, rgba(118, 185, 0, 0), rgba(118, 185, 0, 0.8), rgba(118, 185, 0, 0));
+      box-shadow: 0 0 30px 10px rgba(118, 185, 0, 0.35);
+    }
+    #ba-caption {
+      position: absolute;
+      left: 192px;
+      top: 922px;
+      width: 1568px;
+      font-size: 40px;
+      font-weight: 700;
+    }
+    #ba-caption span {
+      color: #76b900;
+    }
+    #ba-foot {
+      position: absolute;
+      left: 192px;
+      top: 984px;
+      font-size: 28px;
+      color: #a0aa98;
+    }
+    /* initial hidden states (the timeline reveals them) */
+    #ba-b1, #ba-b2, .ba-chip, #ba-win, #ba-page, #ba-review, #ba-road, #ba-err, #ba-scan, #ba-wait, #ba-caption, #ba-foot, #ba-depth {
+      opacity: 0;
+    }
+    #ba-loc, #ba-info-t {
+      clip-path: inset(0 100% 0 0);
+    }
+  </style>
+  <div id="root" data-composition-id="browser-agent" data-width="1920" data-height="1080">
+    <div id="ba-grid"></div>
+    <div id="ba-kicker">Browser agent</div>
+    <div id="ba-title">It fills in the council's own form.</div>
+
+    <div id="ba-chat">
+      <div class="ba-msg" id="ba-me">Pothole about 6 cm deep on Western Bank, S10 2TN. Report it anonymously.</div>
+      <div class="ba-msg ba-bot" id="ba-b1">Opening the council form…</div>
+      <div id="ba-chips">
+        <div class="ba-chip" id="ba-k1">read_page</div>
+        <div class="ba-chip" id="ba-k2">click [ref=e57]</div>
+        <div class="ba-chip" id="ba-k3">type_text</div>
+        <div class="ba-chip" id="ba-k4">select_option</div>
+        <div class="ba-chip" id="ba-k5">type_text ↻ fix</div>
+      </div>
+      <div class="ba-msg ba-bot" id="ba-b2">Here's what I'll send. Shall I submit it?</div>
+    </div>
+
+    <div id="ba-win">
+      <div id="ba-bar">
+        <div class="ba-dot"></div><div class="ba-dot"></div><div class="ba-dot"></div>
+        <div id="ba-url"><span id="ba-url-t">…/mock/report_pothole_crack.html</span></div>
+      </div>
+      <div id="ba-load">Starting Firefox (Playwright)…</div>
+      <div id="ba-page">
+        <div class="ba-h">Report a pothole or crack</div>
+        <div class="ba-row" id="ba-r1">
+          <div class="ba-label">Where is it?</div>
+          <div class="ba-radio"><div class="ba-circle"><div class="ba-fill" id="ba-road"></div></div>Road</div>
+          <div class="ba-radio"><div class="ba-circle"></div>Pavement</div>
+        </div>
+        <div class="ba-row" id="ba-r2">
+          <div class="ba-label">Location</div>
+          <div class="ba-input"><span class="ba-type" id="ba-loc">Western Bank, S10 2TN</span></div>
+        </div>
+        <div class="ba-row" id="ba-r3">
+          <div class="ba-label">How deep?</div>
+          <div class="ba-input" id="ba-sel"><span id="ba-depth">Greater than 40mm ▾</span></div>
+        </div>
+        <div class="ba-row" id="ba-r4" data-layout-allow-overlap>
+          <div class="ba-label">Further information</div>
+          <div class="ba-input" id="ba-info"><span class="ba-type" id="ba-info-t">Pothole about 6 cm deep in the road</span></div>
+          <div id="ba-err">Error: Enter further information</div>
+        </div>
+        <div id="ba-btn">Continue</div>
+      </div>
+      <div id="ba-review">
+        <div class="ba-h">Check your answers</div>
+        <div class="ba-check"><span>Where is it?</span><span>Road</span></div>
+        <div class="ba-check"><span>Location</span><span>Western Bank, S10 2TN</span></div>
+        <div class="ba-check"><span>How deep?</span><span>Greater than 40mm</span></div>
+        <div class="ba-check"><span>Further information</span><span>Pothole about 6 cm deep</span></div>
+        <div class="ba-check"><span>Your details</span><span>Anonymous</span></div>
+        <div style="margin-top: 18px"><div id="ba-submit">Submit</div><div id="ba-wait">Submit? → waiting for your “yes”</div></div>
+      </div>
+      <div id="ba-scan" data-layout-ignore></div>
+    </div>
+
+    <div id="ba-caption">No API needed: <span>works with the council's existing forms</span></div>
+    <div id="ba-foot">Tested on copies of Sheffield's forms</div>
+  </div>
+  <script>
+    (function () {
+      // Scene 07, clip 07 (18.47 s, real length). Beats placed at an even rate from 0.50 s (0.324 s per word).
+      const CUE = {
+        enter: 0.20, // kicker, title, chat with Irene's message
+        vo07: 0.50, // 07 narrator: "And where the council only has a web form,"
+        webForm: 2.77, // 07 "…a web form": browser window appears
+        fills: 4.06, // 07 "the agent fills it in": agent says it's opening the form
+        opens: 6.98, // 07 "It opens the form in a browser": page loads
+        reads: 8.92, // 07 "reads the page": read_page, scan line
+        clicks: 10.22, // 07 "then clicks": Road radio
+        types: 10.54, // 07 "types": location typed
+        picks: 11.19, // 07 "and picks from the dropdowns": depth selected
+        error: 12.10, // Continue pressed, the form complains
+        fixes: 12.81, // 07 "and fixes its own mistakes": further information typed
+        review: 14.70, // 07 "…when the form complains": Continue, review page
+        noApi: 15.40, // 07 "No integration project.": agent asks to confirm
+        works: 16.70, // 07 "It works with the forms councils already have.": caption
+      };
+      const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" };
+      const pop = (sel, at) =>
+        tl.fromTo(sel, { opacity: 0, y: 16, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.6)" }, at);
+      const flash = (sel, at) =>
+        tl.fromTo(sel, { backgroundColor: "rgba(118,185,0,0)" }, { backgroundColor: "rgba(118,185,0,0.22)", duration: 0.25, yoyo: true, repeat: 1, ease: "power2.out" }, at);
+
+
+      tl.fromTo("#ba-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.enter);
+      tl.fromTo("#ba-title", { opacity: 0, y: 20 }, IN, CUE.enter + 0.1);
+      tl.fromTo("#ba-chat", { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, CUE.enter + 0.2);
+      pop("#ba-me", CUE.vo07 + 0.4);
+
+      // browser window arrives on "web form"
+      tl.fromTo("#ba-win", { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "expo.out", immediateRender: false }, CUE.webForm);
+      pop("#ba-b1", CUE.fills);
+
+      // page loads
+      tl.fromTo("#ba-url-t", { opacity: 0.2 }, { opacity: 1, duration: 0.4 }, CUE.opens);
+      tl.fromTo("#ba-load", { opacity: 1 }, { opacity: 0, duration: 0.25 }, CUE.opens + 0.1);
+      tl.fromTo("#ba-page", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, CUE.opens + 0.3);
+
+      // read_page: a scan line sweeps the page
+      pop("#ba-k1", CUE.reads);
+      tl.fromTo("#ba-scan", { opacity: 0 }, { opacity: 1, duration: 0.15, immediateRender: false }, CUE.reads);
+      tl.fromTo("#ba-scan", { y: 0 }, { y: 520, duration: 1.0, ease: "power1.inOut" }, CUE.reads);
+      tl.fromTo("#ba-scan", { opacity: 1 }, { opacity: 0, duration: 0.2, immediateRender: false }, CUE.reads + 0.95);
+
+      // click, type, select
+      pop("#ba-k2", CUE.clicks);
+      flash("#ba-r1", CUE.clicks);
+      tl.fromTo("#ba-road", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)", immediateRender: false }, CUE.clicks + 0.1);
+      pop("#ba-k3", CUE.types);
+      tl.fromTo("#ba-loc", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.6, ease: "steps(21)", immediateRender: false }, CUE.types + 0.1);
+      pop("#ba-k4", CUE.picks);
+      flash("#ba-r3", CUE.picks);
+      tl.fromTo("#ba-depth", { opacity: 0 }, { opacity: 1, duration: 0.2, immediateRender: false }, CUE.picks + 0.2);
+
+      // Continue with a blank field: the form complains
+      tl.fromTo("#ba-btn", { scale: 1 }, { scale: 0.92, duration: 0.1, yoyo: true, repeat: 1 }, CUE.error);
+      tl.fromTo("#ba-err", { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.25, immediateRender: false }, CUE.error + 0.2);
+      tl.fromTo("#ba-info", { borderColor: "#8a94a3" }, { borderColor: "#c62828", duration: 0.2 }, CUE.error + 0.2);
+      tl.fromTo("#ba-err", { y: 0 }, { y: -3, duration: 0.06, yoyo: true, repeat: 3 }, CUE.error + 0.3);
+
+      // the agent fixes it
+      pop("#ba-k5", CUE.fixes);
+      tl.fromTo("#ba-info-t", { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: 0.9, ease: "steps(35)", immediateRender: false }, CUE.fixes + 0.2);
+      tl.fromTo("#ba-info", { borderColor: "#c62828" }, { borderColor: "#2e7d32", duration: 0.25, immediateRender: false }, CUE.fixes + 1.1);
+      tl.fromTo("#ba-err", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.fixes + 1.1);
+
+      // Continue: review page
+      tl.fromTo("#ba-btn", { scale: 1 }, { scale: 0.92, duration: 0.1, yoyo: true, repeat: 1, immediateRender: false }, CUE.review - 0.3);
+      tl.fromTo("#ba-page", { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, CUE.review);
+      tl.fromTo("#ba-review", { opacity: 0, x: 40 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out", immediateRender: false }, CUE.review + 0.15);
+
+      // asks before submitting
+      pop("#ba-b2", CUE.noApi);
+      tl.fromTo("#ba-wait", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.8)", immediateRender: false }, CUE.noApi + 0.3);
+
+      // caption
+      tl.fromTo("#ba-caption", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", immediateRender: false }, CUE.works);
+      tl.fromTo("#ba-foot", { opacity: 0 }, { opacity: 1, duration: 0.5, immediateRender: false }, CUE.works + 0.6);
+      window.__timelines["browser-agent"] = tl;
+    })();
+  </script>
+</template>

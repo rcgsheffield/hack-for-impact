@@ -1,0 +1,251 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #bz-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #bz-kicker {
+      position: absolute;
+      left: 192px;
+      top: 120px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    #bz-title {
+      position: absolute;
+      left: 192px;
+      top: 166px;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    #bz-core {
+      position: absolute;
+      left: 192px;
+      top: 300px;
+      width: 820px;
+      padding: 24px 30px;
+      border-radius: 22px;
+      border: 3px solid #76b900;
+      background: rgba(118, 185, 0, 0.06);
+    }
+    #bz-core-name {
+      font-size: 38px;
+      font-weight: 900;
+    }
+    #bz-core-name span {
+      font-family: "JetBrains Mono", monospace;
+      color: #76b900;
+    }
+    #bz-core-sub {
+      margin-top: 10px;
+      font-size: 30px;
+      line-height: 1.3;
+      color: #cfe3b8;
+    }
+    #bz-earn {
+      position: absolute;
+      left: 192px;
+      top: 520px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #a0aa98;
+    }
+    .bz-tile {
+      position: absolute;
+      width: 395px;
+      height: 160px;
+      border-radius: 20px;
+      background: #141c11;
+      border: 3px solid #3a4a30;
+      padding: 22px 24px;
+    }
+    #bz-t1 { left: 192px; top: 576px; }
+    #bz-t2 { left: 617px; top: 576px; }
+    #bz-t3 { left: 192px; top: 760px; }
+    #bz-t4 { left: 617px; top: 760px; }
+    .bz-tname {
+      font-size: 34px;
+      font-weight: 900;
+    }
+    .bz-tsub {
+      margin-top: 8px;
+      font-size: 28px;
+      line-height: 1.25;
+      color: #a8c48a;
+    }
+    #bz-next {
+      position: absolute;
+      left: 1110px;
+      top: 300px;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #76b900;
+    }
+    #bz-line {
+      position: absolute;
+      left: 1131px;
+      top: 392px;
+      width: 6px;
+      height: 440px;
+      border-radius: 3px;
+      background: #3a4a30;
+      transform-origin: 50% 0;
+    }
+    .bz-step {
+      position: absolute;
+      left: 1110px;
+      width: 640px;
+      padding-left: 74px;
+    }
+    #bz-s1 { top: 370px; }
+    #bz-s2 { top: 515px; }
+    #bz-s3 { top: 660px; }
+    #bz-s4 { top: 805px; }
+    .bz-dot {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #0b0f0a;
+      border: 4px solid #76b900;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      line-height: 40px;
+      text-align: center;
+      color: #76b900;
+    }
+    .bz-sname {
+      font-size: 36px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .bz-ssub {
+      margin-top: 6px;
+      font-size: 28px;
+      color: #a8c48a;
+    }
+    #bz-plan {
+      position: absolute;
+      left: 1110px;
+      top: 950px;
+      font-size: 28px;
+      color: #a0aa98;
+    }
+  </style>
+  <div id="root" data-composition-id="business" data-width="1920" data-height="1080">
+    <div id="bz-grid"></div>
+    <div id="bz-kicker">Business model</div>
+    <div id="bz-title">Open source + services</div>
+
+    <div id="bz-core">
+      <div id="bz-core-name">Open core · <span>MIT</span> licence</div>
+      <div id="bz-core-sub">Any council can inspect it and run it on its own hardware.</div>
+    </div>
+    <div id="bz-earn">We earn from</div>
+    <div class="bz-tile" id="bz-t1">
+      <div class="bz-tname">Deployment</div>
+      <div class="bz-tsub">on NVIDIA hardware the council owns</div>
+    </div>
+    <div class="bz-tile" id="bz-t2">
+      <div class="bz-tname">Integration</div>
+      <div class="bz-tsub">case systems via Open311</div>
+    </div>
+    <div class="bz-tile" id="bz-t3">
+      <div class="bz-tname">Service modules</div>
+      <div class="bz-tsub">bins, street lights, fly&#8209;tipping</div>
+    </div>
+    <div class="bz-tile" id="bz-t4">
+      <div class="bz-tname">Support</div>
+      <div class="bz-tsub">updates and help for each council</div>
+    </div>
+
+    <div id="bz-next">Next steps</div>
+    <div id="bz-line"></div>
+    <div class="bz-step" id="bz-s1">
+      <div class="bz-dot">1</div>
+      <div class="bz-sname">Pilot with Sheffield City Council</div>
+      <div class="bz-ssub">on the real forms</div>
+    </div>
+    <div class="bz-step" id="bz-s2">
+      <div class="bz-dot">2</div>
+      <div class="bz-sname">Live reports into the case system</div>
+      <div class="bz-ssub">as Open311 service requests</div>
+    </div>
+    <div class="bz-step" id="bz-s3">
+      <div class="bz-dot">3</div>
+      <div class="bz-sname">More services</div>
+      <div class="bz-ssub">beyond roads and trees</div>
+    </div>
+    <div class="bz-step" id="bz-s4">
+      <div class="bz-dot">4</div>
+      <div class="bz-sname">NVIDIA NIM for production</div>
+      <div class="bz-ssub">same OpenAI-style API</div>
+    </div>
+    <div id="bz-plan">Roadmap: planned, not yet built.</div>
+  </div>
+  <script>
+    (function () {
+      // Scene 13, clip 13 (24.97 s, ~0.36 s a word). Seconds from scene start, set against the real clip.
+      const CUE = {
+        vo13: 0.50, // "Our business model is open source plus services."
+        core: 3.40, // "The core is open, so any council can inspect it and run it on its own hardware."
+        earn: 9.55, // "We earn from"
+        deploy: 10.64, // "deploying it,"
+        integrate: 11.36, // "connecting it to council case systems through Open311,"
+        modules: 14.26, // "adding new services like bins, street lights and fly-tipping,"
+        support: 17.50, // "and support."
+        next: 18.24, // "Next,"
+        pilot: 18.60, // "a pilot with Sheffield City Council,"
+        live: 20.80, // "live reports into its case system,"
+        nim: 22.95, // "and NVIDIA NIM for production."
+      };
+      const tl = gsap.timeline({ paused: true });
+      const IN = { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" };
+      tl.fromTo("#bz-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.vo13);
+      tl.fromTo("#bz-title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.25, ease: "power4.out" }, CUE.vo13 + 0.2);
+
+      tl.fromTo("#bz-core", { opacity: 0, y: 24 }, IN, CUE.core);
+      tl.fromTo("#bz-earn", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.earn);
+      const tile = (sel, at) => {
+        tl.fromTo(sel, { opacity: 0, y: 24 }, IN, at);
+        tl.fromTo(sel, { borderColor: "#76b900" }, { borderColor: "#3a4a30", duration: 0.8, immediateRender: false }, at + 0.6);
+      };
+      tile("#bz-t1", CUE.deploy);
+      tile("#bz-t2", CUE.integrate);
+      tile("#bz-t3", CUE.modules);
+      tile("#bz-t4", CUE.support);
+
+      // roadmap
+      tl.fromTo("#bz-next", { opacity: 0 }, { opacity: 1, duration: 0.4 }, CUE.next);
+      tl.fromTo("#bz-line", { scaleY: 0 }, { scaleY: 1, duration: 4.8, ease: "none" }, CUE.pilot);
+      const step = (sel, at) => tl.fromTo(sel, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, at);
+      step("#bz-s1", CUE.pilot);
+      step("#bz-s2", CUE.live);
+      step("#bz-s3", CUE.live + 1.0);
+      step("#bz-s4", CUE.nim);
+      tl.fromTo("#bz-plan", { opacity: 0 }, { opacity: 1, duration: 0.5 }, CUE.nim + 0.8);
+      window.__timelines["business"] = tl;
+    })();
+  </script>
+</template>
