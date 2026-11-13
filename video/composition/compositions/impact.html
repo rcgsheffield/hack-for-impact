@@ -154,18 +154,18 @@
       // These cues assume a brisker read (~3.5 words/s); retime by editing these numbers once the clip exists.
       const CUE = {
         residents: 0.40, // "For residents,"
-        messages: 2.49, // "reporting a problem takes a couple of messages,"
-        ownWords: 5.28, // "in their own words."
-        council: 7.37, // "For the council,"
-        complete: 8.76, // "reports arrive complete,"
-        rightPlace: 10.51, // "in the right place,"
-        urgent: 11.90, // "with urgent hazards flagged first."
-        today: 15.04, // "Today it handles road and pavement defects,"
-        local: 18.87, // "and it records reports locally rather than sending them to the council."
-        next: 24.79, // "Next, we'd connect it to the council's case system,"
-        services: 27.58, // "add more services,"
-        fixmystreet: 29.32, // "and use FixMyStreet open data to spot duplicate reports."
-        nim: 34.55, // "And because it speaks the standard OpenAI API, moving to NVIDIA NIM is a one-line change."
+        messages: 2.16, // "reporting a problem takes a couple of messages,"
+        ownWords: 4.51, // "in their own words."
+        council: 6.28, // "For the council,"
+        complete: 7.45, // "reports arrive complete,"
+        rightPlace: 8.92, // "in the right place,"
+        urgent: 10.09, // "with urgent hazards flagged first."
+        today: 12.74, // "Today it handles road and pavement defects,"
+        local: 15.97, // "and it records reports locally rather than sending them to the council."
+        next: 20.97, // "Next, we'd connect it to the council's case system,"
+        services: 23.32, // "add more services,"
+        fixmystreet: 24.78, // "and use FixMyStreet open data to spot duplicate reports."
+        nim: 29.19, // "And because it speaks the standard OpenAI API, moving to NVIDIA NIM is a one-line change."
       };
       const tl = gsap.timeline({ paused: true });
       const pop = (sel, at) =>

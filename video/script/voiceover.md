@@ -1,6 +1,6 @@
 # Voiceover script
 
-Each `## <id>` section is one voiceover clip. `tools/tts.py` sends the text under each heading to ElevenLabs and writes `composition/assets/voice/<id>.mp3`. Lines starting with `>` are direction notes and are not spoken. Add `voice=<name>` to a heading to use a character voice (`irene`, `handler`, `worker`, `agent`); otherwise the narrator speaks.
+Each `## <id>` section is one voiceover clip. `tools/tts.py` sends the text under each heading to ElevenLabs and writes `composition/assets/voice/<id>.mp3`. Lines starting with `>` are direction notes and are not spoken. Add `voice=<name>` to a heading to use a character voice (`irene`, `handler`, `worker`, `agent`, `upbeat`); otherwise the narrator speaks.
 
 Scene numbers match `storyboard.md`. Agent lines must match what the real app does (`src/app/agent.py`, `src/app/tools.py`); check them against a real run before recording.
 
@@ -36,11 +36,11 @@ No location. No depth. And this one's on the M1. That's not even ours.
 > Slow, dramatic.
 If only there was another way.
 
-## 05
+## 05 voice=upbeat
 > Upbeat from here.
 Meet CouncilTriagent: an AI agent that takes a resident's report in their own words, works out who should fix it, and hands the council a report that's ready to act on. It's built for the Public Services track and runs entirely on local compute.
 
-## 06a
+## 06a voice=upbeat
 Now Irene just tells the agent what's wrong.
 
 ## 06b voice=irene
@@ -52,16 +52,17 @@ Sorry to hear that, Irene. Roughly how deep is it?
 ## 06d voice=irene
 About ten centimetres.
 
-## 06e
+## 06e voice=upbeat
 Behind the scenes, the agent checks who's responsible for the road, then measures the depth against the council's own criteria.
 
 ## 06f voice=agent
-Thanks, Irene. I've reported it to Sheffield City Council. Your reference is S C C, two zero two six, one one one three. At a hundred millimetres it's well over the forty millimetre threshold, so I've flagged it as urgent. Hazards like this are usually made safe within twenty-four hours.
+> The real agent quotes the full reference in its reply (see the chat text on screen). The spoken line abbreviates it so the video doesn't read out a long number.
+Thanks, Irene. I've reported it to Sheffield City Council. Your reference number is on screen. At a hundred millimetres it's well over the forty millimetre threshold, so I've flagged it as urgent. Hazards like this are usually made safe within twenty-four hours.
 
-## 06g
+## 06g voice=upbeat
 No forms. No hold music. Two messages, and the report is filed.
 
-## 07a
+## 07a voice=upbeat
 And when it isn't the council's problem, the agent says so, instead of letting it bounce around an inbox.
 
 ## 07b voice=irene
@@ -74,14 +75,14 @@ The Stocksbridge Bypass is run by National Highways, not the council, so I can't
 > The tidy queue: the "after" to scene 03.
 Location, depth, priority, all in the right fields. I can actually get on with this.
 
-## 09
+## 09 voice=upbeat
 So how does it work? CouncilTriagent runs an open model, NVIDIA Nemotron, served by Ollama on an NVIDIA DGX Spark. There are no cloud APIs, so residents' reports never leave the machine.
 
-## 10
+## 10 voice=upbeat
 The model decides what to do next and calls three tools. Route report applies Sheffield's responsibility rules: council, National Highways, police, DVLA or a private landowner. Assess pothole checks the depth against the council's thresholds. File report fills in the exact fields of the council's pothole form and issues a reference. If a tool call goes wrong, the error goes back to the model so it can correct itself. Every step is logged, so staff can see why a report was routed the way it was.
 
-## 11
+## 11 voice=upbeat
 For residents, reporting a problem takes a couple of messages, in their own words. For the council, reports arrive complete, in the right place, with urgent hazards flagged first. Today it handles road and pavement defects, and it records reports locally rather than sending them to the council. Next, we'd connect it to the council's case system, add more services, and use FixMyStreet open data to spot duplicate reports. And because it speaks the standard OpenAI API, moving to NVIDIA NIM is a one-line change.
 
-## 12
+## 12 voice=upbeat
 Less time on hold for Irene. Less time triaging for the council. This is CouncilTriagent.

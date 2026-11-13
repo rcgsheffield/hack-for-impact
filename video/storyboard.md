@@ -25,4 +25,4 @@ The story has to prove one point to the judges: **this problem needs an agent, n
 - The demo (scenes 06–07) is an animated mock-up, but it must match what the real app does. Run the app once with Irene's messages and copy the real tool arguments and results into scene 10. If the model's replies differ, adjust the agent lines in `script/voiceover.md`.
 - Only claim what is built. The agent does not yet read open data or submit reports to the council; scene 11 says so.
 - Scenes 09–10 are where the "technical execution" criterion is scored: show the agentic steps, the open model and the local compute explicitly.
-- Team names for scene 12 come from the Team section of the top-level `README.md` (still to be filled in).
+- Team name for scene 12: Dependency Hell's Angels.

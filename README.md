@@ -63,6 +63,8 @@ Settings, the deployed app and checks are in [`docs/getting-started.md`](docs/ge
 
 ## Team
 
+Team name: **Dependency Hell's Angels**
+
 _Add team members here._
 
 ## Licence
