@@ -30,3 +30,22 @@ GIT_SHA = os.environ.get("GIT_SHA", "unknown")
 MAX_AGENT_STEPS = int(os.environ.get("MAX_AGENT_STEPS", "12"))
 # Seconds to wait for one model response. Large models can take a while to load on first request.
 LLM_TIMEOUT = float(os.environ.get("LLM_TIMEOUT", "180"))
+
+# ---- Browser agent (src/app/browser_agent.py, the /browser chat) ----
+# Where the agent finds the forms. The app serves the mock pages at /mock/, so this is the app itself by default.
+BROWSER_FORMS_URL = os.environ.get("BROWSER_FORMS_URL") or "http://127.0.0.1:8000/mock/"
+# Playwright MCP server, run with npx. Keep the version in step with deploy.sh, which installs its browser.
+BROWSER_MCP_PACKAGE = os.environ.get("BROWSER_MCP_PACKAGE") or "@playwright/mcp@0.0.83"
+BROWSER_MCP_COMMAND = os.environ.get("BROWSER_MCP_COMMAND") or f"npx -y {BROWSER_MCP_PACKAGE}"
+# Firefox: Playwright builds it for Linux on ARM (the Spark), and it was the browser we tested with.
+BROWSER_NAME = os.environ.get("BROWSER_NAME") or "firefox"
+BROWSER_HEADLESS = os.environ.get("BROWSER_HEADLESS", "1") != "0"
+# Browser window size; the chat UI's live view shows screenshots of it beside the chat.
+BROWSER_VIEWPORT = os.environ.get("BROWSER_VIEWPORT") or "1000x800"
+# A form takes ~15 browser actions plus retries, far more than the form toolkits' ~6 coarse calls.
+BROWSER_MAX_AGENT_STEPS = int(os.environ.get("BROWSER_MAX_AGENT_STEPS", "40"))
+# Every action returns the page (~1-2k tokens), so the conversation grows fast.
+BROWSER_NUM_CTX = int(os.environ.get("BROWSER_NUM_CTX", "65536"))
+# Each /browser conversation runs its own Node process and browser: cap them and close idle ones.
+BROWSER_MAX_SESSIONS = int(os.environ.get("BROWSER_MAX_SESSIONS", "3"))
+BROWSER_IDLE_SECONDS = int(os.environ.get("BROWSER_IDLE_SECONDS", "900"))

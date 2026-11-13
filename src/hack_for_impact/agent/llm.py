@@ -134,9 +134,10 @@ def new_thread_id() -> str:
     return str(uuid.uuid4())
 
 
-def thread_config(thread_id: str) -> dict:
+def thread_config(thread_id: str, max_steps: int | None = None) -> dict:
     # Each model call + tool round is two graph steps.
-    return {"configurable": {"thread_id": thread_id}, "recursion_limit": 2 * config.MAX_AGENT_STEPS + 1}
+    return {"configurable": {"thread_id": thread_id},
+            "recursion_limit": 2 * (max_steps or config.MAX_AGENT_STEPS) + 1}
 
 
 def user_turns(agent, thread_id: str) -> int:
@@ -145,17 +146,19 @@ def user_turns(agent, thread_id: str) -> int:
     return sum(isinstance(m, HumanMessage) for m in state.values.get("messages", []))
 
 
-def run_agent_events(agent, messages: list[dict], thread_id: str | None = None) -> Iterator[ToolStep | str]:
+def run_agent_events(agent, messages: list[dict], thread_id: str | None = None,
+                     max_steps: int | None = None) -> Iterator[ToolStep | str]:
     """Run one user turn. Yields a ToolStep for each tool call, then the final reply as a str.
 
     Same contract as app.agent.run_agent_events, so the frontend can show each tool call as it happens.
     `messages` are {"role": "user"|"assistant", "content": str} dicts to add to the thread, ending with the
     user's message. With a thread_id, earlier turns (including tool calls and results) come from the checkpointer,
     so pass only the new message. Without one, a fresh thread is used.
+    `max_steps` caps model calls for this turn (default config.MAX_AGENT_STEPS); the browser agent needs more.
     """
     calls: dict[str, dict] = {}  # tool_call_id -> {"name", "args"} from the model's request
     reply = ""
-    run_config = thread_config(thread_id or new_thread_id())
+    run_config = thread_config(thread_id or new_thread_id(), max_steps)
     try:
         for update in agent.stream({"messages": messages}, config=run_config, stream_mode="updates"):
             for node_update in update.values():

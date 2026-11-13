@@ -383,12 +383,18 @@ REFERENCE_RE = re.compile(r"\b[A-Z]{0,4}-?\d{6,}\b")
 
 
 def unverified_references(reply: str, tool_results: list[str]) -> list[str]:
-    """Reference-like numbers in the model's reply that no submit tool returned (i.e. made up)."""
+    """Reference-like numbers in the model's reply that no submit tool returned (i.e. made up).
+
+    Form toolkit tools return JSON with a "reference"; the browser agent's tools return the page as text,
+    where a real reference is one shown on the "Request submitted" page.
+    """
     real = set()
     for content in tool_results:
         try:
             ref = json.loads(content).get("reference")
         except (ValueError, AttributeError):
+            if "Request submitted" in content:
+                real.update(REFERENCE_RE.findall(content))
             continue
         if ref:
             real.add(str(ref))
