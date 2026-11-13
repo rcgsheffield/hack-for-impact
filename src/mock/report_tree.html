@@ -1,0 +1,780 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Report a problem with a tree (TEST MOCK)</title>
+<!--
+  Test mock of forms.sheffield.gov.uk/site/portal/form/report_tree
+  Built from report_pothole_crack.html (same portal shell, sign-in, location, about-you, review and submit steps).
+  UNVERIFIED: the live report_tree form is JS-rendered and its definition was not read, so the "About the tree"
+  page (questions, field names, option values, exit branches) is a best guess from the council's public guidance
+  at sheffield.gov.uk/roads-pavements/problems-plants-trees-weeds-grass (13 Nov 2026). Check against the live form.
+  Design tokens come from the portal's published tenant CSS. No crest or logo is reproduced.
+  Nothing is sent anywhere: submissions are kept in this browser (localStorage "mock_submissions")
+  and exposed as window.mockSubmissions for test harnesses.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+<style>
+  :root {
+    --primary-dark: #13384A; --primary: #1b4a60; --body: #3d3d3b; --black: #0b0c0c;
+    --teal: #00757f; --chalk: #f1f1f5; --white: #fff; --link: #003142; --focus: #3fc49a;
+    --success: #00853E; --success-dark: #006b31; --danger: #d4351c; --warning: #ffcc3f;
+    --grey: #d1dbdf; --orange: #e9725b; --light-blue: #a9dbe5;
+    --font: "Poppins", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font: 400 1.125rem/1.875 var(--font); color: var(--body); background: var(--white); display: flex; flex-direction: column; min-height: 100vh; }
+  a { color: var(--link); }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .wrap { max-width: 90rem; margin: 0 auto; padding: 0 4rem; width: 100%; }
+  @media (max-width: 700px) { .wrap { padding: 0 1rem; } }
+
+  .test-banner { background: var(--warning); color: var(--black); font-size: .875rem; line-height: 1.5; padding: .4rem 0; }
+  .test-banner b { font-weight: 700; }
+
+  header.top { background: var(--primary-dark); color: var(--white); }
+  header.top .wrap { display: flex; align-items: center; gap: 1.5rem; min-height: 5.5rem; }
+  .wordmark { font-family: Georgia, "Times New Roman", serif; line-height: 1; text-align: center; font-size: 1.05rem; }
+  .wordmark small { display: block; font-size: .55rem; letter-spacing: .02em; }
+  .form-title { font-weight: 600; font-size: 1.25rem; }
+  nav.bar { background: var(--primary); }
+  nav.bar .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 3.9rem; gap: 1rem; flex-wrap: wrap; }
+  nav.bar a { color: var(--white); text-decoration: none; font-weight: 600; font-size: 1.05rem; }
+  nav.bar a:hover { text-decoration: underline; }
+  nav.bar .right { display: flex; gap: 2.5rem; }
+  .home-ico { display: inline-block; width: 1rem; height: 1rem; margin-right: .6rem; vertical-align: -1px; }
+
+  main { flex: 1; padding: 2rem 0 3.5rem; }
+  .col { max-width: 47.6875rem; }
+  h1 { color: var(--primary-dark); font-size: 3.125rem; line-height: 1.3; font-weight: 600; margin: 0 0 1.25rem; }
+  h2 { color: var(--primary-dark); font-size: 1.563rem; line-height: 1.3; font-weight: 600; margin: 2rem 0 .75rem; }
+  @media (max-width: 700px) { h1 { font-size: 2.125rem; } }
+  p { margin: 0 0 1rem; }
+  .hint { color: var(--body); margin: 0 0 .75rem; }
+  .back { display: inline-block; margin-bottom: 1rem; font-size: 1rem; }
+
+  .field { margin: 0 0 1.75rem; }
+  .field > label, fieldset > legend { display: block; font-weight: 600; color: var(--black); font-size: 1.125rem; margin: 0 0 .35rem; padding: 0; }
+  fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .field .hint { font-size: 1rem; margin-bottom: .5rem; }
+  input[type=text], input[type=email], input[type=tel], select, textarea {
+    font: inherit; font-size: 1.125rem; color: var(--black); width: 100%; max-width: 32rem;
+    height: 3.25rem; padding: .625rem .9375rem; border: 2px solid var(--body); border-radius: .5rem; background: var(--white);
+  }
+  textarea { height: 14.375rem; max-width: 100%; resize: vertical; line-height: 1.6; }
+  select { appearance: auto; }
+  input:focus, select:focus, textarea:focus { outline: 3px solid var(--focus); outline-offset: 0; }
+  .err input, .err select, .err textarea { border-color: var(--danger); }
+  .err { border-left: 5px solid var(--danger); padding-left: 1rem; }
+  .err-msg { display: block; color: var(--danger); font-weight: 600; font-size: 1rem; margin-bottom: .35rem; }
+  .dob { display: flex; gap: 1rem; }
+  .dob div { display: flex; flex-direction: column; }
+  .dob label { font-size: 1rem; font-weight: 400; }
+  .dob input { width: 4.5rem; } .dob .yr input { width: 6.5rem; }
+
+  .radios label { display: flex; align-items: center; gap: 1.1rem; margin: .65rem 0; cursor: pointer; color: var(--black); font-size: 1.05rem; line-height: 1.4; }
+  .radios input { appearance: none; width: 2.5rem; height: 2.5rem; border: 2px solid var(--black); border-radius: 50%; margin: 0; flex: 0 0 auto; cursor: pointer; background: var(--white); }
+  .radios input:checked { background: radial-gradient(circle, var(--black) 0 42%, var(--white) 46%); }
+  .radios input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .btn { font: 600 1.125rem var(--font); color: var(--white); background: var(--success); border: 0; border-radius: 2rem; padding: .7rem 3rem; cursor: pointer; display: inline-block; text-decoration: none; }
+  .btn:hover { background: var(--success-dark); }
+  .btn.secondary { background: var(--white); color: var(--link); border: 2px solid var(--link); padding: .6rem 1.6rem; }
+  .btn.secondary:hover { background: var(--chalk); }
+  .btn.small { padding: .5rem 1.6rem; font-size: 1rem; }
+  .linkbtn { all: unset; cursor: pointer; color: var(--link); font-weight: 600; text-decoration: underline; font-size: 1.05rem; }
+  .linkbtn:focus-visible { outline: 3px solid var(--focus); }
+  .actions { display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; margin-top: 2rem; }
+  .arrow-link { display: flex; align-items: center; gap: 1.3rem; color: var(--link); font-weight: 600; font-size: 1.2rem; text-decoration: none; }
+  .arrow-link span.ico { width: 3.2rem; height: 3.2rem; border-radius: 50%; background: var(--light-blue); display: grid; place-items: center; font-size: 1.6rem; color: var(--primary-dark); }
+  .arrow-link:hover { text-decoration: underline; }
+  .notice { font-size: 1rem; }
+
+  .upload-box { background: var(--chalk); border-radius: .75rem; padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; }
+  .upload-box h2 { margin-top: 0; font-size: 1.375rem; }
+  .upload-box p { font-size: 1rem; margin: 0 0 .25rem; }
+  #preview { display: none; max-width: 16rem; max-height: 12rem; margin-top: .75rem; border-radius: .5rem; border: 1px solid var(--grey); }
+  .file-meta { font-size: .95rem; margin-top: .5rem; }
+
+  #map { height: 22rem; border-radius: .75rem; border: 2px solid var(--grey); margin: .5rem 0 1rem; }
+  .map-panel { margin: 0 0 1.75rem; }
+  .selected { background: var(--chalk); border-radius: .5rem; padding: .75rem 1rem; font-size: 1rem; margin: .5rem 0 1rem; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+
+  .review { border-top: 1px solid var(--grey); margin: 0 0 1.5rem; }
+  .review div { display: grid; grid-template-columns: 14rem 1fr auto; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--grey); font-size: 1rem; }
+  .review dt { font-weight: 600; color: var(--black); }
+  .review dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  @media (max-width: 700px) { .review div { grid-template-columns: 1fr; gap: .25rem; } }
+
+  .confirm-panel { background: var(--success); color: var(--white); border-radius: .75rem; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+  .confirm-panel h1 { color: var(--white); margin: 0 0 .5rem; }
+  .confirm-panel .ref { font-size: 2rem; font-weight: 700; letter-spacing: .03em; }
+  .survey { background: var(--chalk); border-radius: .75rem; padding: 1.25rem 1.5rem; margin-top: 2rem; }
+  details.payload { margin-top: 2rem; font-size: .9rem; }
+  details.payload pre { background: var(--chalk); padding: 1rem; border-radius: .5rem; overflow: auto; font-size: .8rem; line-height: 1.4; }
+
+  .error-summary { border: 4px solid var(--danger); padding: 1rem 1.25rem; margin-bottom: 1.75rem; border-radius: .25rem; }
+  .error-summary h2 { margin: 0 0 .5rem; font-size: 1.25rem; color: var(--black); }
+  .error-summary ul { margin: 0; padding-left: 1.2rem; }
+  .error-summary a { color: var(--danger); font-weight: 600; }
+
+  .emergency { border-left: 6px solid var(--warning); background: var(--chalk); padding: 1rem 1.25rem; margin: 0 0 1.75rem; font-size: 1rem; border-radius: 0 .5rem .5rem 0; }
+  .emergency b { color: var(--black); font-weight: 600; }
+  .exit-panel { border-left: 6px solid var(--teal); background: var(--chalk); padding: 1rem 1.25rem; margin: -0.75rem 0 1.75rem; border-radius: 0 .5rem .5rem 0; font-size: 1rem; }
+  .exit-panel h2 { margin: 0 0 .4rem; font-size: 1.25rem; }
+  .exit-panel p { margin: 0; }
+  .feedback { border-top: 4px solid var(--orange); padding: 1rem 0; font-size: 1.05rem; }
+  .feedback .wrap { display: flex; align-items: center; gap: .9rem; }
+  footer.foot { background: var(--primary-dark); color: var(--white); font-size: .9rem; }
+  footer.foot .wrap { display: flex; justify-content: space-between; align-items: center; min-height: 4rem; flex-wrap: wrap; gap: .5rem; }
+  footer.foot a { color: var(--white); margin-right: 1rem; }
+  footer.foot .copy { font-weight: 600; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="test-banner" role="note"><div class="wrap"><b>TEST MOCK.</b> Unofficial copy of a council form for hackathon testing. Nothing you enter is sent anywhere. To report a real tree problem, use the council's own website.</div></div>
+
+<header class="top">
+  <div class="wrap">
+    <div class="wordmark" aria-hidden="true">Sheffield<small>City Council</small></div>
+    <div class="form-title">Report a problem with a tree</div>
+  </div>
+</header>
+<nav class="bar" aria-label="Account">
+  <div class="wrap">
+    <a href="#" data-mock-link><svg class="home-ico" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1 0 8h2v7h4v-5h4v5h4V8h2z"/></svg>Account home</a>
+    <div class="right"><a href="#" data-mock-link>My requests</a><a href="#" data-mock-link>Sign in / Register</a></div>
+  </div>
+</nav>
+
+<main id="content">
+  <div class="wrap">
+  <div class="col">
+  <form id="dform" novalidate autocomplete="on">
+
+    <div id="errors" class="error-summary" role="alert" tabindex="-1" hidden>
+      <h2>There is a problem</h2>
+      <ul></ul>
+    </div>
+
+    <!-- PAGE 1: sign in -->
+    <section class="dform_page" id="page_sign_in" data-title="Sign in">
+      <h1>Before you start</h1>
+      <fieldset class="field" id="f_rad_sign_in">
+        <legend class="hint" style="font-weight:400;color:var(--body);font-size:1.125rem;line-height:1.875;margin-bottom:1.25rem">To submit a request and track its progress, you’ll need to register for My Account</legend>
+        <div class="radios">
+          <label><input type="radio" name="rad_sign_in" value="true" required> Sign in if you have already registered for My Account</label>
+          <label><input type="radio" name="rad_sign_in" value="false"> Submit a request without signing in</label>
+        </div>
+      </fieldset>
+      <p id="signin_mock_note" class="notice" hidden>Sign in is not available in this test mock. You will continue without signing in.</p>
+      <div class="actions">
+        <button type="button" class="btn" data-next>Next</button>
+        <a class="arrow-link" href="#" data-mock-link><span class="ico" aria-hidden="true">&rarr;</span>Register for My Account (opens in a new tab)</a>
+      </div>
+    </section>
+
+    <!-- PAGE 2: about the tree (UNVERIFIED against the live form, see header comment) -->
+    <section class="dform_page" id="page_about_the_problem" data-title="About the tree" hidden>
+      <button type="button" class="linkbtn back" data-back>Back</button>
+      <h1>About the tree</h1>
+      <div class="emergency" role="note">
+        <b>If a tree has fallen or is about to fall and is putting people in danger, phone us on <a href="tel:01142734567">0114 273 4567</a>.</b> Do not use this form for emergencies.
+      </div>
+      <fieldset class="field" id="f_rad_tree_location">
+        <legend>Where is the tree?</legend>
+        <div class="radios">
+          <label><input type="radio" name="rad_tree_location" value="Highway" required> On or next to a road or pavement</label>
+          <label><input type="radio" name="rad_tree_location" value="Park"> In a park, woodland or green space</label>
+          <label><input type="radio" name="rad_tree_location" value="Housing"> On a council housing estate</label>
+          <label><input type="radio" name="rad_tree_location" value="Private"> In a private garden or on private land</label>
+        </div>
+      </fieldset>
+      <div class="exit-panel" id="exit_tree_location_Park" hidden>
+        <h2>We can’t take this report here</h2>
+        <p>Trees in parks and green spaces are looked after by Parks and Countryside. Report it through <a href="#" data-mock-link>Parks and green spaces</a>.</p>
+      </div>
+      <div class="exit-panel" id="exit_tree_location_Housing" hidden>
+        <h2>We can’t take this report here</h2>
+        <p>Trees on council housing land are looked after by Estate Services. Contact <a href="#" data-mock-link>Estate services</a>. If you rent from a housing association, contact them instead.</p>
+      </div>
+      <div class="exit-panel" id="exit_tree_location_Private" hidden>
+        <h2>We can’t take this report here</h2>
+        <p>Trees and hedges are the responsibility of the person who owns the land. Speak to the owner first. If a private tree or hedge is growing over the road or pavement, go back and choose “On or next to a road or pavement”.</p>
+      </div>
+      <fieldset class="field" id="f_rad_tree_problem" hidden>
+        <legend>What is the problem with the tree?</legend>
+        <div class="radios">
+          <label><input type="radio" name="rad_tree_problem" value="Fallen"> It has fallen, or a large branch has fallen</label>
+          <label><input type="radio" name="rad_tree_problem" value="Dangerous"> It looks dangerous (leaning, split, hanging branch, dead or diseased)</label>
+          <label><input type="radio" name="rad_tree_problem" value="Obstruction"> It is overhanging or blocking the road, pavement, a sign or a street light</label>
+          <label><input type="radio" name="rad_tree_problem" value="Roots"> Its roots are damaging the pavement or road</label>
+          <label><input type="radio" name="rad_tree_problem" value="Utility"> It is touching a phone line or power cable</label>
+          <label><input type="radio" name="rad_tree_problem" value="Nuisance"> Falling fruit, leaves, sap or bird mess</label>
+          <label><input type="radio" name="rad_tree_problem" value="Other"> Something else</label>
+        </div>
+      </fieldset>
+      <div class="exit-panel" id="exit_tree_problem_Utility" hidden>
+        <h2>Contact the utility company</h2>
+        <p>If a tree interferes with a phone line or electricity cable, you need to contact the relevant utility company. If you are worried the tree itself is unsafe, go back and choose “It looks dangerous”.</p>
+      </div>
+      <div class="exit-panel" id="exit_tree_problem_Nuisance" hidden>
+        <h2>We can’t take action on this</h2>
+        <p>We are not required to remove trees or prune them if complaints are received about falling fruit or bird mess. To report leaves that are a safety hazard, use <a href="#" data-mock-link>Report leaves that are a safety hazard</a>.</p>
+      </div>
+      <fieldset class="field" id="f_rad_tree_blocking" hidden>
+        <legend>Is it blocking the road or pavement now?</legend>
+        <div class="radios">
+          <label><input type="radio" name="rad_tree_blocking" value="Yes"> Yes</label>
+          <label><input type="radio" name="rad_tree_blocking" value="No"> No</label>
+        </div>
+      </fieldset>
+      <div id="tree_details_block" hidden>
+      <div class="upload-box">
+        <h2>Upload a photo of the problem</h2>
+        <p>Upload a photo as jpg, png, or pdf</p>
+        <p>Maximum file size 15MB</p>
+      </div>
+      <div class="field" id="f_file_image_of_defect">
+        <label for="file_image_of_defect">Upload a photo (Optional)</label>
+        <input type="file" id="file_image_of_defect" name="file_image_of_defect" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+        <img id="preview" alt="Preview of the selected photo">
+        <div id="file_meta" class="file-meta"></div>
+      </div>
+      <input type="hidden" name="txt_file_name_image_of_defect">
+      <input type="hidden" name="txt_file_path_image_of_defect">
+      </div>
+      <div class="actions" id="tree_next"><button type="button" class="btn" data-next>Next: About the location</button></div>
+    </section>
+
+    <!-- PAGE 3: about the location -->
+    <section class="dform_page" id="page_about_the_location" data-title="About the location" hidden>
+      <button type="button" class="linkbtn back" data-back>Back</button>
+      <h1>About the location</h1>
+      <div class="field" id="f_txt_find_address_about_the_location">
+        <label for="txt_find_address_about_the_location">Tell us where the tree is</label>
+        <p class="hint">Enter a postcode or street name</p>
+        <div class="row">
+          <input type="text" id="txt_find_address_about_the_location" name="txt_find_address_about_the_location" autocomplete="off">
+          <button type="button" class="btn secondary small" id="but_find_address">Find address</button>
+        </div>
+      </div>
+      <div class="field" id="f_sel_search_results_about_the_location" hidden>
+        <label for="sel_search_results_about_the_location">Select the address</label>
+        <div class="row">
+          <select id="sel_search_results_about_the_location" name="sel_search_results_about_the_location"></select>
+          <button type="button" class="btn secondary small" id="but_set_address">Use this address</button>
+        </div>
+      </div>
+      <div class="map-panel">
+        <h2>Find on a map</h2>
+        <div class="selected" id="selected_address">Selected address: <span>Choose a marker on the map</span></div>
+        <button type="button" class="btn secondary small" id="but_use_current_location">Use my current location</button>
+        <div id="map" role="application" aria-label="Map. Click to place a marker at the problem."></div>
+      </div>
+      <div class="field" id="f_txta_details_about_the_location">
+        <label for="txta_details_about_the_location">Further information about the tree</label>
+        <p class="hint">Example: Large branch hanging over the pavement outside number 12, near the bus stop</p>
+        <textarea id="txta_details_about_the_location" name="txta_details_about_the_location" required></textarea>
+      </div>
+      <!-- hidden location fields populated by search or map -->
+      <div hidden>
+        <input name="txt_property_about_the_location"><input name="txt_street_name_about_the_location">
+        <input name="txt_city_about_the_location"><input name="txt_postcode_about_the_location">
+        <input name="txt_full_address_about_the_location"><input name="txt_uprn_about_the_location">
+        <input name="txt_usrn_about_the_location"><input name="txt_site_name"><input name="txt_site_code">
+        <input name="txt_feature_name"><input name="txt_feature_type"><input name="txt_responsibility">
+        <input name="txt_prestige"><input name="txt_layerid"><input name="txt_eastings"><input name="txt_northings">
+        <input name="le_gis_lat"><input name="le_gis_lon">
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" data-next>Next: About you</button>
+        <button type="button" class="linkbtn" data-anon>Or, submit anonymously</button>
+        <p class="notice">If you choose to remain anonymous we won’t be able to update you with any action we take as the result of your request.</p>
+      </div>
+    </section>
+
+    <!-- PAGE 4: about you -->
+    <section class="dform_page" id="page_about_you" data-title="About you" hidden>
+      <button type="button" class="linkbtn back" data-back>Back</button>
+      <h1>About you</h1>
+      <div class="field" id="f_sel_title">
+        <label for="sel_title">Title</label>
+        <select id="sel_title" name="sel_title" required style="max-width:12rem">
+          <option value="">Please select</option><option>Mr</option><option>Miss</option><option>Mrs</option><option>Ms</option><option>Mx</option><option>Dr</option>
+        </select>
+      </div>
+      <div class="field" id="f_txt_firstname"><label for="txt_firstname">First name</label><input type="text" id="txt_firstname" name="txt_firstname" autocomplete="given-name" required></div>
+      <div class="field" id="f_txt_surname"><label for="txt_surname">Surname</label><input type="text" id="txt_surname" name="txt_surname" autocomplete="family-name" required></div>
+      <fieldset class="field" id="f_txt_date_of_birth">
+        <legend>Date of birth</legend>
+        <p class="hint">For example, 27 03 2007</p>
+        <div class="dob">
+          <div><label for="dob_day">Day</label><input type="text" inputmode="numeric" id="dob_day" maxlength="2" autocomplete="bday-day"></div>
+          <div><label for="dob_month">Month</label><input type="text" inputmode="numeric" id="dob_month" maxlength="2" autocomplete="bday-month"></div>
+          <div class="yr"><label for="dob_year">Year</label><input type="text" inputmode="numeric" id="dob_year" maxlength="4" autocomplete="bday-year"></div>
+        </div>
+        <input type="hidden" name="txt_date_of_birth"><input type="hidden" name="dt_date_of_birth">
+        <details style="margin-top:.75rem;font-size:1rem"><summary>Why do we need this?</summary>Your date of birth is a helpful way to confirm your identity and protect your information.</details>
+      </fieldset>
+      <div class="field" id="f_tel_phone_number"><label for="tel_phone_number">Phone number</label><p class="hint">For example, 0114 123 4567 or 07901 234567</p><input type="tel" id="tel_phone_number" name="tel_phone_number" autocomplete="tel" required></div>
+      <div class="field" id="f_eml_address"><label for="eml_address">Email address</label><p class="hint">For example, name@email.com</p><input type="email" id="eml_address" name="eml_address" autocomplete="email" required></div>
+      <h2>What we do with your information</h2>
+      <p class="notice">The information you provide on this form will be used to process your request. We log your details on our Customer database so we have a record of your contact. Key details are then passed to the relevant officers so they can respond to your request.</p>
+      <p class="notice">Sometimes we need to share your information with a third party. This might be because we’re working with another organisation, or we’ve contracted a company to deliver a service on our behalf. In these cases, we’ll only share the minimum information necessary.</p>
+      <p class="notice">We keep your information in line with our retention policies. For further information about how long we keep information, how we process personal data, your rights under data protection, and contacting the Data Protection Officer, please see our Privacy Notice web page.</p>
+      <div class="actions">
+        <button type="button" class="btn" data-next>Submit your request</button>
+        <button type="button" class="linkbtn" data-anon>Or, submit anonymously</button>
+        <p class="notice">If you choose to remain anonymous we won’t be able to update you with any action we take as the result of your request.</p>
+      </div>
+    </section>
+
+    <!-- PAGE 5: review -->
+    <section class="dform_page" id="page_review" data-title="Review your request" hidden>
+      <button type="button" class="linkbtn back" data-back>Back</button>
+      <h1>Review your request</h1>
+      <dl class="review" id="review_list"></dl>
+      <div class="actions"><button type="button" class="btn" id="but_final_submit">Submit</button></div>
+    </section>
+
+    <!-- COMPLETE -->
+    <section class="dform_page" id="page_complete" data-title="Request submitted" hidden>
+      <div class="confirm-panel">
+        <h1>Request submitted</h1>
+        <div>Your reference number</div>
+        <div class="ref" id="ref_out"></div>
+      </div>
+      <p id="conf_email" hidden>We’ve also sent you a confirmation email with your reference number. <em>(Not in this mock: no email is sent.)</em></p>
+      <h2>What will happen next?</h2>
+      <p>We've sent your request to Streets Ahead, who look after most roadside trees for the council. An inspector will check the tree and decide what work is needed. Trees that are a safety risk are prioritised. <em>(Mock copy: the live form's confirmation text was not read.)</em></p>
+      <p>If we need any more information we will contact you. If we have everything we need, we won't update you when your request has been completed.</p>
+      <div class="survey"><h2 style="margin-top:0">Help us improve our services</h2><p style="margin:0">We want to know how we’re doing and where we can do better. Please answer a few quick questions about your experience today. <a href="#" data-mock-link>Take our customer satisfaction survey</a></p></div>
+      <details class="payload"><summary>Test payload (what this mock recorded)</summary><pre id="payload_out"></pre></details>
+      <div class="actions"><button type="button" class="btn secondary" id="but_restart">Start a new report</button></div>
+    </section>
+
+  </form>
+  </div>
+  </div>
+</main>
+
+<div class="feedback"><div class="wrap">
+  <svg width="46" height="40" viewBox="0 0 46 40" aria-hidden="true"><path d="M23 3C11.4 3 3 10.2 3 19c0 4.1 1.9 7.9 5 10.7L6 37l8.5-4.2c2.6.9 5.5 1.2 8.5 1.2 11.6 0 20-7.2 20-16S34.6 3 23 3z" fill="none" stroke="#00757f" stroke-width="2.5"/><circle cx="15" cy="19" r="2" fill="#00757f"/><circle cx="23" cy="19" r="2" fill="#00757f"/><circle cx="31" cy="19" r="2" fill="#00757f"/></svg>
+  <span>This is a new service. Help us improve it and <a href="#" data-mock-link>give your feedback.</a></span>
+</div></div>
+<footer class="foot"><div class="wrap">
+  <div><a href="#" data-mock-link>Privacy notice</a><a href="#" data-mock-link>Use of cookies</a><a href="#" data-mock-link>Accessibility statement</a></div>
+  <div class="copy">Test mock, not affiliated with Sheffield City Council</div>
+</div></footer>
+
+<script>
+"use strict";
+(function () {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const form = $("#dform");
+  const PAGES = ["page_sign_in", "page_about_the_problem", "page_about_the_location", "page_about_you", "page_review", "page_complete"];
+  const state = { page: "page_sign_in", anonymous: false, startedAt: new Date().toISOString(), file: null, history: [] };
+
+  // ---------- sample address gazetteer (fictional UPRNs; streets are real Sheffield streets) ----------
+  const ADDRESSES = [
+    { property: "120", street: "Abbeydale Road", postcode: "S7 1FL", uprn: "900000000001", usrn: "90000101", lat: 53.3631, lon: -1.4876 },
+    { property: "124", street: "Abbeydale Road", postcode: "S7 1FL", uprn: "900000000002", usrn: "90000101", lat: 53.3627, lon: -1.4879 },
+    { property: "45", street: "Ecclesall Road", postcode: "S11 8HU", uprn: "900000000003", usrn: "90000102", lat: 53.3700, lon: -1.4890 },
+    { property: "210", street: "Ecclesall Road", postcode: "S11 8JA", uprn: "900000000004", usrn: "90000102", lat: 53.3668, lon: -1.4985 },
+    { property: "12", street: "Derbyshire Lane", postcode: "S8 9EH", uprn: "900000000005", usrn: "90000103", lat: 53.3460, lon: -1.4790 },
+    { property: "88", street: "London Road", postcode: "S2 4LR", uprn: "900000000006", usrn: "90000104", lat: 53.3672, lon: -1.4775 },
+    { property: "3", street: "Division Street", postcode: "S1 4GF", uprn: "900000000007", usrn: "90000105", lat: 53.3790, lon: -1.4775 },
+    { property: "61", street: "Fulwood Road", postcode: "S10 3BA", uprn: "900000000008", usrn: "90000106", lat: 53.3818, lon: -1.5020 },
+    { property: "17", street: "Chesterfield Road", postcode: "S8 0RL", uprn: "900000000009", usrn: "90000107", lat: 53.3505, lon: -1.4720 },
+    { property: "250", street: "Staniforth Road", postcode: "S9 3FT", uprn: "900000000010", usrn: "90000108", lat: 53.3870, lon: -1.4240 }
+  ].map(a => ({ ...a, city: "Sheffield", full: `${a.property} ${a.street}, Sheffield, ${a.postcode}` }));
+
+  // ---------- helpers ----------
+  const val = name => {
+    const els = form.elements[name];
+    if (!els) return "";
+    if (els instanceof RadioNodeList) return els.value || "";
+    return (els.value || "").trim();
+  };
+  const setVal = (name, v) => { const el = form.elements[name]; if (el) el.value = v == null ? "" : v; };
+  const hiddenLoc = ["txt_property_about_the_location","txt_street_name_about_the_location","txt_city_about_the_location","txt_postcode_about_the_location","txt_full_address_about_the_location","txt_uprn_about_the_location","txt_usrn_about_the_location","txt_site_name","txt_site_code","txt_feature_name","txt_feature_type","txt_responsibility","txt_prestige","txt_layerid","txt_eastings","txt_northings","le_gis_lat","le_gis_lon"];
+
+  proj4 && proj4.defs("EPSG:27700", "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs");
+  function toBNG(lat, lon) {
+    try { const [e, n] = proj4("EPSG:4326", "EPSG:27700", [lon, lat]); return [Math.round(e), Math.round(n)]; } catch { return ["", ""]; }
+  }
+
+  // ---------- navigation ----------
+  function show(id, push = true) {
+    PAGES.forEach(p => { $("#" + p).hidden = p !== id; });
+    state.page = id;
+    clearErrors();
+    if (push) history.pushState({ page: id }, "", "#" + id.replace("page_", ""));
+    window.scrollTo(0, 0);
+    const h = $("#" + id + " h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+    if (id === "page_about_the_location") setTimeout(initMap, 0);
+    if (id === "page_review") buildReview();
+  }
+  window.addEventListener("popstate", e => {
+    const p = (e.state && e.state.page) || "page_sign_in";
+    if (state.page === "page_complete") { history.pushState({ page: "page_complete" }, "", "#complete"); return; }
+    show(p, false);
+  });
+  history.replaceState({ page: "page_sign_in" }, "", "#sign_in");
+
+  function next() {
+    if (!validate(state.page)) return;
+    const i = PAGES.indexOf(state.page);
+    if (state.page === "page_about_you") state.anonymous = false;
+    if (state.page === "page_sign_in" && val("rad_sign_in") === "true") $("#signin_mock_note").hidden = false;
+    show(PAGES[i + 1]);
+  }
+  function back() { history.back(); }
+  function anon() {
+    if (state.page === "page_about_the_location" && !validate(state.page)) return;
+    state.anonymous = true;
+    show("page_review");
+  }
+  $$("[data-next]").forEach(b => b.addEventListener("click", next));
+  $$("[data-back]").forEach(b => b.addEventListener("click", back));
+  $$("[data-anon]").forEach(b => b.addEventListener("click", anon));
+  $$("[data-mock-link]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); alertInline(a, "Not available in this test mock."); }));
+  function alertInline(el, msg) { el.title = msg; el.style.opacity = .6; setTimeout(() => (el.style.opacity = 1), 600); }
+
+  // ---------- conditional tree questions and exit branches ----------
+  const EXIT_LOCATIONS = ["Park", "Housing", "Private"];
+  const EXIT_PROBLEMS = ["Utility", "Nuisance"];
+  const BLOCKING_PROBLEMS = ["Fallen", "Dangerous", "Obstruction"];
+  const clearRadios = name => $$(`input[name=${name}]`).forEach(r => (r.checked = false));
+  // Returns the exit reason ("tree_location_Private", ...) when the answers end the form, else "".
+  function treeExit() {
+    const loc = val("rad_tree_location"), prob = val("rad_tree_problem");
+    if (EXIT_LOCATIONS.includes(loc)) return "tree_location_" + loc;
+    if (loc === "Highway" && EXIT_PROBLEMS.includes(prob)) return "tree_problem_" + prob;
+    return "";
+  }
+  function updateTreeUI() {
+    const loc = val("rad_tree_location"), prob = val("rad_tree_problem"), exit = treeExit();
+    $$(".exit-panel").forEach(p => (p.hidden = p.id !== "exit_" + exit));
+    $("#f_rad_tree_problem").hidden = loc !== "Highway";
+    const showBlocking = loc === "Highway" && BLOCKING_PROBLEMS.includes(prob);
+    $("#f_rad_tree_blocking").hidden = !showBlocking;
+    if (!showBlocking) clearRadios("rad_tree_blocking");
+    $("#tree_details_block").hidden = !!exit || !(loc === "Highway" && prob);
+    $("#tree_next").hidden = !!exit;
+  }
+  form.addEventListener("change", e => {
+    if (e.target.name === "rad_tree_location") { if (e.target.value !== "Highway") clearRadios("rad_tree_problem"); updateTreeUI(); }
+    if (e.target.name === "rad_tree_problem") updateTreeUI();
+    if (e.target.name === "rad_sign_in") $("#signin_mock_note").hidden = e.target.value !== "true";
+  });
+
+  // ---------- file upload ----------
+  const MAX = 15 * 1024 * 1024, OK_EXT = ["jpg", "jpeg", "png", "pdf"];
+  $("#file_image_of_defect").addEventListener("change", e => {
+    const f = e.target.files[0], img = $("#preview"), meta = $("#file_meta");
+    clearFieldError("f_file_image_of_defect");
+    img.style.display = "none"; meta.textContent = ""; state.file = null;
+    setVal("txt_file_name_image_of_defect", ""); setVal("txt_file_path_image_of_defect", "");
+    if (!f) return;
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    if (!OK_EXT.includes(ext)) { e.target.value = ""; return fieldError("f_file_image_of_defect", "Incorrect file type selected. Please make sure your file has one of the following extensions: jpg, jpeg, png, pdf"); }
+    if (f.size > MAX) { e.target.value = ""; return fieldError("f_file_image_of_defect", "File selected is too large"); }
+    state.file = { name: f.name, type: f.type, size: f.size };
+    setVal("txt_file_name_image_of_defect", f.name);
+    setVal("txt_file_path_image_of_defect", "mock://uploads/" + encodeURIComponent(f.name));
+    meta.textContent = `${f.name} (${Math.round(f.size / 1024)} KB)`;
+    if (f.type.startsWith("image/")) { img.src = URL.createObjectURL(f); img.style.display = "block"; }
+  });
+
+  // ---------- address search ----------
+  // Search order: built-in samples, then live lookups (postcodes.io for postcodes, Photon/OSM for streets and places).
+  // Live lookups need internet access; failures fall back to "use what I typed".
+  const SHEFFIELD_BBOX = "-1.80,53.30,-1.32,53.50";
+  const POSTCODE = /^[a-z]{1,2}\d[a-z\d]?\s*\d[a-z]{2}$/i;
+  let results = [];
+  function photonToAddr(f) {
+    const p = f.properties, [lon, lat] = f.geometry.coordinates;
+    const street = p.street || (p.type === "street" ? p.name : "") || p.name || "";
+    const property = p.housenumber || (p.type !== "street" && p.name && p.name !== street ? p.name : "");
+    const area = p.locality || p.district || "";
+    const full = [property, street, area, p.city || "Sheffield", p.postcode].filter(Boolean).join(", ");
+    return { property, street, city: p.city || "Sheffield", postcode: p.postcode || "", uprn: "", usrn: "", lat, lon, full, source: "OpenStreetMap (Photon)" };
+  }
+  async function photonSearch(q) {
+    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10&lang=en&bbox=${SHEFFIELD_BBOX}`);
+    if (!r.ok) throw new Error("photon " + r.status);
+    return (await r.json()).features.map(photonToAddr);
+  }
+  async function photonReverse(lat, lon) {
+    const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=en`);
+    if (!r.ok) throw new Error("photon " + r.status);
+    const f = (await r.json()).features[0];
+    return f ? photonToAddr(f) : null;
+  }
+  async function postcodeSearch(q) {
+    const r = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(q.replace(/\s/g, ""))}`);
+    if (!r.ok) return [];
+    const p = (await r.json()).result;
+    const near = await photonReverse(p.latitude, p.longitude).catch(() => null);
+    const street = near && near.street ? near.street : "";
+    return [{ property: "", street, city: "Sheffield", postcode: p.postcode, uprn: "", usrn: "", lat: p.latitude, lon: p.longitude,
+              full: [street, p.admin_ward, "Sheffield", p.postcode].filter(Boolean).join(", "), source: "postcodes.io" }];
+  }
+  $("#but_find_address").addEventListener("click", async () => {
+    const raw = val("txt_find_address_about_the_location");
+    const q = raw.toLowerCase().replace(/\s+/g, " ");
+    clearFieldError("f_txt_find_address_about_the_location");
+    if (q.length < 2) return fieldError("f_txt_find_address_about_the_location", "Enter a location");
+    const btn = $("#but_find_address"), sel = $("#sel_search_results_about_the_location");
+    btn.disabled = true; btn.textContent = "Searching...";
+    const qn = q.replace(/\s/g, "");
+    results = ADDRESSES.filter(a => a.full.toLowerCase().includes(q) || a.postcode.toLowerCase().replace(/\s/g, "").startsWith(qn) || a.street.toLowerCase().includes(q));
+    let liveFailed = false;
+    try {
+      const live = POSTCODE.test(raw) ? await postcodeSearch(raw) : await photonSearch(raw);
+      const seen = new Set(results.map(a => a.full));
+      live.forEach(a => { if (a.full && !seen.has(a.full)) { seen.add(a.full); results.push(a); } });
+    } catch (err) { liveFailed = true; console.warn("[mock] live address lookup failed", err); }
+    btn.disabled = false; btn.textContent = "Find address";
+    sel.innerHTML = (results.length
+      ? `<option value="">Please select</option>` + results.map((a, i) => `<option value="${i}">${escapeHtml(a.full)}</option>`).join("")
+      : `<option value="">No results found</option>`) + `<option value="typed">Use what I typed: ${escapeHtml(raw)}</option>`;
+    $("#f_sel_search_results_about_the_location").hidden = false;
+    if (liveFailed) fieldError("f_sel_search_results_about_the_location", "Live address lookup unavailable (offline?). Pick a sample address, use what you typed, or click the map.");
+    sel.focus();
+  });
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function useTyped() {
+    const raw = val("txt_find_address_about_the_location");
+    if (!raw) return fieldError("f_txt_find_address_about_the_location", "Enter a location");
+    hiddenLoc.forEach(k => setVal(k, ""));
+    setVal("txt_full_address_about_the_location", raw);
+    setVal("txt_city_about_the_location", "Sheffield");
+    showSelected(raw + " (as typed, not matched to an address)");
+  }
+  $("#but_set_address").addEventListener("click", () => {
+    const i = $("#sel_search_results_about_the_location").value;
+    if (i === "") return fieldError("f_sel_search_results_about_the_location", "Select the address");
+    clearFieldError("f_sel_search_results_about_the_location");
+    i === "typed" ? useTyped() : applyAddress(results[+i]);
+  });
+  $("#sel_search_results_about_the_location").addEventListener("change", e => {
+    const v = e.target.value;
+    if (v === "typed") useTyped(); else if (v !== "") applyAddress(results[+v]);
+  });
+
+  function applyAddress(a) {
+    setVal("txt_property_about_the_location", a.property);
+    setVal("txt_street_name_about_the_location", a.street);
+    setVal("txt_city_about_the_location", a.city);
+    setVal("txt_postcode_about_the_location", a.postcode);
+    setVal("txt_full_address_about_the_location", a.full);
+    setVal("txt_uprn_about_the_location", a.uprn);
+    setVal("txt_usrn_about_the_location", a.usrn);
+    setVal("txt_site_name", (a.street || "").toUpperCase());
+    setVal("txt_site_code", a.usrn);
+    setVal("txt_responsibility", "Mock: not checked");
+    setPoint(a.lat, a.lon, false);
+    showSelected(a.full);
+  }
+  function showSelected(text) { $("#selected_address span").textContent = text; clearFieldError("f_txt_find_address_about_the_location"); }
+
+  // ---------- map ----------
+  let map = null, marker = null;
+  function initMap() {
+    if (map) { map.invalidateSize(); return; }
+    if (typeof L === "undefined") {
+      $("#map").innerHTML = '<p style="padding:1rem">Map could not load (no internet access to unpkg.com). Use the address search, or "Use what I typed".</p>';
+      return;
+    }
+    map = L.map("map").setView([53.3811, -1.4701], 13);
+    // Esri World Street Map tiles (the live form's map is Esri-powered). Unlike tile.openstreetmap.org and CARTO,
+    // these load from a file:// page with no Referer header.
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+      maxZoom: 19, attribution: "Powered by Esri | Tiles &copy; Esri and contributors"
+    }).addTo(map);
+    setTimeout(() => map.invalidateSize(), 50);
+    map.on("click", e => setPoint(e.latlng.lat, e.latlng.lng, true));
+    const lat = val("le_gis_lat"), lon = val("le_gis_lon");
+    if (lat && lon) setPoint(+lat, +lon, false);
+  }
+  function setPoint(lat, lon, fromMap) {
+    setVal("le_gis_lat", lat.toFixed(6)); setVal("le_gis_lon", lon.toFixed(6));
+    const [e, n] = toBNG(lat, lon); setVal("txt_eastings", e); setVal("txt_northings", n);
+    if (fromMap) {
+      ["txt_property_about_the_location","txt_postcode_about_the_location","txt_uprn_about_the_location","txt_usrn_about_the_location"].forEach(k => setVal(k, ""));
+      const pin = `Map location ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      setVal("txt_full_address_about_the_location", pin);
+      setVal("txt_street_name_about_the_location", ""); setVal("txt_city_about_the_location", "Sheffield");
+      showSelected(pin + " (looking up nearest street...)");
+      photonReverse(lat, lon).then(a => {
+        if (!a || val("le_gis_lat") !== lat.toFixed(6)) return;
+        const near = "Near " + a.full;
+        setVal("txt_street_name_about_the_location", a.street);
+        setVal("txt_postcode_about_the_location", a.postcode);
+        setVal("txt_full_address_about_the_location", near);
+        setVal("txt_site_name", (a.street || "").toUpperCase());
+        showSelected(near);
+      }).catch(() => showSelected(pin));
+    }
+    if (map) {
+      if (!marker) marker = L.marker([lat, lon]).addTo(map); else marker.setLatLng([lat, lon]);
+      map.setView([lat, lon], Math.max(map.getZoom(), 16));
+    }
+  }
+  $("#but_use_current_location").addEventListener("click", () => {
+    if (!navigator.geolocation) return fieldError("f_txt_find_address_about_the_location", "Your browser cannot share its location");
+    navigator.geolocation.getCurrentPosition(
+      p => setPoint(p.coords.latitude, p.coords.longitude, true),
+      () => fieldError("f_txt_find_address_about_the_location", "We could not get your current location"),
+      { enableHighAccuracy: true, timeout: 10000 });
+  });
+
+  // ---------- validation ----------
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const PHONE = /^(\+44\s?|0)\d[\d\s]{8,12}$/;
+  function validate(page) {
+    clearErrors();
+    const errs = [];
+    const need = (cond, fid, msg) => { if (!cond) errs.push([fid, msg]); };
+    if (page === "page_sign_in") need(val("rad_sign_in"), "f_rad_sign_in", "Select whether you want to sign in");
+    if (page === "page_about_the_problem") {
+      const loc = val("rad_tree_location");
+      need(loc, "f_rad_tree_location", "Select where the tree is");
+      if (loc === "Highway") need(val("rad_tree_problem"), "f_rad_tree_problem", "Select what the problem with the tree is");
+      need(!treeExit(), "f_rad_tree_location", "This form can’t be used for this problem. See the advice above.");
+      if (!$("#f_rad_tree_blocking").hidden) need(val("rad_tree_blocking"), "f_rad_tree_blocking", "Select whether it is blocking the road or pavement");
+    }
+    if (page === "page_about_the_location") {
+      need(val("txt_full_address_about_the_location"), "f_txt_find_address_about_the_location", "Find an address or choose a point on the map");
+      need(val("txta_details_about_the_location"), "f_txta_details_about_the_location", "Enter further information about the tree");
+    }
+    if (page === "page_about_you") {
+      need(val("sel_title"), "f_sel_title", "Select your title");
+      need(val("txt_firstname"), "f_txt_firstname", "Enter your first name");
+      need(val("txt_surname"), "f_txt_surname", "Enter your surname");
+      const dob = readDob();
+      need(dob.ok, "f_txt_date_of_birth", dob.msg || "Enter your date of birth");
+      need(PHONE.test(val("tel_phone_number")), "f_tel_phone_number", "Enter a valid phone number");
+      need(EMAIL.test(val("eml_address")), "f_eml_address", "Enter a valid email address");
+    }
+    if (errs.length) showErrors(errs);
+    return !errs.length;
+  }
+  function readDob() {
+    const d = $("#dob_day").value.trim(), m = $("#dob_month").value.trim(), y = $("#dob_year").value.trim();
+    if (!d || !m || !y) return { ok: false, msg: "Enter your date of birth" };
+    const dt = new Date(+y, +m - 1, +d);
+    if (!/^\d{1,2}$/.test(d) || !/^\d{1,2}$/.test(m) || !/^\d{4}$/.test(y) || dt.getDate() !== +d || dt.getMonth() !== +m - 1) return { ok: false, msg: "Enter a real date of birth" };
+    if (dt > new Date() || +y < 1900) return { ok: false, msg: "Date of birth must be in the past" };
+    const dd = String(d).padStart(2, "0"), mm = String(m).padStart(2, "0");
+    setVal("txt_date_of_birth", `${dd}/${mm}/${y}`); setVal("dt_date_of_birth", `${y}-${mm}-${dd}`);
+    return { ok: true };
+  }
+  function fieldError(fid, msg) {
+    const f = $("#" + fid); if (!f) return;
+    f.classList.add("err");
+    let m = f.querySelector(".err-msg");
+    if (!m) { m = document.createElement("span"); m.className = "err-msg"; const anchor = f.querySelector("legend, label"); anchor ? anchor.after(m) : f.prepend(m); }
+    m.textContent = "Error: " + msg;
+  }
+  function clearFieldError(fid) { const f = $("#" + fid); if (!f) return; f.classList.remove("err"); const m = f.querySelector(".err-msg"); if (m) m.remove(); }
+  function showErrors(errs) {
+    const box = $("#errors"), ul = box.querySelector("ul");
+    ul.innerHTML = "";
+    errs.forEach(([fid, msg]) => {
+      fieldError(fid, msg);
+      const li = document.createElement("li"), a = document.createElement("a");
+      a.href = "#" + fid; a.textContent = msg;
+      a.addEventListener("click", ev => { ev.preventDefault(); const t = $("#" + fid + " input, #" + fid + " select, #" + fid + " textarea"); t && t.focus(); });
+      li.append(a); ul.append(li);
+    });
+    $("#" + state.page).prepend(box);
+    box.hidden = false; box.focus();
+  }
+  function clearErrors() { $("#errors").hidden = true; $$(".err").forEach(f => clearFieldError(f.id)); }
+
+  // ---------- review ----------
+  // Review shows the visible option label, as the live portal does.
+  const radioLabel = name => { const r = $(`input[name=${name}]:checked`); return r ? r.parentElement.textContent.trim() : ""; };
+  function buildReview() {
+    const rows = [
+      ["Where is the tree?", radioLabel("rad_tree_location"), "page_about_the_problem"],
+      ["What is the problem with the tree?", radioLabel("rad_tree_problem"), "page_about_the_problem"]
+    ];
+    if (val("rad_tree_blocking")) rows.push(["Is it blocking the road or pavement now?", radioLabel("rad_tree_blocking"), "page_about_the_problem"]);
+    rows.push(
+      ["Photo", state.file ? state.file.name : "Not provided", "page_about_the_problem"],
+      ["Location", val("txt_full_address_about_the_location"), "page_about_the_location"],
+      ["Further information", val("txta_details_about_the_location"), "page_about_the_location"]);
+    if (state.anonymous) rows.push(["About you", "Submitted anonymously", "page_about_you"]);
+    else rows.push(
+      ["Name", `${val("sel_title")} ${val("txt_firstname")} ${val("txt_surname")}`, "page_about_you"],
+      ["Date of birth", val("txt_date_of_birth").replace(/\//g, " "), "page_about_you"],
+      ["Phone number", val("tel_phone_number"), "page_about_you"],
+      ["Email address", val("eml_address"), "page_about_you"]);
+    const dl = $("#review_list"); dl.innerHTML = "";
+    rows.forEach(([k, v, p]) => {
+      const div = document.createElement("div");
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = v || "";
+      const ch = document.createElement("button"); ch.type = "button"; ch.className = "linkbtn"; ch.textContent = "Change";
+      ch.setAttribute("aria-label", "Change " + k.toLowerCase());
+      ch.addEventListener("click", () => show(p));
+      div.append(dt, dd, ch); dl.append(div);
+    });
+  }
+
+  // ---------- submit ----------
+  $("#but_final_submit").addEventListener("click", () => {
+    const now = new Date();
+    const ref = String(Math.floor(100000000 + Math.random() * 900000000));
+    const fields = {};
+    ["rad_sign_in","rad_tree_location","rad_tree_problem","rad_tree_blocking","txt_file_name_image_of_defect","txt_file_path_image_of_defect",
+     "txt_find_address_about_the_location","txta_details_about_the_location", ...hiddenLoc].forEach(k => (fields[k] = val(k)));
+    if (!state.anonymous) ["sel_title","txt_firstname","txt_surname","txt_date_of_birth","dt_date_of_birth","tel_phone_number","eml_address"].forEach(k => (fields[k] = val(k)));
+    const record = {
+      form: "report_tree", mock: true, unverified_fields: true, submitted_to_council: false, reference: ref, anonymous: state.anonymous,
+      txt_start_date_and_time: state.startedAt, txt_finish_date_and_time: now.toISOString(),
+      le_title: "Problem with a tree", le_gis: fields.le_gis_lat ? `${fields.le_gis_lat},${fields.le_gis_lon}` : "",
+      photo: state.file, fields
+    };
+    let all = [];
+    try { all = JSON.parse(localStorage.getItem("mock_submissions") || "[]"); } catch {}
+    all.push(record);
+    try { localStorage.setItem("mock_submissions", JSON.stringify(all)); } catch {}
+    window.mockSubmissions = all;
+    window.dispatchEvent(new CustomEvent("mock:submitted", { detail: record }));
+    console.log("[mock] report_tree submitted", record);
+    $("#ref_out").textContent = ref;
+    $("#conf_email").hidden = state.anonymous;
+    $("#payload_out").textContent = JSON.stringify(record, null, 2);
+    show("page_complete");
+  });
+  $("#but_restart").addEventListener("click", () => { location.hash = ""; location.reload(); });
+
+  try { window.mockSubmissions = JSON.parse(localStorage.getItem("mock_submissions") || "[]"); } catch { window.mockSubmissions = []; }
+
+  // Test convenience: ?step=about_the_location jumps to a step; &q=... pre-fills and runs the address search.
+  const params = new URLSearchParams(location.search);
+  const step = params.get("step");
+  if (step && PAGES.includes("page_" + step) && step !== "complete") {
+    show("page_" + step, false);
+    if (params.get("q")) { setVal("txt_find_address_about_the_location", params.get("q")); $("#but_find_address").click(); }
+  }
+})();
+</script>
+</body>
+</html>

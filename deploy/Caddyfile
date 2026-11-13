@@ -1,4 +1,4 @@
-# Reference copy of /etc/caddy/Caddyfile on the Spark. Installed by hand with sudo (see README),
+# Reference copy of /etc/caddy/Caddyfile on the Spark. Installed by hand with sudo (see docs/deployment.md),
 # not by deploy.sh: the runner has no root, and ports 80/443 are privileged.
 spark12.local {
 	tls internal    # Caddy's own CA: self-signed, so browsers warn once.
