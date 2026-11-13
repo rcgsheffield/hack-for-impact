@@ -410,7 +410,7 @@
   const setVal = (name, v) => { const el = form.elements[name]; if (el) el.value = v == null ? "" : v; };
   const hiddenLoc = ["txt_property_about_the_location","txt_street_name_about_the_location","txt_city_about_the_location","txt_postcode_about_the_location","txt_full_address_about_the_location","txt_uprn_about_the_location","txt_usrn_about_the_location","txt_site_name","txt_site_code","txt_feature_name","txt_feature_type","txt_responsibility","txt_prestige","txt_layerid","txt_eastings","txt_northings","le_gis_lat","le_gis_lon"];
 
-  proj4 && proj4.defs("EPSG:27700", "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs");
+  typeof proj4 !== "undefined" && proj4.defs("EPSG:27700", "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs");
   function toBNG(lat, lon) {
     try { const [e, n] = proj4("EPSG:4326", "EPSG:27700", [lon, lat]); return [Math.round(e), Math.round(n)]; } catch { return ["", ""]; }
   }
