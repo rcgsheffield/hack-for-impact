@@ -135,7 +135,8 @@ def file_report(surface: str, depth_band: str, location: str, description: str, 
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    return {"reference": reference, "status": "recorded (prototype: not sent to the council)"}
+    return {"reference": reference, "url": f"/reports/{reference}",
+            "status": "recorded (prototype: not sent to the council)"}
 
 
 TOOLS = {f.__name__: f for f in (route_report, assess_pothole, file_report)}
