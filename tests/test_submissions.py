@@ -121,3 +121,13 @@ def test_chat_agent_tree_report_keeps_its_form(logs):
                                                                     "rad_tree_problem": "Fallen"}}) + "\n")
     report = TestClient(main.app).get("/api/reports/SCC-20261113-TREE").json()["report"]
     assert (report["form"], report["title"], report["problem"]) == ("report_tree", "Problem with a tree", "Fallen")
+
+
+def test_chat_agent_report_with_a_shared_location_goes_on_the_map(logs):
+    from app import tools
+
+    tools.file_report("road", "Greater than 40mm", "Chesterfield Road", "Deep pothole", lat=53.346012, lon=-1.479034)
+    reports = {i["reference"]: i for i in load_submissions()["submissions"] if i["source"] == "chat_agent"}
+    [new] = [i for ref, i in reports.items() if ref != "SCC-20261113-ABCD"]
+    assert (new["lat"], new["lon"], new["geo_source"]) == (53.346012, -1.479034, "device")
+    assert reports["SCC-20261113-ABCD"]["geo_source"] == "photon"  # no location shared: geocoded from the text

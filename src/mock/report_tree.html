@@ -592,6 +592,8 @@
   function showSelected(text) { $("#selected_address span").textContent = text; clearFieldError("f_txt_find_address_about_the_location"); }
 
   // ---------- map ----------
+  // Hook for the agent's browser tools: pin a point (e.g. the user's device location) without changing the address.
+  window.mockSetPoint = (lat, lon) => setPoint(lat, lon, false);
   let map = null, marker = null;
   function initMap() {
     if (map) { map.invalidateSize(); return; }

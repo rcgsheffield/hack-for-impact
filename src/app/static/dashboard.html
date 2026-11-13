@@ -319,7 +319,7 @@
     return `<strong>${esc(formName(i.form))}${i.problem ? ` · ${esc(i.problem)}` : ""}</strong>`
       + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
       + (i.location ? `<br>${esc(i.location)}` : "")
-      + (i.geo_source && i.geo_source !== "form" ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
+      + (i.geo_source && !["form", "device"].includes(i.geo_source) ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
       + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "");
   }
 

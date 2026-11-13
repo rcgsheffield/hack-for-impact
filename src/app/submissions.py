@@ -13,7 +13,7 @@ Both pages draw reports with static/report-card.js.
 Reporter details (name, date of birth, phone, email) are never written to disk by save_submission.
 
 Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
-address search or map, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
+address search or map, "device" when the chat user shared their device location, otherwise the geocode.py lookup that placed the typed text ("sample", "postcodes.io", "photon").
 """
 
 from __future__ import annotations
@@ -145,6 +145,8 @@ def _from_mock(r: dict) -> dict:
 def _from_report(r: dict) -> dict:
     payload = r.get("form_payload") or {}
     geo = r.get("geo") or {}
+    if not geo and payload.get("le_gis_lat"):  # filed with a shared device location before reports carried geo
+        geo = {"lat": payload["le_gis_lat"], "lon": payload.get("le_gis_lon"), "source": "device"}
     lat, lon = _number(geo.get("lat")), _number(geo.get("lon"))
     form = r.get("form") or "report_pothole_crack"  # file_tree_report sets "report_tree"; older records have no form
     return {
