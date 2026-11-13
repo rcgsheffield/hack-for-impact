@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Submissions dashboard</title>
+<!-- Served at /dashboard by src/app/submissions.py. Polls /api/submissions. No external resources. -->
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f4f2; --surface: #fcfcfb; --border: #e2e1dc; --grid: #ecebe7;
+    --text: #0b0b0b; --text-2: #52514e; --muted: #6f6e69;
+    --accent: #2a78d6; --accent-soft: #e5effb;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+    --new: #fff4d6; --warn-bg: #fdf1e7; --warn-text: #7a3412;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1a1a19; --border: #2f2f2d; --grid: #262624;
+      --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
+      --accent: #3987e5; --accent-soft: #1d2b3d;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+      --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --border: #2f2f2d; --grid: #262624;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #9a998f;
+    --accent: #3987e5; --accent-soft: #1d2b3d;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --new: #3a3220; --warn-bg: #33241a; --warn-text: #f4c9a8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; justify-content: space-between; }
+  h1 { font-size: 1.5rem; margin: 0; }
+  h2 { font-size: 1rem; margin: 0 0 12px; }
+  a { color: var(--accent); }
+  .status { color: var(--text-2); font-size: .875rem; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--s3); margin-right: 6px; }
+  .dot.off { background: var(--muted); } .dot.err { background: #e34948; }
+  button, select, input { font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--border);
+                          border-radius: 6px; padding: 6px 10px; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .banner { margin: 12px 0 20px; padding: 8px 12px; border-radius: 6px; background: var(--warn-bg);
+            color: var(--warn-text); font-size: .875rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .kpi .label { color: var(--text-2); font-size: .8125rem; }
+  .kpi .value { font-size: 1.75rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .kpi .sub { color: var(--muted); font-size: .8125rem; }
+  .charts { display: grid; grid-template-columns: 3fr 2fr; gap: 12px; margin-bottom: 12px; }
+  @media (max-width: 760px) { .charts { grid-template-columns: 1fr; } }
+  svg text { fill: var(--text-2); font-size: 11px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: .8125rem; color: var(--text-2); margin-bottom: 8px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .filters input { flex: 1 1 200px; min-width: 0; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { color: var(--text-2); font-weight: 600; white-space: nowrap; }
+  tbody tr.row { cursor: pointer; }
+  tbody tr.row:hover { background: var(--accent-soft); }
+  tr.fresh { animation: fresh 4s ease-out; }
+  @keyframes fresh { from { background: var(--new); } to { background: transparent; } }
+  @media (prefers-reduced-motion: reduce) { tr.fresh { animation: none; background: var(--new); } }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem; border: 1px solid var(--border);
+         white-space: nowrap; }
+  .tag .sw { width: 8px; height: 8px; margin-right: 5px; }
+  pre { margin: 0; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); border-radius: 6px; overflow-x: auto; font-size: .8125rem; }
+  .detail td { background: var(--bg); }
+  .empty { color: var(--muted); padding: 24px; text-align: center; }
+  .muted { color: var(--muted); }
+  #tip { position: fixed; pointer-events: none; background: var(--text); color: var(--surface); font-size: .8125rem;
+         padding: 4px 8px; border-radius: 4px; display: none; z-index: 10; white-space: nowrap; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Submissions dashboard</h1>
+    <div class="status" aria-live="polite">
+      <span><span class="dot" id="dot"></span><span id="updated">Loading…</span></span>
+      <button type="button" id="pause" aria-pressed="false">Pause</button>
+      <a href="/">Chat</a> <a href="/mock/">Mock forms</a>
+    </div>
+  </header>
+  <p class="banner">Unofficial hackathon prototype. These are submissions to the <strong>mock</strong> council forms: nothing is sent to the council. Reporter names and contact details are not stored.</p>
+
+  <section class="kpis" aria-label="Summary">
+    <div class="card kpi"><div class="label">Submissions</div><div class="value" id="k-total">–</div><div class="sub" id="k-total-sub"></div></div>
+    <div class="card kpi"><div class="label">Last hour</div><div class="value" id="k-hour">–</div><div class="sub" id="k-hour-sub"></div></div>
+    <div class="card kpi"><div class="label">By agents</div><div class="value" id="k-agent">–</div><div class="sub" id="k-agent-sub"></div></div>
+    <div class="card kpi"><div class="label">Form page views</div><div class="value" id="k-views">–</div><div class="sub" id="k-views-sub"></div></div>
+  </section>
+
+  <section class="charts">
+    <div class="card">
+      <h2 id="h-time">Submissions per hour, last 24 hours</h2>
+      <div class="legend" id="legend"></div>
+      <svg id="c-time" role="img" aria-labelledby="h-time" width="100%" height="180"></svg>
+    </div>
+    <div class="card">
+      <h2 id="h-prob">By problem</h2>
+      <svg id="c-prob" role="img" aria-labelledby="h-prob" width="100%" height="180"></svg>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-list">
+    <h2 id="h-list">All submissions</h2>
+    <div class="filters">
+      <label class="sr-only" for="f-form">Form</label>
+      <select id="f-form"><option value="">All forms</option></select>
+      <label class="sr-only" for="f-source">Source</label>
+      <select id="f-source">
+        <option value="">All sources</option>
+        <option value="form_agent">Form agent</option>
+        <option value="chat_agent">Chat agent</option>
+        <option value="browser">Browser (by hand)</option>
+      </select>
+      <label class="sr-only" for="f-q">Search</label>
+      <input id="f-q" type="search" placeholder="Search reference, location, details…">
+      <span class="muted" id="shown"></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Time</th><th scope="col">Reference</th><th scope="col">Form</th><th scope="col">Problem</th>
+          <th scope="col">Location</th><th scope="col">Source</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<div id="tip" role="tooltip"></div>
+
+<script>
+(() => {
+  const POLL_MS = 5000;
+  // Categorical slots in fixed order (dataviz reference palette, first three: validated all-pairs).
+  const FORM_SLOTS = { report_pothole_crack: "--s1", report_tree: "--s2" };
+  const OTHER_SLOT = "--s3";
+  const SOURCE_LABEL = { form_agent: "Form agent", chat_agent: "Chat agent", browser: "Browser" };
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const slot = form => FORM_SLOTS[form] || OTHER_SLOT;
+  const color = form => `var(${slot(form)})`;
+
+  let data = null, seen = null, paused = false, open = new Set(), forms = {};
+  const formName = f => forms[f] || f || "Unknown";
+
+  // ---------- tooltip ----------
+  const tip = $("tip");
+  function showTip(e, text) {
+    tip.textContent = text; tip.style.display = "block";
+    const x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8);
+    tip.style.left = x + "px"; tip.style.top = (e.clientY - 32) + "px";
+  }
+  const hideTip = () => (tip.style.display = "none");
+  function bindTips(svg) {
+    svg.querySelectorAll("[data-tip]").forEach(el => {
+      el.addEventListener("pointermove", e => showTip(e, el.dataset.tip));
+      el.addEventListener("pointerleave", hideTip);
+    });
+  }
+
+  // ---------- charts ----------
+  const fmtTime = d => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const fmtDateTime = d => d.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+  function niceMax(n) { if (n <= 4) return 4; const p = 10 ** Math.floor(Math.log10(n)); return Math.ceil(n / p) * p; }
+
+  function drawTime(items) {
+    const svg = $("c-time"), W = svg.clientWidth || 600, H = 180, L = 28, R = 8, T = 8, B = 22;
+    const now = new Date(); now.setMinutes(0, 0, 0);
+    const hours = Array.from({ length: 24 }, (_, i) => new Date(now.getTime() - (23 - i) * 3600e3));
+    const keys = [...new Set(items.map(i => i.form))].sort((a, b) => (FORM_SLOTS[a] ? 0 : 1) - (FORM_SLOTS[b] ? 0 : 1) || a.localeCompare(b));
+    const stackKeys = []; // pothole, tree, then everything else folded into "Other"
+    keys.forEach(k => { const key = FORM_SLOTS[k] ? k : "_other"; if (!stackKeys.includes(key)) stackKeys.push(key); });
+    const bins = hours.map(h => { const o = {}; stackKeys.forEach(k => (o[k] = 0)); o._t = h; return o; });
+    items.forEach(i => {
+      const t = new Date(i.submitted_at); const idx = 23 - Math.floor((now.getTime() + 3600e3 - 1 - t.getTime()) / 3600e3);
+      if (idx >= 0 && idx < 24) bins[idx][FORM_SLOTS[i.form] ? i.form : "_other"]++;
+    });
+    const max = niceMax(Math.max(0, ...bins.map(b => stackKeys.reduce((s, k) => s + b[k], 0))));
+    const bw = (W - L - R) / 24, y = v => T + (H - T - B) * (1 - v / max);
+    let s = "";
+    [0, max / 2, max].forEach(v => {
+      s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/>`;
+      s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`;
+    });
+    bins.forEach((b, i) => {
+      const x = L + i * bw + 2, w = Math.max(2, bw - 4);
+      let base = 0;
+      const total = stackKeys.reduce((s, k) => s + b[k], 0);
+      const label = `${fmtTime(b._t)}–${fmtTime(new Date(b._t.getTime() + 3600e3))}: ${total} submission${total === 1 ? "" : "s"}`
+        + stackKeys.filter(k => b[k]).map(k => ` · ${k === "_other" ? "Other" : formName(k)} ${b[k]}`).join("");
+      stackKeys.forEach((k, j) => {
+        if (!b[k]) return;
+        const y0 = y(base), y1 = y(base + b[k]); base += b[k];
+        const top = j === stackKeys.length - 1 || stackKeys.slice(j + 1).every(kk => !b[kk]);
+        const h = Math.max(1, y0 - y1 - (base < total ? 2 : 0)); // 2px surface gap between stacked segments
+        s += top
+          ? `<path d="M${x},${y0} V${y0 - h + 4} q0,-4 4,-4 H${x + w - 4} q4,0 4,4 V${y0} Z" fill="${k === "_other" ? `var(${OTHER_SLOT})` : color(k)}"/>`
+          : `<rect x="${x}" y="${y0 - h}" width="${w}" height="${h}" fill="${k === "_other" ? `var(${OTHER_SLOT})` : color(k)}"/>`;
+      });
+      s += `<rect x="${L + i * bw}" y="${T}" width="${bw}" height="${H - T - B}" fill="transparent" data-tip="${esc(label)}"/>`;
+      if (i % 4 === 3) s += `<text x="${x + w / 2}" y="${H - 6}" text-anchor="middle">${fmtTime(b._t)}</text>`;
+    });
+    svg.innerHTML = s; bindTips(svg);
+    $("legend").innerHTML = stackKeys.length < 2 ? "" : stackKeys.map(k =>
+      `<span><span class="sw" style="background:${k === "_other" ? `var(${OTHER_SLOT})` : color(k)}"></span>${esc(k === "_other" ? "Other" : formName(k))}</span>`).join("");
+  }
+
+  function drawProblems(items) {
+    const svg = $("c-prob"), W = svg.clientWidth || 400;
+    const counts = {};
+    items.forEach(i => { const k = i.problem || "Not recorded"; counts[k] = (counts[k] || 0) + 1; });
+    let rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (rows.length > 7) rows = [...rows.slice(0, 6), ["Other", rows.slice(6).reduce((s, r) => s + r[1], 0)]];
+    const rowH = 24, H = Math.max(60, rows.length * rowH + 8), labelW = Math.min(170, W * 0.45), max = Math.max(1, ...rows.map(r => r[1]));
+    svg.setAttribute("height", H);
+    if (!rows.length) { svg.innerHTML = `<text x="0" y="20">No submissions yet</text>`; return; }
+    let s = "";
+    rows.forEach(([k, v], i) => {
+      const y = 4 + i * rowH, w = Math.max(4, (W - labelW - 40) * v / max);
+      const maxChars = Math.floor((labelW - 8) / 6.2); // ~6px per character at 11px
+      const name = k.length > maxChars ? k.slice(0, maxChars - 1) + "…" : k;
+      s += `<text x="${labelW - 8}" y="${y + 15}" text-anchor="end">${esc(name)}</text>`;
+      s += `<path d="M${labelW},${y + 4} H${labelW + w - 4} q4,0 4,4 V${y + 16} q0,4 -4,4 H${labelW} Z" fill="var(--s1)"/>`;
+      s += `<text x="${labelW + w + 6}" y="${y + 15}">${v}</text>`;
+      s += `<rect x="0" y="${y}" width="${W}" height="${rowH}" fill="transparent" data-tip="${esc(k)}: ${v}"/>`;
+    });
+    svg.innerHTML = s; bindTips(svg);
+  }
+
+  // ---------- KPIs ----------
+  function drawKpis(all) {
+    const hourAgo = Date.now() - 3600e3;
+    const bySource = s => all.filter(i => i.source === s).length;
+    $("k-total").textContent = all.length;
+    $("k-total-sub").textContent = Object.entries(all.reduce((o, i) => (o[i.form] = (o[i.form] || 0) + 1, o), {}))
+      .map(([f, n]) => `${formName(f)} ${n}`).join(" · ") || "None yet";
+    const lastHour = all.filter(i => new Date(i.submitted_at).getTime() >= hourAgo).length;
+    $("k-hour").textContent = lastHour;
+    $("k-hour-sub").textContent = all[0] ? `Latest ${fmtDateTime(new Date(all[0].submitted_at))}` : "";
+    $("k-agent").textContent = bySource("form_agent") + bySource("chat_agent");
+    $("k-agent-sub").textContent = `Form ${bySource("form_agent")} · Chat ${bySource("chat_agent")} · By hand ${bySource("browser")}`;
+    const v = Object.values(data.views || {}).reduce((o, p) => (o.agent += p.agent, o.person += p.person, o), { agent: 0, person: 0 });
+    $("k-views").textContent = v.agent + v.person;
+    $("k-views-sub").textContent = `Agent ${v.agent} · Person ${v.person} (served from /mock/ only)`;
+  }
+
+  // ---------- table ----------
+  function filtered() {
+    const f = $("f-form").value, src = $("f-source").value, q = $("f-q").value.trim().toLowerCase();
+    return data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) &&
+      (!q || [i.reference, i.location, i.details, i.problem, i.title].join(" ").toLowerCase().includes(q)));
+  }
+
+  function drawTable(items, fresh) {
+    $("shown").textContent = items.length === data.submissions.length ? "" : `${items.length} of ${data.submissions.length} shown`;
+    if (!items.length) {
+      $("rows").innerHTML = `<tr><td colspan="6" class="empty">${data.submissions.length ? "No submissions match the filters." : "No submissions yet. Run a form agent, e.g. <code>uv run python -m app.pothole_form_toolkit</code>."}</td></tr>`;
+      return;
+    }
+    $("rows").innerHTML = items.map(i => {
+      const key = i.source + ":" + i.reference + ":" + i.submitted_at;
+      const t = new Date(i.submitted_at);
+      const map = i.lat != null ? ` <a href="https://www.openstreetmap.org/?mlat=${i.lat}&mlon=${i.lon}#map=18/${i.lat}/${i.lon}" target="_blank" rel="noopener" onclick="event.stopPropagation()">map</a>` : "";
+      const row = `<tr class="row${fresh.has(key) ? " fresh" : ""}" tabindex="0" data-key="${esc(key)}" aria-expanded="${open.has(key)}">
+        <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
+        <td class="num">${esc(i.reference)}</td>
+        <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
+        <td>${esc(i.problem) || '<span class="muted">–</span>'}</td>
+        <td>${esc(i.location) || '<span class="muted">–</span>'}${map}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
+        <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
+      </tr>`;
+      const detail = open.has(key) ? `<tr class="detail"><td colspan="6"><pre>${esc(JSON.stringify(i.raw, null, 2))}</pre></td></tr>` : "";
+      return row + detail;
+    }).join("");
+  }
+
+  function toggle(tr) {
+    const key = tr.dataset.key;
+    open.has(key) ? open.delete(key) : open.add(key);
+    render(new Set());
+    document.querySelector(`tr[data-key="${CSS.escape(key)}"]`)?.focus();
+  }
+  $("rows").addEventListener("click", e => { const tr = e.target.closest("tr.row"); if (tr) toggle(tr); });
+  $("rows").addEventListener("keydown", e => {
+    const tr = e.target.closest("tr.row");
+    if (tr && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(tr); }
+  });
+
+  function render(fresh) {
+    if (!data) return;
+    const items = filtered();
+    drawKpis(data.submissions);
+    drawTime(items);
+    drawProblems(items);
+    drawTable(items, fresh);
+  }
+
+  function syncFormFilter() {
+    const sel = $("f-form"), cur = sel.value;
+    const present = [...new Set([...Object.keys(forms), ...data.submissions.map(i => i.form)])];
+    sel.innerHTML = `<option value="">All forms</option>` + present.map(f => `<option value="${esc(f)}">${esc(formName(f))}</option>`).join("");
+    sel.value = cur;
+  }
+
+  async function poll() {
+    if (paused) return;
+    try {
+      const r = await fetch("/api/submissions", { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      data = await r.json();
+      forms = data.forms || {};
+      const keys = new Set(data.submissions.map(i => i.source + ":" + i.reference + ":" + i.submitted_at));
+      const fresh = seen ? new Set([...keys].filter(k => !seen.has(k))) : new Set();
+      seen = keys;
+      syncFormFilter();
+      render(fresh);
+      $("dot").className = "dot";
+      $("updated").textContent = `Live · updated ${fmtTime(new Date())}${fresh.size ? ` · ${fresh.size} new` : ""}`;
+      if (fresh.size) document.title = `(${fresh.size} new) Submissions dashboard`;
+    } catch (e) {
+      $("dot").className = "dot err";
+      $("updated").textContent = `Can't reach the app (${e.message}); retrying`;
+    }
+  }
+
+  ["f-form", "f-source", "f-q"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
+  $("pause").addEventListener("click", () => {
+    paused = !paused;
+    $("pause").textContent = paused ? "Resume" : "Pause";
+    $("pause").setAttribute("aria-pressed", paused);
+    $("dot").className = paused ? "dot off" : "dot";
+    if (paused) $("updated").textContent = "Paused"; else poll();
+  });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) document.title = "Submissions dashboard"; });
+  addEventListener("resize", () => render(new Set()));
+  poll();
+  setInterval(poll, POLL_MS);
+})();
+</script>
+</body>
+</html>

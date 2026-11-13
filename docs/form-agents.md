@@ -28,6 +28,9 @@ uv run python -m app.form_agent_cli tree -m "A branch has fallen across the pave
 uv run python -m app.pothole_form_toolkit --headed --keep-open   # fixed answers, no model
 ```
 
+Every submission is also saved to `data/mock_submissions.jsonl`; watch them arrive at `/dashboard` while the
+app is running (`uv run uvicorn app.main:app --app-dir src`).
+
 `form_agent_cli` prints every tool call. It also warns (`GUARD`) if the model quotes a reference number
 that no submit tool returned.
 

@@ -40,7 +40,7 @@ def call(tools, name, **args):
     return json.loads(tools[name].invoke(args))
 
 
-def test_completes_and_submits_form(tools):
+def test_completes_and_submits_form(tools, mock_submissions_path):
     assert call(tools, "start_pothole_form")["page"] == "page_about_the_problem"
 
     problem = call(tools, "set_pothole_problem", surface="pavement", depth_mm=30)
@@ -65,6 +65,8 @@ def test_completes_and_submits_form(tools):
     assert fields["rad_path_pothole_depth"] == "Greater than 20mm"
     assert fields["txt_full_address_about_the_location"] == "Somewhere off Fargate"
     assert result["record"]["submitted_to_council"] is False
+    saved = json.loads(mock_submissions_path.read_text().splitlines()[-1])  # for the dashboard
+    assert saved["reference"] == result["reference"]
 
 
 def test_wrong_page_returns_error(tools):

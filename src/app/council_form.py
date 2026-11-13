@@ -26,6 +26,8 @@ from typing import Any, Callable, Literal
 from langchain_core.tools import BaseTool, StructuredTool
 from pydantic import BaseModel, Field
 
+from .submissions import save_submission
+
 
 def _env(name: str, default: str | None = None) -> str | None:
     """FORM_<name>, falling back to the older POTHOLE_FORM_<name>."""
@@ -265,6 +267,7 @@ class CouncilFormSession:
             p.click("#but_final_submit")
             p.wait_for_selector("#page_complete:not([hidden])")
             record = p.evaluate("() => window.mockSubmissions[window.mockSubmissions.length - 1]")
+            save_submission(record)  # for the dashboard; the browser's own copy is lost when the session closes
             return self._state(reference=record["reference"],
                                status="submitted to the mock form (test only: not sent to the council)",
                                record=record)

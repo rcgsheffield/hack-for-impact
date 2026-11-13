@@ -1,4 +1,5 @@
-"""Web app: FastAPI with a Gradio chat UI at /, a health check at /health and the dummy council site at /mock/.
+"""Web app: FastAPI with a Gradio chat UI at /, a health check at /health, the dummy council site at /mock/
+and a dashboard of submissions to it at /dashboard.
 
 Run: uvicorn app.main:app --app-dir src --host 0.0.0.0 --port 8000
 """
@@ -14,11 +15,12 @@ from fastapi.responses import JSONResponse
 
 from hack_for_impact.agent.llm import build_agent, run_agent_events
 
-from . import config, usage
+from . import config, submissions, usage
 from .agent import ToolStep
 
 app = FastAPI(title="CouncilTriagent")
 app.include_router(usage.router)
+app.include_router(submissions.router)
 
 
 @app.get("/health")
@@ -90,7 +92,8 @@ demo = gr.ChatInterface(
     description=(
         "Report a problem with a road or pavement in Sheffield in your own words. "
         f"Running locally on NVIDIA DGX Spark ({config.OLLAMA_MODEL}). "
-        "**Unofficial hackathon prototype: nothing is sent to the council.**"
+        "**Unofficial hackathon prototype: nothing is sent to the council.** "
+        "[Submissions dashboard](/dashboard)"
     ),
     examples=[
         "There's a really deep pothole outside 10 Fargate, about 5cm deep. A cyclist nearly came off.",

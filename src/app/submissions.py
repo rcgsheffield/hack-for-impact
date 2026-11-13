@@ -1,0 +1,185 @@
+"""Submissions dashboard: what the agents (and people) have submitted to the dummy council forms.
+
+Sources, all JSON lines under data/ (git-ignored):
+- config.MOCK_SUBMISSIONS_PATH: full mock-form records saved by the form agents (council_form.py), source "form_agent".
+- config.REPORTS_PATH: reports filed by the chat agent's file_report tool (tools.py), source "chat_agent".
+- config.USAGE_PATH: the /mock/ access log (usage.py). Submit events whose reference isn't in the files above
+  (someone filling in the form by hand in a browser) appear with source "browser" and only a reference.
+  Page views feed the view counts.
+
+GET /dashboard serves static/dashboard.html, which polls GET /api/submissions.
+Reporter details (name, date of birth, phone, email) are never written to disk by save_submission.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import threading
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from fastapi import APIRouter
+from fastapi.responses import FileResponse
+
+from . import config
+
+log = logging.getLogger(__name__)
+
+DASHBOARD_HTML = Path(__file__).resolve().parent / "static" / "dashboard.html"
+PERSONAL_FIELDS = {"sel_title", "txt_firstname", "txt_surname", "txt_date_of_birth", "dt_date_of_birth",
+                   "tel_phone_number", "eml_address"}
+FORM_NAMES = {"report_pothole_crack": "Pothole or crack", "report_tree": "Tree problem",
+              "road-report-agent": "Road report (prototype)"}
+AGENT_UA_MARKERS = ("HeadlessChrome", "Playwright")
+
+router = APIRouter()
+_write_lock = threading.Lock()
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def without_personal_details(record: dict) -> dict:
+    fields = {k: v for k, v in (record.get("fields") or {}).items() if k not in PERSONAL_FIELDS}
+    return {**record, "fields": fields}
+
+
+def save_submission(record: dict) -> None:
+    """Append a mock-form record (as read back from the browser) to MOCK_SUBMISSIONS_PATH. Never raises."""
+    try:
+        line = json.dumps({"recorded_at": _now(), **without_personal_details(record)})
+        path = Path(config.MOCK_SUBMISSIONS_PATH)
+        with _write_lock:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as f:
+                f.write(line + "\n")
+    except Exception:  # The dashboard is a nice-to-have; it must not break the submit tool.
+        log.exception("could not save mock submission")
+
+
+def _read_jsonl(path: Path) -> list[dict]:
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except OSError:
+        return []
+    out = []
+    for line in text.splitlines():
+        try:
+            item = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(item, dict):
+            out.append(item)
+    return out
+
+
+def _latlon(le_gis: str) -> tuple[float | None, float | None]:
+    try:
+        lat, lon = (float(x) for x in str(le_gis).split(","))
+        return lat, lon
+    except ValueError:
+        return None, None
+
+
+def _problem(fields: dict) -> str:
+    if fields.get("rad_tree_problem") or fields.get("rad_tree_location"):
+        parts = [fields.get("rad_tree_problem") or fields.get("rad_tree_location")]
+        if fields.get("rad_tree_blocking") == "Yes":
+            parts.append("blocking")
+        return ", ".join(parts)
+    surface = (fields.get("rad_problem_location") or "").replace(" Surface", "")
+    depth = fields.get("rad_road_pothole_depth") or fields.get("rad_path_pothole_depth") or ""
+    return f"{surface}: {depth}" if surface and depth else surface or depth
+
+
+def _from_mock(r: dict) -> dict:
+    fields = r.get("fields") or {}
+    lat, lon = _latlon(r.get("le_gis", ""))
+    return {
+        "source": "form_agent",
+        "form": r.get("form", ""),
+        "reference": str(r.get("reference", "")),
+        "submitted_at": r.get("txt_finish_date_and_time") or r.get("recorded_at", ""),
+        "title": r.get("le_title", ""),
+        "location": fields.get("txt_full_address_about_the_location") or fields.get("txt_find_address_about_the_location", ""),
+        "details": fields.get("txta_details_about_the_location", ""),
+        "problem": _problem(fields),
+        "anonymous": r.get("anonymous"),
+        "lat": lat,
+        "lon": lon,
+        "raw": without_personal_details(r),
+    }
+
+
+def _from_report(r: dict) -> dict:
+    payload = r.get("form_payload") or {}
+    return {
+        "source": "chat_agent",
+        "form": "report_pothole_crack",
+        "reference": str(r.get("reference", "")),
+        "submitted_at": r.get("filed_at", ""),
+        "title": "Pothole or crack on the highway",
+        "location": payload.get("txt_find_address_about_the_location", ""),
+        "details": payload.get("txta_details_about_the_location", ""),
+        "problem": _problem(payload),
+        "anonymous": None,
+        "lat": None,
+        "lon": None,
+        "raw": r,
+    }
+
+
+def _from_usage(r: dict) -> dict:
+    form = str(r.get("page", "")).removesuffix(".html")
+    return {
+        "source": "browser",
+        "form": form,
+        "reference": str(r.get("reference", "")),
+        "submitted_at": r.get("ts", ""),
+        "title": FORM_NAMES.get(form, form),
+        "location": "",
+        "details": "",
+        "problem": "",
+        "anonymous": None,
+        "lat": None,
+        "lon": None,
+        "raw": {k: r.get(k) for k in ("ts", "event", "page", "reference", "user_agent")},
+    }
+
+
+def _ts(item: dict) -> datetime:
+    try:
+        t = datetime.fromisoformat(str(item["submitted_at"]).replace("Z", "+00:00"))
+        return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+    except (KeyError, ValueError):
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+
+def load_submissions() -> dict[str, Any]:
+    """All submissions, newest first, plus page-view counts from the usage log."""
+    items = [_from_mock(r) for r in _read_jsonl(config.MOCK_SUBMISSIONS_PATH)]
+    items += [_from_report(r) for r in _read_jsonl(config.REPORTS_PATH)]
+    known = {i["reference"] for i in items if i["reference"]}
+    views: dict[str, dict[str, int]] = {}
+    for r in _read_jsonl(config.USAGE_PATH):
+        if r.get("event") == "submit" and str(r.get("reference", "")) not in known:
+            items.append(_from_usage(r))
+        elif r.get("event") == "view":
+            who = "agent" if any(m in str(r.get("user_agent", "")) for m in AGENT_UA_MARKERS) else "person"
+            page = views.setdefault(str(r.get("page", "")).removesuffix(".html"), {"agent": 0, "person": 0})
+            page[who] += 1
+    items.sort(key=_ts, reverse=True)
+    return {"generated_at": _now(), "count": len(items), "forms": FORM_NAMES, "views": views, "submissions": items}
+
+
+@router.get("/api/submissions")
+def api_submissions() -> dict[str, Any]:
+    return load_submissions()
+
+
+@router.get("/dashboard", include_in_schema=False)
+def dashboard() -> FileResponse:
+    return FileResponse(DASHBOARD_HTML, media_type="text/html")

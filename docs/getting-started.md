@@ -6,6 +6,7 @@ Stack: **Python, FastAPI and a [Gradio](https://www.gradio.app/) chat UI, with t
 |---|---|
 | `src/app/main.py` | FastAPI app: chat UI at `/`, status at `/health` |
 | `src/app/usage.py` | Serves the dummy council site (`src/mock/`) at `/mock/` and logs page loads and submissions to `data/usage.jsonl` |
+| `src/app/submissions.py` | Submissions dashboard at `/dashboard` (JSON at `/api/submissions`): what the agents have submitted to the mock forms |
 | `src/app/agent.py` | System prompt and tool-calling loop |
 | `src/app/tools.py` | Agent tools: `route_report`, `assess_pothole`, `file_report` |
 | `src/app/config.py` | Settings from environment variables |
@@ -41,6 +42,14 @@ To log agent runs too, point the form toolkit at the served copy; they show up w
 POTHOLE_FORM_URL=http://127.0.0.1:8000/mock/report_pothole_crack.html uv run python -m app.pothole_form_toolkit
 ```
 
+### Submissions dashboard
+
+<http://127.0.0.1:8000/dashboard> (on the Spark: <http://spark12.local/dashboard>) shows every submission to the mock forms and refreshes every 5 seconds. It combines:
+
+- form-agent submissions (`council_form.py` saves each submitted record to `data/mock_submissions.jsonl`, minus name, date of birth, phone and email),
+- chat-agent reports from `file_report` (`data/reports.jsonl`),
+- forms submitted by hand in a browser at `/mock/` (reference only, from `data/usage.jsonl`), plus page-view counts split into agent (HeadlessChrome) and person.
+
 ## Settings
 
 Environment variables:
@@ -50,6 +59,7 @@ Environment variables:
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Ollama, or any OpenAI-compatible server such as NIM |
 | `OLLAMA_MODEL` | `nemotron-3.5-lightning:30b` | Try `qwen3.6:35b-a3b` if Nemotron's tool calls misbehave |
 | `REPORTS_PATH` | `data/reports.jsonl` | Where filed reports are recorded |
+| `MOCK_SUBMISSIONS_PATH` | `data/mock_submissions.jsonl` | Mock-form submissions made by the form agents, without reporter details |
 | `MAX_AGENT_STEPS` | `12` | Model calls allowed per user message |
 | `LLM_TIMEOUT` | `180` | Seconds to wait for one model response |
 
