@@ -122,6 +122,8 @@
   function fieldRows(item, audience) {
     const f = fieldsOf(item);
     return FIELDS.filter(([key, , opt]) => f[key] && !(opt && opt.staff && audience !== "staff"))
+      // The photo itself is shown below; its stored file name means nothing to people.
+      .filter(([key]) => !(key === "txt_file_name_image_of_defect" && item.photo_url))
       .map(([key, label]) => row(label, esc(f[key])));
   }
 
