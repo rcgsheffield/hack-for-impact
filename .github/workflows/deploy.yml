@@ -16,3 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Deploy
         run: ./deploy.sh
+        env:
+          # Optional repository variables; empty means use the defaults in src/app/config.py.
+          OLLAMA_URL: ${{ vars.OLLAMA_URL }}
+          OLLAMA_MODEL: ${{ vars.APP_MODEL }}

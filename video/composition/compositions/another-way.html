@@ -1,0 +1,55 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #000;
+      color: #ffffff;
+    }
+    #aw-flash {
+      position: absolute;
+      inset: 0;
+      background: #343f4f;
+    }
+    #aw-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .aw-line {
+      font-size: 120px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    #aw-l2 {
+      color: #76b900;
+    }
+  </style>
+  <div id="root" data-composition-id="another-way" data-width="1920" data-height="1080">
+    <div id="aw-flash"></div>
+    <div id="aw-text">
+      <div class="aw-line" id="aw-l1">If only there was</div>
+      <div class="aw-line" id="aw-l2">another way…</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      // freeze frame of the chaos, jolts, then cuts to black
+      tl.fromTo("#aw-flash", { opacity: 1, x: 0 }, { x: 24, duration: 0.05, yoyo: true, repeat: 3 }, 0);
+      tl.fromTo("#aw-flash", { opacity: 1 }, { opacity: 0, duration: 0.5, ease: "power2.in" }, 0.25);
+      tl.fromTo("#aw-l1", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 1.0);
+      tl.fromTo("#aw-l2", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" }, 1.8);
+      tl.fromTo("#aw-text", { scale: 1 }, { scale: 1.06, duration: 3.5, ease: "none" }, 1.0);
+      window.__timelines["another-way"] = tl;
+    })();
+  </script>
+</template>

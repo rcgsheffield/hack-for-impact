@@ -7,7 +7,7 @@ Draft lines: rewrite them once the demo is settled.
 ## s1
 > Scene 01, Irene and the phone. Calm, slightly weary.
 
-This is Irene. There's a problem on her street, and she wants the council to fix it.
+This is Irene. There's a pothole on her street, and she wants the council to fix it.
 
 ## s2
 > Scene 02, form X.
@@ -37,4 +37,4 @@ Behind the scenes, the agent works out which service is responsible, checks coun
 ## s7
 > Scene 07, close.
 
-Less time on hold for residents. Less time triaging for the council.
+Less time on hold for residents. Less time triaging for the council. This is CouncilTriagent.

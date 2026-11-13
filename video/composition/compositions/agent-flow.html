@@ -1,0 +1,234 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #0b0f0a;
+      color: #eef5e6;
+    }
+    #af-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(118, 185, 0, 0.07) 2px, transparent 2px),
+        linear-gradient(90deg, rgba(118, 185, 0, 0.07) 2px, transparent 2px);
+      background-size: 80px 80px;
+    }
+    #af-title {
+      position: absolute;
+      left: 140px;
+      top: 90px;
+      font-size: 68px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    #af-kicker {
+      position: absolute;
+      left: 142px;
+      top: 180px;
+      font-size: 32px;
+      color: #a8c48a;
+    }
+    #af-input {
+      position: absolute;
+      left: 140px;
+      top: 290px;
+      padding: 18px 28px;
+      border-radius: 16px;
+      border: 2px solid #3a4a30;
+      background: #141c11;
+      font-size: 28px;
+      color: #d7e6c6;
+    }
+    #af-flow {
+      position: absolute;
+      left: 140px;
+      top: 410px;
+      width: 1640px;
+      height: 300px;
+    }
+    #af-rail {
+      position: absolute;
+      left: 80px;
+      top: 70px;
+      width: 1480px;
+      height: 6px;
+      background: #26321f;
+    }
+    #af-railfill {
+      position: absolute;
+      left: 80px;
+      top: 70px;
+      width: 1480px;
+      height: 6px;
+      background: #76b900;
+      transform-origin: 0 50%;
+    }
+    .af-node {
+      position: absolute;
+      top: 0;
+      width: 300px;
+      text-align: center;
+    }
+    .af-num {
+      margin: 0 auto;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 6px solid #3a4a30;
+      background: #141c11;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      font-weight: 900;
+      color: #6f8460;
+    }
+    .af-name {
+      margin-top: 22px;
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .af-detail {
+      margin-top: 10px;
+      font-size: 28px;
+      color: #a8c48a;
+      line-height: 1.3;
+    }
+    #af-log {
+      position: absolute;
+      left: 140px;
+      top: 760px;
+      width: 1060px;
+      height: 230px;
+      padding: 22px 30px;
+      border-radius: 16px;
+      background: #141c11;
+      border: 2px solid #26321f;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 28px;
+      line-height: 1.55;
+      color: #cfe3b8;
+    }
+    .af-k {
+      color: #76b900;
+    }
+    #af-badge {
+      position: absolute;
+      left: 1260px;
+      top: 760px;
+      width: 520px;
+      height: 230px;
+      padding: 30px 36px;
+      border-radius: 16px;
+      background: #76b900;
+      color: #0b0f0a;
+      opacity: 0;
+    }
+    #af-badge-top {
+      font-size: 28px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #af-badge-main {
+      margin-top: 8px;
+      font-size: 50px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    #af-badge-sub {
+      margin-top: 12px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+  </style>
+  <div id="root" data-composition-id="agent-flow" data-width="1920" data-height="1080">
+    <div id="af-grid"></div>
+    <div id="af-title">Behind the scenes: an agent, not a form</div>
+    <div id="af-kicker">One report in. Five steps, planned and run by the agent.</div>
+    <div id="af-input">“Huge pothole outside 42 Abbeydale Road” + photo</div>
+    <div id="af-flow">
+      <div id="af-rail"></div>
+      <div id="af-railfill"></div>
+      <div class="af-node" id="af-n1" style="left: -70px">
+        <div class="af-num">1</div>
+        <div class="af-name">Understand</div>
+        <div class="af-detail">Reads the text and photo</div>
+      </div>
+      <div class="af-node" id="af-n2" style="left: 300px">
+        <div class="af-num">2</div>
+        <div class="af-name">Route</div>
+        <div class="af-detail">Pothole → Highways</div>
+      </div>
+      <div class="af-node" id="af-n3" style="left: 670px">
+        <div class="af-num">3</div>
+        <div class="af-name">Check open data</div>
+        <div class="af-detail">Existing reports nearby?</div>
+      </div>
+      <div class="af-node" id="af-n4" style="left: 1040px">
+        <div class="af-num">4</div>
+        <div class="af-name">File it</div>
+        <div class="af-detail">Fills the council's system</div>
+      </div>
+      <div class="af-node" id="af-n5" style="left: 1410px">
+        <div class="af-num">5</div>
+        <div class="af-name">Keep Irene updated</div>
+        <div class="af-detail">Tracks until it's fixed</div>
+      </div>
+    </div>
+    <div id="af-log">
+      <div id="af-l1"><span class="af-k">classify</span>(report) → highways.pothole · severity: high</div>
+      <div id="af-l2"><span class="af-k">search</span>(sheffield_open_data, 50 m) → 0 open duplicates</div>
+      <div id="af-l3"><span class="af-k">submit</span>(highways_defect_form) → ref SHF-24817</div>
+      <div id="af-l4"><span class="af-k">notify</span>(irene, status="logged") → sent</div>
+    </div>
+    <div id="af-badge">
+      <div id="af-badge-top">Runs locally on</div>
+      <div id="af-badge-main">NVIDIA DGX Spark</div>
+      <div id="af-badge-sub">Residents' data stays on site</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#af-title", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.1);
+      tl.fromTo("#af-kicker", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.4);
+      tl.fromTo("#af-input", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 0.6);
+      tl.fromTo(".af-node", { opacity: 0.35 }, { opacity: 0.35, duration: 0.01 }, 0);
+      tl.fromTo("#af-railfill", { scaleX: 0 }, { scaleX: 0, duration: 0.01 }, 0);
+      tl.fromTo(["#af-l1", "#af-l2", "#af-l3", "#af-l4"], { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0);
+      tl.fromTo("#af-log", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 2.4);
+
+      // node lights timed to the voiceover (s6 starts 0.5 s into the scene)
+      const steps = [
+        { n: "#af-n1", at: 1.2, fill: 0 },
+        { n: "#af-n2", at: 2.6, fill: 0.25, log: "#af-l1" },
+        { n: "#af-n3", at: 5.0, fill: 0.5, log: "#af-l2" },
+        { n: "#af-n4", at: 7.6, fill: 0.75, log: "#af-l3" },
+        { n: "#af-n5", at: 9.4, fill: 1, log: "#af-l4" },
+      ];
+      steps.forEach((s, i) => {
+        if (i > 0) tl.fromTo("#af-railfill", { scaleX: steps[i - 1].fill }, { scaleX: s.fill, duration: 0.6, ease: "power2.inOut" }, s.at - 0.4);
+        tl.fromTo(s.n, { opacity: 0.35 }, { opacity: 1, duration: 0.3 }, s.at);
+        tl.fromTo(
+          s.n + " .af-num",
+          { scale: 1, borderColor: "#3a4a30", backgroundColor: "#141c11", color: "#6f8460" },
+          { scale: 1.12, borderColor: "#76b900", backgroundColor: "#76b900", color: "#0b0f0a", duration: 0.35, ease: "back.out(2)" },
+          s.at,
+        );
+        tl.fromTo(s.n + " .af-num", { scale: 1.12 }, { scale: 1, duration: 0.3 }, s.at + 0.4);
+        if (s.log) tl.fromTo(s.log, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.3 }, s.at + 0.3);
+      });
+
+      tl.fromTo("#af-badge", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.6)" }, 11.6);
+      tl.fromTo("#af-badge", { boxShadow: "0 0 0 0 rgba(118,185,0,0.7)" }, { boxShadow: "0 0 0 40px rgba(118,185,0,0)", duration: 1.2 }, 12.2);
+      tl.fromTo("#af-flow", { scale: 1 }, { scale: 1.04, duration: 7, ease: "sine.inOut" }, 11);
+      tl.fromTo(".af-num", { boxShadow: "0 0 0 0 rgba(118,185,0,0.5)" }, { boxShadow: "0 0 0 18px rgba(118,185,0,0)", duration: 0.8, stagger: 0.3 }, 13.4);
+      window.__timelines["agent-flow"] = tl;
+    })();
+  </script>
+</template>

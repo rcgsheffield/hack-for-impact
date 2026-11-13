@@ -220,10 +220,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Hack for Impact: local datasets and secrets
-data/*
-!data/README.md
-!data/.gitkeep
-!data/sample/
 .env
 .env.*
 !.env.example
@@ -237,3 +233,9 @@ video/composition/.hyperframes/
 
 # Claude Code personal settings
 .claude/settings.local.json
+
+# Windows download metadata (WSL)
+*:Zone.Identifier
+
+# Reports filed by the prototype app (src/app/tools.py)
+data/reports.jsonl

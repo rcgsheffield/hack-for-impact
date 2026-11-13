@@ -1,0 +1,2606 @@
+FIXMYSTREET OPEN311 SERVICES - COMPLETE LIST
+====================================================================================================
+
+Total services: 2594
+API Endpoint: https://www.fixmystreet.com/open311/v2/services.json?jurisdiction_id=fixmystreet
+All services are type: realtime
+
+====================================================================================================
+
+   1. 1 signal light out
+   2. 2 signal lights out
+   3. 240L Black - Lid
+   4. 240L Black - Wheels
+   5. 240L Brown - Lid
+   6. 240L Brown - Wheels
+   7. 240L Green - Lid
+   8. 240L Green - Wheels
+   9. 3+ Consecutive Lights Out
+  10. A badly damaged or burnt out vehicle on a public road
+  11. A vehicle abandoned on your property
+  12. A vehicle at risk of being set on fire or vandalised
+  13. A vehicle being repaired on road or pavement
+  14. A vehicle blocking a public footpath or highway
+  15. A vehicle left on public road for over two months
+  16. A vehicle on fire or being vandalised
+  17. A vehicle on road that’s been declared off the road (SORN)
+  18. A vehicle parked on double yellow lines or double parked
+  19. ASB - Rough Sleeping
+  20. Abandoned Bike (Estates)
+  21. Abandoned Bike (Street)
+  22. Abandoned Dott bike or scooter
+  23. Abandoned Forest bike
+  24. Abandoned Lime bike or scooter
+  25. Abandoned Materials (NH)
+  26. Abandoned Santander Cycle
+  27. Abandoned Shopping Trolley
+  28. Abandoned Shopping Trolleys
+  29. Abandoned Tier bike
+  30. Abandoned Vehicle
+  31. Abandoned Vehicle Parking Issue
+  32. Abandoned Vehicles
+  33. Abandoned Voi bike or scooter
+  34. Abandoned and untaxed vehicles
+  35. Abandoned bicycle (non-electrical)
+  36. Abandoned car
+  37. Abandoned materials after works have been completed
+  38. Abandoned private bike
+  39. Abandoned private bikes
+  40. Abandoned private bikes and bike parts
+  41. Abandoned push bike/bike frame
+  42. Abandoned road signs or cones after works
+  43. Abandoned shopping trolley
+  44. Abandoned vehicle
+  45. Abandoned vehicle in park/open space
+  46. Abandoned vehicle in the Countryside Estate
+  47. Abandoned vehicles
+  48. Abandoned vehicles & bicycles
+  49. Abnormal Loads
+  50. Above 2 metres off the ground
+  51. Accessibility
+  52. Accidents
+  53. Accumulated Litter
+  54. Additional collection
+  55. Adopt a tree
+  56. Advertisement (e.g. an A-board)
+  57. Advertising board causing an obstruction on the pavement or blocking views into traffic
+  58. Advertising boards (Obstruction blocking access)
+  59. Affecting living areas of the property
+  60. Affecting outbuildings, garden and outside areas
+  61. Air pollution
+  62. Alcohol
+  63. All Traffic Signals OUT (Not Working)
+  64. All Traffic Signals unlit (Not Working)
+  65. All bins
+  66. All other flyposting
+  67. All out
+  68. All out - three or more street lights in a row
+  69. All signal lights out
+  70. Alleyway
+  71. Allotment issue
+  72. Amend Garden Subscription
+  73. An abandoned vehicle in a park or open space
+  74. An emergency - Damage to a bus stop or shelter causing a safety issue
+  75. An emergency - Major obstruction on the road or pavement, likely to cause an accident (Hazards & Obstructions)
+  76. An emergency – issue likely to cause a safety or security issue in the Countryside Estate
+  77. Animal Licensing
+  78. Animal Nuisance
+  79. Animal signage
+  80. Any issues with trees in the Countryside Estate
+  81. Any other grass issue
+  82. Any other hedge issue
+  83. Any other pavement issue
+  84. Any other road marking issue
+  85. Any other street furniture issue
+  86. Any other tree or roots issue
+  87. Any other tree problems
+  88. Application for additional bin
+  89. Apply for Access Protection Marking
+  90. Apply for an H bar or Access Protection Marking (APM) - Road markings
+  91. Apply for or repaint a Disabled Parking Bay
+  92. Apply for or repaint a white 'H' road marking
+  93. Ash Tree located on highway land
+  94. Ash Tree located on private land
+  95. Assisted
+  96. Assisted collection add
+  97. Assisted collection change
+  98. Assisted collection remove
+  99. Attachment Distract/Obstruct
+ 100. Audible bleeper issue
+ 101. Bad Parking
+ 102. Bad smell
+ 103. Badly damaged or burnt out vehicle on a public road
+ 104. Balcony Cleaning (Ext)
+ 105. Balcony Mopped (Int)
+ 106. Banner licence
+ 107. Banners licence
+ 108. Barrier Problem
+ 109. Barrier pedestrian defective
+ 110. Barrier problem
+ 111. Barrier vehicular defective
+ 112. Barrier, guard rail or safety fence
+ 113. Barriers
+ 114. Barriers or signs have been left behind by contractor
+ 115. Barriers, equipment or materials left on the highway
+ 116. Belisha Beacon Malfunction
+ 117. Belisha Beacon Minor Damage
+ 118. Belisha Beacon broken
+ 119. Bench
+ 120. Bench Damaged Hazard
+ 121. Bench Damaged NonHazard
+ 122. Bench Issue
+ 123. Bench or seat on the pavement
+ 124. Bench plaque
+ 125. Bench/ memorial/ cycle hoop damaged or missing
+ 126. Benches
+ 127. Benches / bicycle racks
+ 128. Benches or Seating
+ 129. Benches, tables, planters
+ 130. Big hole in the verge
+ 131. Bin Chamber/Trailer Bay Clean
+ 132. Bin Damaged Hazard
+ 133. Bin Damaged NonHazard
+ 134. Bin Repair
+ 135. Bin Request
+ 136. Bin bags/ Cardboard boxes
+ 137. Bin damaged
+ 138. Bin full (parks/playgrounds)
+ 139. Bin not returned
+ 140. Bin overfill
+ 141. Bin overflowing
+ 142. Bin/Seat damage
+ 143. Bird fouling or insects
+ 144. Black 240L
+ 145. Black 240L bin
+ 146. Black 360L
+ 147. Black 360L bin
+ 148. Blockage on drain surface
+ 149. Blocked
+ 150. Blocked  Drains
+ 151. Blocked - Flooding of Private Property
+ 152. Blocked - Flooding of Road/Path
+ 153. Blocked - flooding private property
+ 154. Blocked - flooding road/path
+ 155. Blocked Chute Clearance
+ 156. Blocked Ditch
+ 157. Blocked Ditch Causing Flooding
+ 158. Blocked Drain
+ 159. Blocked Drain / Gully
+ 160. Blocked Drain or Gully
+ 161. Blocked Drainage (Public highway only)
+ 162. Blocked Drains
+ 163. Blocked Gully
+ 164. Blocked Roadside Gully
+ 165. Blocked ditch alongside the road
+ 166. Blocked drain
+ 167. Blocked drain (Flooding/Gully/Drainage)
+ 168. Blocked drain / Flooding
+ 169. Blocked drain or gully
+ 170. Blocked drain or gully - Flooding and blocked drains
+ 171. Blocked drain surface
+ 172. Blocked drainage gullies
+ 173. Blocked drainage gully
+ 174. Blocked gully
+ 175. Blocked rainwater gulleys
+ 176. Blocked river/stream (Flooding/Gully/Drainage)
+ 177. Blocked/Damaged
+ 178. Blocking TV, satellite or radio signal
+ 179. Blocking a private drive
+ 180. Blocking daylight/TV/satellite reception to property 
+ 181. Blocking light to property or solar panels
+ 182. Blocking satellite/digital TV or radio signal
+ 183. Blocking streetlight
+ 184. Blocking traffic signal/sign
+ 185. Blood
+ 186. Blue Badge/Permit Misuse
+ 187. Blue Heart Verges
+ 188. Blue bags left on street
+ 189. Boater facilities
+ 190. Bollard
+ 191. Bollard - concrete
+ 192. Bollard - illuminated - knocked down
+ 193. Bollard - illuminated - other problem
+ 194. Bollard - illuminated - unlit
+ 195. Bollard - iron
+ 196. Bollard - lit
+ 197. Bollard - wood
+ 198. Bollard Missing
+ 199. Bollard Not Working/Damaged
+ 200. Bollard Out Of Light
+ 201. Bollard damaged / Missing (lit)
+ 202. Bollard damaged / Missing (not lit)
+ 203. Bollard damaged / missing (wires exposed)
+ 204. Bollard dirty
+ 205. Bollard is leaning but not causing hazard
+ 206. Bollard light not working
+ 207. Bollard missing/defective
+ 208. Bollards
+ 209. Bollards (lit)
+ 210. Bollards (unlit)
+ 211. Bollards - Non Illuminated
+ 212. Bollards or railings
+ 213. Both food bins
+ 214. Box/Planters Enquiry
+ 215. Bracket/lantern is hanging/fallen off
+ 216. Brambles
+ 217. Branch broken/hanging in tree
+ 218. Bridge
+ 219. Bridge Issue
+ 220. Bridge is damaged
+ 221. Bridge is damaged/missing
+ 222. Bridge is missing
+ 223. Bridge or Structure
+ 224. Bridge or culvert defect
+ 225. Bridge out of repair
+ 226. Bridge safety barrier or fence
+ 227. Bridge wall or parapet
+ 228. Bridge-Damaged/ Missing
+ 229. Bridge/Fence/Barrier Issue (TS)
+ 230. Bridge/Structures
+ 231. Bridges
+ 232. Bridges & Walls
+ 233. Bridges or structures
+ 234. Bristol harbour information
+ 235. Broken / Damaged Cover
+ 236. Broken / Missing
+ 237. Broken Fire Hydrant Covers
+ 238. Broken Padlock
+ 239. Broken drain cover
+ 240. Broken glass
+ 241. Broken manhole cover
+ 242. Broken, missing or loose paving or cobbles causing a trip hazard higher than 2cm
+ 243. Broken/missing metal cover/ironwork
+ 244. Brown 240L
+ 245. Builder’s skip licence
+ 246. Building Damage
+ 247. Building Materials on a Road or Pavement
+ 248. Building damage
+ 249. Building materials (Obstruction blocking access)
+ 250. Building materials licence
+ 251. Building over the Highway licence
+ 252. Bulky cancel
+ 253. Bulky collection
+ 254. Burst water main
+ 255. Bus Shelter Issue
+ 256. Bus Shelters
+ 257. Bus Stop Pole Leaning/Damaged
+ 258. Bus Stop Sign Missing/Damaged
+ 259. Bus Stops
+ 260. Bus Stops Flags
+ 261. Bus route obstruction
+ 262. Bus shelters
+ 263. Bus stop (shelter)
+ 264. Bus stop damage
+ 265. Bus stop/shelter
+ 266. Bus stop/shelter issue
+ 267. Bus stops
+ 268. Bus stops and shelters
+ 269. Bus stops/shelters
+ 270. Business bins left out
+ 271. Business or organisation missed collection enquiry
+ 272. C.C.T.V Faults
+ 273. CCTV for Community Safety
+ 274. CCTV for Low Traffic Neighbourhood Enforcement
+ 275. CCTV for Parking Enforcement
+ 276. CP Tarriff Board Hazard
+ 277. CP Tarriff Damage NonHazard
+ 278. CP Ticket Machine Hazard
+ 279. CP Ticket Machine NonHazard
+ 280. Canal/lake issue
+ 281. Canal/lake issue - fishing
+ 282. Cancel Garden Subscription
+ 283. Canopy or Shade Hanging
+ 284. Canopy/Flat & Pitch Roof Clean
+ 285. Car Park Cleansing
+ 286. Car Park Graffiti/Fly Tipping
+ 287. Car Park Machine Not Working
+ 288. Car Park Signage
+ 289. Car Park Surfacing
+ 290. Car Parking
+ 291. Car Parks
+ 292. Car Parks and ticket machines
+ 293. Car park
+ 294. Car parking
+ 295. Car parking in Hart-managed car parks
+ 296. Car parking issues
+ 297. Car parking on streets
+ 298. Car parks
+ 299. Car parks (council run)
+ 300. Car parks (only council run ones)
+ 301. Carcass - Large
+ 302. Carcass - Small
+ 303. Carparks
+ 304. Carriageway
+ 305. Carriageway Flood Hazardous
+ 306. Carriageway Flood NonHazard
+ 307. Carriageway pothole
+ 308. Carriageway surface problem
+ 309. Cat Eyes/ Reflectors (NH)
+ 310. Cattle Grid
+ 311. Cattle grid sunk or risen 4-6 cm
+ 312. Cattle grid sunk or risen more than 6 cm
+ 313. Causing an obstruction (NH)
+ 314. Causing intrusive light into property
+ 315. Ceiling Washing
+ 316. Cemeteries/Grave Damage
+ 317. Children's play areas
+ 318. Cleaning required within the Bus Station
+ 319. Cleaning/Sweeping
+ 320. Cleanliness Sub Standard
+ 321. Clear Broken Glass (Estates)
+ 322. Clear Broken Glass (Street)
+ 323. Clinical
+ 324. Clinical Waste - Dead Animal (Estates)
+ 325. Clinical Waste - Dead Animal (Street)
+ 326. Clinical Waste on Street
+ 327. Clinical waste
+ 328. Collapsed verge
+ 329. Column Attachments licence
+ 330. Column Leaning
+ 331. Column door missing
+ 332. Column in dangerous condition
+ 333. Column needs to be moved (Illuminated bollard)
+ 334. Column needs to be moved (Illuminated sign)
+ 335. Column needs to be moved (Street light)
+ 336. Column needs to be moved (Zebra crossing light)
+ 337. Column/Post: Paintwork Damage
+ 338. Column/lantern damaged/leaning
+ 339. Communal
+ 340. Communal Areas (Int)
+ 341. Communal Back Courts
+ 342. Complaint
+ 343. Concern about speeding traffic
+ 344. Continually On (NH)
+ 345. Contractor Enquiry/Complaints
+ 346. Controlled Parking Zone Request
+ 347. Council Car Park Issue
+ 348. Council Estate Services
+ 349. Council car parks
+ 350. Council parking permits
+ 351. Council-owned trees including fallen trees or fallen/ hanging branches
+ 352. Countdown - not working
+ 353. Countryside Paths / Public Rights of Way (usually not tarmac)
+ 354. Cover Hanging
+ 355. Cover missing or damaged
+ 356. Crack 2-3 cm wide
+ 357. Crack at least 4cm deep and 2-3 cm wide
+ 358. Crack at least 4cm deep and more than 3 cm wide
+ 359. Crack more than 3 cm wide
+ 360. Cracking 3-4 cm deep
+ 361. Cracking more than 4cm deep
+ 362. Cracking, breaking or uneven pavement or road surface
+ 363. Crane licence
+ 364. Crane on the highway
+ 365. Crash Barrier - Damaged
+ 366. Crash Barrier - Missing
+ 367. Crash Barriers - Damaged / Missing
+ 368. Crash Barriers - Damaged/Unsafe
+ 369. Crash Barriers Damaged/Missing
+ 370. Crash barrier or fence
+ 371. Crash barriers
+ 372. Crew behaviour
+ 373. Crops are blocking/growing on route
+ 374. Crossing Beacons
+ 375. Crossing not working
+ 376. Crossing running with no pedestrians
+ 377. Crossings that may impact people with a disability (NH)
+ 378. Culvert
+ 379. Current Roadworks - live information
+ 380. Cycle Hangars
+ 381. Cycle Stands
+ 382. Cycle rack
+ 383. Cyclepath
+ 384. Cycleway
+ 385. Cycling Route Issue
+ 386. Damage - bus stop leaning
+ 387. Damage - general (Trees)
+ 388. Damage - lighting not working (bus shelter)
+ 389. Damage - other (bus stops and shelters)
+ 390. Damage - pole leaning / equipment detached from pole/facing the wrong direction
+ 391. Damage - seating in shelter
+ 392. Damage - shelter unstable or loose in the ground
+ 393. Damage - smashed glass or panels / jagged metal edges on shelter
+ 394. Damage - wires exposed
+ 395. Damage - wires exposed on bus shelter
+ 396. Damage By Tree to 3rd Party
+ 397. Damage Caused By a Street Tree
+ 398. Damage Public Litter Bin
+ 399. Damage to 3rd party
+ 400. Damage to Grass Verge
+ 401. Damage to Property
+ 402. Damage to Sign (NH)
+ 403. Damage to Street Furniture
+ 404. Damage to Structure
+ 405. Damage to a bridge in the Countryside Estate
+ 406. Damage to a bus shelter
+ 407. Damage to a bus stop
+ 408. Damage to a bus stop pole, flag or timetable
+ 409. Damage to a shelter
+ 410. Damage to bins, benches, and infrastructure
+ 411. Damage to bridge road surface
+ 412. Damage to bus stop
+ 413. Damage to grass verges
+ 414. Damage to kerb
+ 415. Damage to litter bin
+ 416. Damage to paintwork/ column
+ 417. Damage to pavement
+ 418. Damage to pedestrian guardrail
+ 419. Damage to property
+ 420. Damage to property caused by works
+ 421. Damage to road
+ 422. Damage to road or pavement within the Bus station
+ 423. Damage to structure (Bridges/Subways)
+ 424. Damage to structure (Walls)
+ 425. Damage to the grass verge
+ 426. Damage to the grass verge - Parking
+ 427. Damage: Pedestrian Barrier
+ 428. Damaged
+ 429. Damaged (Grit bins)
+ 430. Damaged (Road signage)
+ 431. Damaged (Street name plate)
+ 432. Damaged (Utility covers)
+ 433. Damaged / Missing / Facing Wrong Way
+ 434. Damaged Barrier
+ 435. Damaged Benches
+ 436. Damaged Bin
+ 437. Damaged Bollard
+ 438. Damaged Bridge
+ 439. Damaged Column
+ 440. Damaged Control Box
+ 441. Damaged Cycle Stand
+ 442. Damaged Drains
+ 443. Damaged Fence
+ 444. Damaged Footway
+ 445. Damaged General
+ 446. Damaged Guardrail
+ 447. Damaged Gully or Catchpit Ironwork
+ 448. Damaged Kerb/Aco/Channel Block
+ 449. Damaged Litter Bin
+ 450. Damaged Railing, manhole, or drain cover
+ 451. Damaged Railings
+ 452. Damaged Speed Humps
+ 453. Damaged Street Tree
+ 454. Damaged Telecomms cabinet
+ 455. Damaged Traffic Calming Feature
+ 456. Damaged bench
+ 457. Damaged benches (Street furniture)
+ 458. Damaged bollard (Street furniture)
+ 459. Damaged bollard or post
+ 460. Damaged bollards/posts
+ 461. Damaged bridge
+ 462. Damaged bridge, foot bridge or subway, likely to cause an accident
+ 463. Damaged bus shelter frame or glazing
+ 464. Damaged bus stop pole
+ 465. Damaged by vehicles
+ 466. Damaged cables
+ 467. Damaged culvert
+ 468. Damaged cycle hanger (Street furniture)
+ 469. Damaged cycle stand (Street furniture)
+ 470. Damaged dog bin
+ 471. Damaged dog waste bin, rubbish bin or park bench
+ 472. Damaged drain
+ 473. Damaged drain (Flooding/Gully/Drainage)
+ 474. Damaged drain cover
+ 475. Damaged dyke, ditch or culvert
+ 476. Damaged equipment
+ 477. Damaged equipment - severely damaged
+ 478. Damaged equipment - slightly damaged
+ 479. Damaged free-standing wall or wall on private property
+ 480. Damaged gate in the Countryside Estate
+ 481. Damaged grit bin
+ 482. Damaged hedge
+ 483. Damaged illuminated road sign
+ 484. Damaged illuminated road sign post
+ 485. Damaged kerb (Pavements)
+ 486. Damaged litter bin
+ 487. Damaged nameplate
+ 488. Damaged non-illuminated road sign
+ 489. Damaged non-illuminated road sign post
+ 490. Damaged or Missing Gully Grid
+ 491. Damaged or broken fences on Council-owned land
+ 492. Damaged or missing bus stop sign
+ 493. Damaged or missing cover
+ 494. Damaged or missing street bins
+ 495. Damaged or missing utility cover
+ 496. Damaged park buildings
+ 497. Damaged park furniture
+ 498. Damaged pavement
+ 499. Damaged pedestrian railing
+ 500. Damaged playground equipment
+ 501. Damaged public toilet
+ 502. Damaged railing (Street furniture)
+ 503. Damaged railway bridge
+ 504. Damaged retaining wall
+ 505. Damaged road
+ 506. Damaged road edge, encroaches less than 100mm
+ 507. Damaged road edge, encroaches more than 100mm
+ 508. Damaged road sign
+ 509. Damaged road sign on a bridge
+ 510. Damaged road sign on a bridge - Road signs
+ 511. Damaged road sign, not causing an obstruction
+ 512. Damaged signpost in the Countryside Estate
+ 513. Damaged slab (Pavements)
+ 514. Damaged speed bumps
+ 515. Damaged street furniture, likely to cause an accident
+ 516. Damaged street name plates
+ 517. Damaged street nameplate
+ 518. Damaged structure
+ 519. Damaged tree
+ 520. Damaged unlit bollard or post
+ 521. Damaged verge
+ 522. Damaged, dirty, or missing bin
+ 523. Damaged, missing or loose kerb causing a trip hazard higher than 2cm
+ 524. Damaged/ cracked drain or man hole cover
+ 525. Damaged/Exposed Wiring / Vandalised
+ 526. Damaged/Loose
+ 527. Damaged/Missing Signage
+ 528. Damaged/missing boundary markers
+ 529. Damaged/missing cats eye
+ 530. Damaged/missing paving slab
+ 531. Damaged/missing pedestrian guardrail
+ 532. Dangerous
+ 533. Dangerous Dog
+ 534. Dangerous Street Tree
+ 535. Dangerous Tree
+ 536. Dangerous branch
+ 537. Dangerous nameplate
+ 538. Dangerous or intimidating animals
+ 539. Dangerous, illegal or inconsiderate parking
+ 540. Dead Animal
+ 541. Dead Animal (TS)
+ 542. Dead Animal in Park
+ 543. Dead Animal in a Park or Open Space
+ 544. Dead Animals
+ 545. Dead Animals on Road
+ 546. Dead Dog
+ 547. Dead animal
+ 548. Dead animal (off the road)
+ 549. Dead animal (on the road)
+ 550. Dead animal in the carriageway or footway
+ 551. Dead animal on a road or footpath
+ 552. Dead animal that needs removing
+ 553. Dead animals
+ 554. Dead tree
+ 555. Dead tree in public area
+ 556. Dead/Diseased tree
+ 557. Dead/diseased tree
+ 558. Debris
+ 559. Debris - Hazardous
+ 560. Debris - Non-Hazardous
+ 561. Debris / Obstructions
+ 562. Debris in the carriageway
+ 563. Debris on pavement or road
+ 564. Debris or spillage
+ 565. Debris/spillage (NH)
+ 566. Dedication Plaque
+ 567. Deep flooding across the entire road or pavement
+ 568. Deep holes in roads and pavements left unguarded
+ 569. Deep holes in roads and pavements left unguarded - Roadworks
+ 570. Defective Reinstatement
+ 571. Defective road markings or signs
+ 572. Delays (NH)
+ 573. Denial of access
+ 574. Depression in road (Roads)
+ 575. Deterrent (notice)
+ 576. Development Proposal/ advice
+ 577. Dirty
+ 578. Dirty signs
+ 579. Disabled Bay Issue
+ 580. Disabled On Street Parking Issue
+ 581. Disabled Parking Bay Lines
+ 582. Disabled parking bay - report misuse
+ 583. Disabled parking bay no longer used
+ 584. Disagree/ agree with the completed works installed
+ 585. Discarded Syringes
+ 586. Discarded needles and syringes
+ 587. Diseased or dead tree
+ 588. Dispute container delivery
+ 589. Ditch
+ 590. Ditch Problem Hazardous
+ 591. Ditch Problem Non Hazardous
+ 592. Ditch blocked
+ 593. Ditch issue
+ 594. Diversions/ Signposting/ traffic controls (NH)
+ 595. Dog Bin Overflowing
+ 596. Dog Bin overflow
+ 597. Dog Fouling
+ 598. Dog Fouling - Report a Location
+ 599. Dog Fouling - Witnessed Incident
+ 600. Dog Fouling in a Park or Open Space
+ 601. Dog Mess
+ 602. Dog Poo/Fouling
+ 603. Dog Related Incident
+ 604. Dog Waste - Signs
+ 605. Dog Waste Bin - Empty
+ 606. Dog Waste Bin - Emptying
+ 607. Dog Waste Clearance (Estates)
+ 608. Dog Waste Clearance (Street)
+ 609. Dog and litter bins
+ 610. Dog bin
+ 611. Dog bin overflowing
+ 612. Dog bin/fouling
+ 613. Dog fouling
+ 614. Dog fouling (bagged)
+ 615. Dog fouling (not bagged)
+ 616. Dog fouling (not witnessed)
+ 617. Dog fouling (witnessed)
+ 618. Dog found
+ 619. Dog mess
+ 620. Dog missing
+ 621. Dog stray
+ 622. Dogs and Dogs Fouling
+ 623. Domestic Waste - Missed Collection
+ 624. Domestic Waste Issues
+ 625. Domestic waste and recycling bins
+ 626. Door Missing
+ 627. Door Missing/ open
+ 628. Door Off
+ 629. Door off exposed electrical apparatus
+ 630. Door/Access Panel missing or removed
+ 631. Drain Cover - Missing or Damaged
+ 632. Drain blocked
+ 633. Drain cover in footway or cycleway broken
+ 634. Drain cover in footway or cycleway sunk or risen 2-3 cm
+ 635. Drain cover in footway or cycleway sunk or risen 3-4 cm
+ 636. Drain cover in footway or cycleway unstable and rocking
+ 637. Drain cover in road broken
+ 638. Drain cover in road sunk or risen 4-6 cm
+ 639. Drain cover in road sunk or risen more than 6 cm
+ 640. Drain cover in road unstable and rocking
+ 641. Drain cover is broken
+ 642. Drain is blocked
+ 643. Drain is smelling
+ 644. Drain or Gully
+ 645. Drain/Ditch
+ 646. Drainage
+ 647. Drainage Structure: Blockage
+ 648. Drainage Structure: Leakage
+ 649. Drains
+ 650. Drains and flooding
+ 651. Drains/Ditches Blocked
+ 652. Dropped kerb - Apply for new / extend crossover
+ 653. Dropped kerb - Illegal
+ 654. Dropped seeds, leaves and other matter
+ 655. Dropped seeds, leaves and other matter - Trees and roots
+ 656. Drug Paraphernalia
+ 657. Drug Paraphernalia / Needles
+ 658. Drugs debris
+ 659. Dying or dangerous tree
+ 660. Dying or diseased tree
+ 661. Edge deterioration
+ 662. Electric Vehicle Charge Points
+ 663. Electric Vehicle Charging
+ 664. Electric Vehicle Charging Points
+ 665. Electric Vehicle Existing Charge Point Issue - Publicly Maintained Sites
+ 666. Electric Vehicle New Public Charge Point Request
+ 667. Electric info display broken/incorrect
+ 668. Electric vehicle charging
+ 669. Electrical wires exposed
+ 670. Electronic Sign (NH)
+ 671. Electronic Timetable Display Faulty
+ 672. Empty (Grit bins)
+ 673. Empty Bin
+ 674. Empty Grit Bin
+ 675. Empty Homes
+ 676. Empty grit bins
+ 677. Empty tree Pit
+ 678. Encroachment
+ 679. Enforcement Cameras (NH)
+ 680. Engine idling
+ 681. Enquiry regarding newly planted tree
+ 682. Entertainment
+ 683. Entrance Door/Screen Cleaning
+ 684. Entrance marking / white line
+ 685. Environmental health
+ 686. Epicormic Tree Growth
+ 687. Equipment Damage / Wires Exposed
+ 688. Equipment damaged
+ 689. Erosion
+ 690. Escalate missed collection report
+ 691. Estate Agent board (not on grass verge)
+ 692. Estate Agent board (on grass verge)
+ 693. Evacuation required
+ 694. Event advertising
+ 695. Excavation licence
+ 696. Excessive Litter
+ 697. Excessive or dangerous littering
+ 698. Exposed Wiring/Door Missing
+ 699. Exposed cables/wires
+ 700. Exposed wiring/Door missing
+ 701. Faded
+ 702. Faded / Hard to see (NH)
+ 703. Faded H bar or Access Protection Marking - Road markings
+ 704. Faded bays
+ 705. Faded disabled parking bay - Road markings
+ 706. Faded give way or stop line
+ 707. Faded nameplate (can't read easily)
+ 708. Faded road lines / markings
+ 709. Faded road markings
+ 710. Faded road markings (Roads)
+ 711. Faded white lines
+ 712. Faded yellow lines
+ 713. Failure to Deliver Bags/Containers
+ 714. Failure to deliver
+ 715. Failure to deliver bin
+ 716. Fallen Tree
+ 717. Fallen Tree/branch
+ 718. Fallen branch
+ 719. Fallen branches (over 25mm diameter)
+ 720. Fallen leaves on pavement causing slip hazard
+ 721. Fallen or leaning tree
+ 722. Fallen tree
+ 723. Fallen tree across road or pavement
+ 724. Fallen tree blocking the road or pavement
+ 725. Fallen tree blocking the road or pavement - Trees
+ 726. Fallen tree branch
+ 727. Fallen tree or branch
+ 728. Fallen tree or branches
+ 729. Fallen/ Dead Tree (NH)
+ 730. Fault on public right of way
+ 731. Faulty Christmas Lights
+ 732. Faulty Gate
+ 733. Faulty Manhole Cover on a Path or Pavement
+ 734. Faulty Manhole Cover on a Road
+ 735. Faulty Padlock
+ 736. Faulty Ticket Machine
+ 737. Faulty electronic display
+ 738. Faulty or damaged signs and bollards
+ 739. Faulty pay machine
+ 740. Fence Damage/Missing No Hazard
+ 741. Fence Damaged/Missing Hazard
+ 742. Fence on the highway
+ 743. Fence/Gate/Barrier damage
+ 744. Fence/Railing
+ 745. Fences
+ 746. Fences & barriers
+ 747. Fences - Damaged
+ 748. Fences - Missing
+ 749. Fences and Walls
+ 750. Festive Decoration Damaged
+ 751. Festive Decorations licence
+ 752. Find out how long the temporary traffic restrictions will be in place
+ 753. Fire Hydrants
+ 754. Fire hydrants
+ 755. Fire or smoke visible
+ 756. Fireworks
+ 757. Fixture/Fitting Clean (Ext)
+ 758. Flag attached to street light
+ 759. Flag on lamp post
+ 760. Flags
+ 761. Flashing Lamp
+ 762. Flashing School Signs
+ 763. Flashing light
+ 764. Flashing signs
+ 765. Flickering Light
+ 766. Flickering light(s)
+ 767. Flood
+ 768. Flood water entering building (Flooding/Gully/Drainage)
+ 769. Flood water that has run off Land
+ 770. Flooded Property
+ 771. Flooded river or stream
+ 772. Flooded road
+ 773. Flooded subway
+ 774. Flooded underpass
+ 775. Flooding
+ 776. Flooding (TS)
+ 777. Flooding from a blocked drain
+ 778. Flooding in the road
+ 779. Flooding inside a building
+ 780. Flooding not entering property
+ 781. Flooding not on the highway but in a park or private land
+ 782. Flooding of a property
+ 783. Flooding of a road or pavement
+ 784. Flooding on Road
+ 785. Flooding on a road/footpath
+ 786. Flooding or standing water on road
+ 787. Flooding with Sewage
+ 788. Flooding/drainage (NH)
+ 789. Flower Beds / Floral Display
+ 790. Flowerbeds or Planting or Grass or Weeding
+ 791. Fly Posting
+ 792. Fly Posting - General (Estates)
+ 793. Fly Posting - General (Street)
+ 794. Fly Posting - Racist/Obscene (Estates)
+ 795. Fly Posting - Racist/Obscene (Street)
+ 796. Fly Tipping
+ 797. Fly Tipping on Street
+ 798. Fly posting
+ 799. Fly posting on lampposts, road signs or railings
+ 800. Fly tipping
+ 801. Fly tipping - Enforcement Request
+ 802. Fly tipping in the Countryside Estate
+ 803. Fly tipping on path
+ 804. Fly tipping/rubbish bin overflowing
+ 805. Fly-Posting
+ 806. Fly-Tipping
+ 807. Fly-posting
+ 808. Fly-posting - Non-offensive
+ 809. Fly-posting - Offensive
+ 810. Fly-tip Large - More than a van load
+ 811. Fly-tip Large - More than a van load (Estates)
+ 812. Fly-tip Large - More than a van load (Parks)
+ 813. Fly-tip Medium - Up to medium size van load
+ 814. Fly-tip Medium - Up to medium size van load (Estates)
+ 815. Fly-tip Medium - Up to medium size van load (Parks)
+ 816. Fly-tip Small - Less than one bag
+ 817. Fly-tip Small - Less than one bag (Estates)
+ 818. Fly-tip Small - Less than one bag (Parks)
+ 819. Fly-tipping
+ 820. Fly-tipping in a Park or Open Space
+ 821. Fly-tipping/Rubbish Bin Overflowing
+ 822. Flyposting
+ 823. Flyposting (NH)
+ 824. Flyposting (not by roadside)
+ 825. Flyposting (on road or roadside)
+ 826. Flyposting (parks/playgrounds)
+ 827. Flytip
+ 828. Flytip in Park
+ 829. Flytipping
+ 830. Flytipping (NH)
+ 831. Flytipping (TS)
+ 832. Flytipping (TfL)
+ 833. Flytipping (not witnessed and no evidence likely)
+ 834. Flytipping (off-road)
+ 835. Flytipping - Animal Carcass (Estates)
+ 836. Flytipping - Animal Carcass (Street)
+ 837. Flytipping - Asbestos (Estates)
+ 838. Flytipping - Asbestos (Street)
+ 839. Flytipping - Black Bags (Estates)
+ 840. Flytipping - Black Bags (Street)
+ 841. Flytipping - Blk Bags Commercial (Street)
+ 842. Flytipping - BlkBag Commercial (Estates)
+ 843. Flytipping - Builders Rubble (Estates)
+ 844. Flytipping - Builders Rubble (Street)
+ 845. Flytipping - Chemical Drums (Estates)
+ 846. Flytipping - Chemical Drums (Street)
+ 847. Flytipping - Clinical (Estates)
+ 848. Flytipping - Clinical (Street)
+ 849. Flytipping - Drug related Litter (Estates)
+ 850. Flytipping - Drug related Litter (Street)
+ 851. Flytipping - General (Estates)
+ 852. Flytipping - General (Street)
+ 853. Flytipping - Green Waste (Estates)
+ 854. Flytipping - Green Waste (Street)
+ 855. Flytipping - Lithium‑Ion Battery
+ 856. Flytipping - Nox Canisters
+ 857. Flytipping - Other Electrical (Estates)
+ 858. Flytipping - Other Electrical (Street)
+ 859. Flytipping - Tyres (Estates)
+ 860. Flytipping - Tyres (Street)
+ 861. Flytipping - Vehicle Parts (Estates)
+ 862. Flytipping - Vehicle Parts (Street)
+ 863. Flytipping - White Goods (Estates)
+ 864. Flytipping - White Goods (Street)
+ 865. Flytipping and dumped rubbish
+ 866. Flytipping and littering
+ 867. Flytipping in a public park
+ 868. Flytipping in a public space
+ 869. Flytipping on Private land
+ 870. Flytipping on Public land
+ 871. Flytipping on a road or footpath
+ 872. Flytipping on housing land
+ 873. Food
+ 874. Food Safety - Food Rating Standards
+ 875. Food Safety - Pest Control
+ 876. Food bag request
+ 877. Footbridge
+ 878. Footpath / pavement problem
+ 879. Footpath Gritting
+ 880. Footpaths / Carriageway
+ 881. Footpaths/ Rights of way (usually not tarmac)
+ 882. Footway - Damaged or Cracked
+ 883. Footway - Failed reinstatement
+ 884. Footway - Obstruction
+ 885. Footway - Pothole
+ 886. Footway - Slabs uneven/missing
+ 887. Footway / carriageway
+ 888. Footway Flood Hazardous
+ 889. Footway Flood Non Hazardous
+ 890. Footway pothole
+ 891. Footway surface problem
+ 892. Footways and Pavement damage
+ 893. For Sale on Highway
+ 894. Foul water/sewage on Highway
+ 895. Four or more lights out
+ 896. Freedom of information
+ 897. Fuel Spillage
+ 898. Fuel, oil or chemicals
+ 899. Full Litter Bin
+ 900. Full food waste bin
+ 901. Full large rubbish bin
+ 902. Full litter bin
+ 903. Full micro recycling centre
+ 904. Gambling
+ 905. Garage areas
+ 906. Garden (brown)
+ 907. Garden Subscription
+ 908. Garden Subscription Address Change
+ 909. Garden Waste
+ 910. Gas canisters
+ 911. Gate - Damaged/ Missing
+ 912. Gate is damaged
+ 913. Gate is damaged/missing/locked
+ 914. Gate is missing
+ 915. Gate not closed
+ 916. Gate out of repair
+ 917. Gates and Stiles
+ 918. Gates or Fences or Lighting or Security
+ 919. General (Bridge & Struc.)
+ 920. General (CP & ABV)
+ 921. General (Cleanliness)
+ 922. General (Flooding/Drains)
+ 923. General (Gras/Hedge/Tree)
+ 924. General (H-way Emerg.)
+ 925. General (Inv./Pro. Spec.)
+ 926. General (Ironworks)
+ 927. General (Lines & Signs)
+ 928. General (Roads & Pav.)
+ 929. General (SL & Signals)
+ 930. General (Traf. & Roadw.)
+ 931. General (Winter)
+ 932. General Damage within the Bus Station
+ 933. General Enquiry
+ 934. General Fault
+ 935. General Litter
+ 936. General Litter / Rubbish Collection
+ 937. General Maintenance and pruning
+ 938. General fly tipping
+ 939. General flytipping
+ 940. General litter
+ 941. General, rural missed cut, urban missed cut, poor workmanship
+ 942. Glass (broken or not)
+ 943. Glass Recycling Bins
+ 944. Graffiti
+ 945. Graffiti (Highways)
+ 946. Graffiti (NH)
+ 947. Graffiti (Offensive)
+ 948. Graffiti (Private Land)
+ 949. Graffiti (non-offensive)
+ 950. Graffiti (offensive)
+ 951. Graffiti - General (Estates)
+ 952. Graffiti - General (Street)
+ 953. Graffiti - Non-offensive
+ 954. Graffiti - Non-offensive (Parks)
+ 955. Graffiti - Offensive
+ 956. Graffiti - Offensive (Parks)
+ 957. Graffiti - Racist / Obscene
+ 958. Graffiti - Racist/Obscene
+ 959. Graffiti / Flyposting (non-offensive)
+ 960. Graffiti / Flyposting (offensive)
+ 961. Graffiti / Flyposting on stop or shelter (non-offensive)
+ 962. Graffiti / Flyposting on stop or shelter (offensive)
+ 963. Graffiti / Flyposting on street light (non-offensive)
+ 964. Graffiti / Flyposting on street light (offensive)
+ 965. Graffiti / Flyposting on traffic light (non-offensive)
+ 966. Graffiti / Flyposting on traffic light (offensive)
+ 967. Graffiti / Flyposting – Political or Anti-Vaccination
+ 968. Graffiti On Council Property
+ 969. Graffiti and flyposting
+ 970. Graffiti issue (parking)
+ 971. Graffiti issue (parks/playgrounds)
+ 972. Graffiti on Council Property
+ 973. Graffiti on a road sign
+ 974. Graffiti on a road sign - Street cleaning
+ 975. Graffiti on bridges/subways
+ 976. Graffiti on council buildings
+ 977. Graffiti or Flyposting (not offensive)
+ 978. Graffiti or Flyposting within the Bus Station
+ 979. Graffiti or Vandalism
+ 980. Graffiti or flyposting (offensive)
+ 981. Graffiti/Bus stop needs cleaning
+ 982. Graffiti/Flyposting: Non-Offen
+ 983. Graffiti/Flyposting: Offensive
+ 984. Grafitti
+ 985. Grass
+ 986. Grass - Overgrown
+ 987. Grass Cut
+ 988. Grass Cutting
+ 989. Grass Verge Cutting
+ 990. Grass Verges
+ 991. Grass Verges & Weeds
+ 992. Grass and Hedges
+ 993. Grass cutting
+ 994. Grass cutting problem
+ 995. Grass cutting query
+ 996. Grass damage/destroy/disease
+ 997. Grass needs cutting
+ 998. Grass or verge causing an obstruction or visibility
+ 999. Grass verges
+1000. Grass verges - Litter
+1001. Grass verges - Overgrown
+1002. Grass verges - Shredded litter after cutting
+1003. Grass verges - Weeds
+1004. Grass verges / Shrub beds - Littering
+1005. Grass/Weeds
+1006. Green 240L bin
+1007. Grids and Drains
+1008. Grit Bin - Damaged
+1009. Grit Bin - Empty
+1010. Grit Bin - Missing
+1011. Grit Bin - Needs filling
+1012. Grit Bin - Refill Request
+1013. Grit Bin - damaged/replacement
+1014. Grit Bin - empty/refill
+1015. Grit Bin Damaged
+1016. Grit Bin Refill
+1017. Grit Bin Relocate
+1018. Grit Bin/Pile New Request
+1019. Grit bin is damaged
+1020. Grit bin is empty
+1021. Grit bin issue
+1022. Gritting
+1023. Gritting Request - Footpath
+1024. Gritting Request - Roads
+1025. Gritting and Salting Routes
+1026. Grounds Maintenance
+1027. Group of lights not working
+1028. Growth at the bottom of trees/regrowth
+1029. Growth from base of tree
+1030. Guard rail
+1031. Guard rail or barrier
+1032. Guardrail damaged / Missing
+1033. Gulley covers
+1034. Gully
+1035. Gully - Blocked (Flooded)
+1036. Gully - Blocked (Not Flooded)
+1037. Gully - Cover (Damaged or missing)
+1038. Gully Catch Soakwy: Bad Smell
+1039. Gully Catch Soakwy: Non Func
+1040. Gully or Manhole Defect
+1041. Gully or manhole defect
+1042. Gully/Manhole - Blocked
+1043. Gully/Manhole - Broken Cover
+1044. Gully/Manhole - Damaged
+1045. Gully/Manhole - Missing Cover
+1046. Gully/Manhole - Raised/sunken
+1047. Hanging / broken branch
+1048. Hanging Lantern
+1049. Hanging tree or branch
+1050. Harbourside surface issue
+1051. Hard Surface Area Cleaning
+1052. Hazardous or dead tree
+1053. Hazardous or fallen trees
+1054. Hazardous spillage on road
+1055. Hazardous waste
+1056. Hazardous waste /sharps
+1057. Hazardous waste fly-tipping
+1058. Hedge Cutting
+1059. Hedge Oversized
+1060. Hedge Pruning
+1061. Hedge Untrimmed
+1062. Hedge causing an obstruction or visibility issue
+1063. Hedge causing obstruction
+1064. Hedge cutting
+1065. Hedge problem
+1066. Hedges
+1067. Hedges - Overgrown hedge blocking views into traffic
+1068. Hedges / Trees on road or verge
+1069. Hedges / trees on rights of way
+1070. Hedges or trees
+1071. Height of Grass
+1072. Helpfulness of staff
+1073. Highway Boundary Query
+1074. Highway Bridges - Damaged/Unsafe
+1075. Highway Drainage
+1076. Highway Schemes
+1077. Highway Tree Removal
+1078. Highway Tree Replacement
+1079. Highway scheme works
+1080. Highways
+1081. Highways Maintenance
+1082. Highways Obstructions
+1083. Hoarding licence
+1084. Hoarding on the highway
+1085. Hoarding/ scaffold licence
+1086. Hot Food and Takeaways
+1087. Household bins left out
+1088. Human excrement or vomit
+1089. Ice
+1090. Ice, salt bins or heaps
+1091. Ice/Snow
+1092. Icy Footpath
+1093. Icy Road
+1094. Illegal
+1095. Illegal Crossover
+1096. Illegal Parking
+1097. Illegal Street Trading
+1098. Illegal advertising
+1099. Illegal car parking
+1100. Illegal encampments
+1101. Illegal parking
+1102. Illegal posters
+1103. Illegal use
+1104. Illegal vehicle crossover/dropped kerb
+1105. Illegally parked vehicle
+1106. Illum. Sign Minor Damage
+1107. Illuminated Bollard Down
+1108. Illuminated Bollard Missing
+1109. Illuminated Bollard Out
+1110. Illuminated Bollard Top Missing
+1111. Illuminated Bollards
+1112. Illuminated Sign Damaged
+1113. Illuminated Sign Knocked Down
+1114. Illuminated Sign Out
+1115. Illuminated bollard
+1116. Illuminated bollard which is damaged, missing or not working
+1117. Illuminated bollards
+1118. Illuminated sign or post
+1119. Imminent danger to life/property
+1120. Inactive roadworks
+1121. Inconsiderate Parking  (No Restrictions)
+1122. Inconsiderate Parking  (Restrictions in place)
+1123. Incorrect (Road signage)
+1124. Incorrect spelling (Street name plate)
+1125. Incorrect/ Confusing (NH)
+1126. Information Request
+1127. Information board identifying emergency contact company/number not displayed
+1128. Inoffensive up to 2 metres off the ground
+1129. Inspection Covers
+1130. Intimidating animals
+1131. Intimidating incident
+1132. Intimidating or misleading sign
+1133. Ironwork Collapsed
+1134. Ironwork Corroded/Damaged
+1135. Ironwork defective
+1136. Ironwork high/low
+1137. Ironwork missing
+1138. Issue with sequence
+1139. Issue with temporary traffic lights
+1140. Issues in a Countryside Estate car park
+1141. Issues with grass, hedges or weeds in the Countryside Estate
+1142. Issues with illuminated road signs
+1143. Issues with illuminated road signs - Road signs
+1144. It is on fire/sparking/smoking (SL)
+1145. It is on fire/sparking/smoking (SPC)
+1146. Items in watercourse
+1147. Items on private land
+1148. Japanese Knotweed
+1149. Japanese knotweed / ragwort
+1150. Kerb damage / issue
+1151. Kerb is damaged, loose or missing
+1152. Kerb not flush / no tactile paving
+1153. Kerb or Slab Issue
+1154. Kerb problem
+1155. Kerbs
+1156. Kerbs - Damaged
+1157. Kerbs - Damaged/Loose
+1158. Kerbs - Loose
+1159. Kerbs - Missing
+1160. Kerbs - Other
+1161. Knocked Down Bollard
+1162. Knocked down or leaning
+1163. Knocked over or moved grit bin, likely to cause an accident
+1164. Knocked over or moved grit bin, that is not causing an obstruction
+1165. Lakes or Ponds or Rivers or Streams
+1166. Lamp Appears Dim
+1167. Lamp Column Damaged
+1168. Lamp Dim
+1169. Lamp Failure
+1170. Lamp Flickering
+1171. Lamp On During Day
+1172. Lamp Out
+1173. Lamp Out of Light
+1174. Lamp intermittent
+1175. Lamp on during day
+1176. Lamp out
+1177. Lamp out (traffic lights)
+1178. Lamp post
+1179. Lamp(s) out
+1180. Lamp: Outage (Single Unit)
+1181. Land issues in the Countryside Estate
+1182. Landscaping/Planting licence
+1183. Lantern Twisted
+1184. Lantern damaged/hanging
+1185. Lantern is misaligned
+1186. Large food caddy
+1187. Large-scale illegal dumping
+1188. Late switching on
+1189. Layby/ Emergency Area (NH)
+1190. Leaf clearance
+1191. Leaf fall, berries or sap
+1192. Leaf removal
+1193. Leaf, Seed or Fruit Fall
+1194. Leafing
+1195. Leafing Request
+1196. Leaking Water Tank
+1197. Leaning Tree
+1198. Leaning or knocked over road sign, likely to cause an accident
+1199. Leaning signal pole - severely leaning
+1200. Leaning signal pole - slightly leaning
+1201. Leaning trees
+1202. Leaves
+1203. Leaves covering drain
+1204. Leaves or blossom
+1205. Leaves/ leaf fall
+1206. Leaves/Vegetation blocking drain cover (Flooding/Gully/Drainage)
+1207. Lewisham Housing
+1208. Lid not closed
+1209. Lifebelt / Lifebuoy problem
+1210. Lift Cleaning Service
+1211. Light / TV Signal obstruction
+1212. Light Not Working
+1213. Light On All Day
+1214. Light Out
+1215. Light blocked
+1216. Light blocked by vegetation
+1217. Light cover is missing (Illuminated bollard)
+1218. Light cover is missing (Illuminated sign)
+1219. Light cover is missing (Street light)
+1220. Light cover is missing (Zebra crossing light)
+1221. Light goes out intermittently (Illuminated bollard)
+1222. Light goes out intermittently (Illuminated sign)
+1223. Light goes out intermittently (Street light)
+1224. Light goes out intermittently (Zebra crossing light)
+1225. Light in multi-storey car park
+1226. Light in outside car park
+1227. Light in park or open space
+1228. Light ingress into property
+1229. Light is dim (Illuminated bollard)
+1230. Light is dim (Illuminated sign)
+1231. Light is dim (Street light)
+1232. Light is dim (Zebra crossing light)
+1233. Light is dull
+1234. Light is flashing (Illuminated bollard)
+1235. Light is flashing (Illuminated sign)
+1236. Light is flashing (Street light)
+1237. Light is flashing (Zebra crossing light)
+1238. Light is flickering/intermittent
+1239. Light is not working (bollard)
+1240. Light is obscured by vegetation
+1241. Light is permanently out
+1242. Light on during day
+1243. Light on during daylight hours
+1244. Light on during the day
+1245. Light out
+1246. Lighting
+1247. Lighting (park facilities)
+1248. Lighting - Flashing light
+1249. Lighting - Lamp Column damaged
+1250. Lighting - Lamp Column lit during the day
+1251. Lighting - Lamp Column not lit
+1252. Lighting - Sign On during day
+1253. Lighting - Sign damaged / missing
+1254. Lighting - Sign not lit
+1255. Lighting - The 'right turn' green filter arrow does not light up
+1256. Lighting - all traffic signals are off
+1257. Lighting - one or some bulbs have failed
+1258. Lighting Emergency
+1259. Lighting enquiry
+1260. Lighting issue (bus stop)
+1261. Lighting issue that may impact people with a disability (NH)
+1262. Lighting problem on a bridge or in subway
+1263. Lights are not working within the Bus Station
+1264. Lights in Trees licence
+1265. Lights out in Pedestrian Subway
+1266. Lights too bright/ dull
+1267. Likely to enter living areas of the property
+1268. Lit Bollard
+1269. Lit Road Sign
+1270. Lit sign / Bollard Not Working
+1271. Lit signs & bollards
+1272. Litter
+1273. Litter Bin
+1274. Litter Bin - Empty
+1275. Litter Bin - Emptying
+1276. Litter Bin - Move or Remove
+1277. Litter Bin - Overflowing
+1278. Litter Bin Overflowing
+1279. Litter Bin overflow in Parks & Open spaces
+1280. Litter Bins Full/Damaged/Missing
+1281. Litter Bins on a Street
+1282. Litter Due to Domestic Waste Spillage
+1283. Litter On Road/Street Cleaning
+1284. Litter Pick
+1285. Litter and Detritus
+1286. Litter bags to be collected
+1287. Litter bin
+1288. Litter bin damaged
+1289. Litter bin full
+1290. Litter bin needs emptying
+1291. Litter bin problem
+1292. Litter in Parks & Open spaces
+1293. Litter in street or public area
+1294. Litter in the street
+1295. Litter on grass areas
+1296. Litter or Weeds on a Street
+1297. Litter or flytipping in a woodland
+1298. Litter or litter bins
+1299. Litter picking bags ready for collection
+1300. Litter removal
+1301. Litter/Leaves
+1302. Litter/dog bins
+1303. Litter/litter bins
+1304. Litter/rubbish
+1305. Littering
+1306. Littering From Vehicles
+1307. Live animals (NH)
+1308. Livestock
+1309. Long Grass Hazardous
+1310. Long Grass NonHazard
+1311. Long grass blocking views into traffic
+1312. Loose / Raised / Sunken
+1313. Loose / Raised/Sunken
+1314. Loose bolts
+1315. Loose chippings
+1316. Loose chippings/debris in c/w
+1317. Loose manhole cover
+1318. Loose or damaged manhole cover or drain causing a trip hazard on the pavement
+1319. Loose or damaged manhole cover or drain causing a trip hazard on the pavement - Pavements
+1320. Loose/missing/chipped kerbstone
+1321. Lost / Missing Cat
+1322. Low branches
+1323. Low hanging branches
+1324. Low tree branches
+1325. Low/overhanging branches
+1326. Main Carriageway (NH)
+1327. Major obstruction on the road or pavement, likely to cause an accident
+1328. Malfunction
+1329. Manhole
+1330. Manhole - Cover (Damaged)
+1331. Manhole - Cover missing
+1332. Manhole - footway
+1333. Manhole - road
+1334. Manhole Cover
+1335. Manhole Cover - Damaged (rocking or noisy)
+1336. Manhole Cover - Missing
+1337. Manhole cover - sunken, loose or rattling
+1338. Manhole cover broken/missing
+1339. Manhole covers
+1340. Manhole in the road
+1341. Manhole on the pavement
+1342. Manhole or Drain Covers
+1343. Manhole/drain cover on pavement/verge
+1344. Manhole/drain cover on road/cycleway
+1345. Manholes
+1346. Markings
+1347. Markings Faded/missing
+1348. Markings missing/defective
+1349. Markings/ lines Missing or faded
+1350. Massage and Special Treatments
+1351. Materials stored on the highway
+1352. Media Enquiry
+1353. Mirror Request
+1354. Miscellaneous
+1355. Misleading/ Incorrect (NH)
+1356. Missed Collection
+1357. Missed Collection (Green Waste)
+1358. Missed Food Waste Collection
+1359. Missed Grass Cutting
+1360. Missed collection dispute
+1361. Missed collection enquiry
+1362. Missed cuts
+1363. Missed published Gritted Route
+1364. Missing
+1365. Missing (Grit bins)
+1366. Missing (Road signage)
+1367. Missing (Street name plate)
+1368. Missing (Utility covers)
+1369. Missing Cover
+1370. Missing Gully/Manhole
+1371. Missing Ironwork
+1372. Missing Road Sign
+1373. Missing bin
+1374. Missing drain (Flooding/Gully/Drainage)
+1375. Missing drain grate
+1376. Missing drain or man hole cover
+1377. Missing grit bin
+1378. Missing nameplate
+1379. Missing or damaged signpost
+1380. Missing or damaged waymarking
+1381. Missing or dirty road sign
+1382. Missing or worn lines or markings
+1383. Missing road studs near hazard or junction
+1384. Missing structure
+1385. Missing timetable information
+1386. Missing, dangerous or severely damaged drain cover
+1387. Missing/ damaged traffic sign
+1388. Missing/Damaged life ring
+1389. Misuse of shelter
+1390. Mobile Crane Operation
+1391. Mobile apparatus licence
+1392. Mooring/Pontoon/Ladder
+1393. Mop Communal Areas (Int)
+1394. More than 4 out at junction/street
+1395. Motorways Defects
+1396. Mud on Road
+1397. Mud on road
+1398. Mud on the Highway
+1399. Mud on the road
+1400. Mud or Debris on the road
+1401. Multiple Lamp/Bulb Failure
+1402. Multiple lights out/flickering
+1403. Multistorey car park
+1404. Needles
+1405. Needles, condoms or other drug or sex related litter
+1406. Needs pruning
+1407. Neighbourhood Watch Sign
+1408. Neighbours tree
+1409. New Dog Bin Needed
+1410. New Dropped Kerb Request
+1411. New Grit Bin Request
+1412. New Grit Bin request
+1413. New sign, signal or street furniture request
+1414. Newly planted tree
+1415. No rain in 24 hours - water has increased or remained the same
+1416. No workers present (NH)
+1417. Noise nuisance
+1418. Noisy Ironwork
+1419. Noisy or rocking drain cover
+1420. Non offensive graffiti
+1421. Non-Illuminated bollards
+1422. Non-Parking related road markings
+1423. Non-highway trees
+1424. Non-illuminated bollard
+1425. Non-illuminated sign
+1426. Non-illuminated sign or post
+1427. Non-offensive Graffiti
+1428. Non-offensive graffiti
+1429. Not coming on/ faulty
+1430. Not lit (Illuminated bollard)
+1431. Not lit (Illuminated sign)
+1432. Not lit (Street light)
+1433. Not lit (Zebra crossing light)
+1434. Not working (NH)
+1435. Noticeboard/Signs
+1436. Noxious weeds
+1437. Noxious/Injurious Weed Hazard
+1438. Nuisance Parking (No Restrictions)
+1439. Nuisance Parking (Restrictions Present)
+1440. Nuisance or dangerous trees on private land
+1441. Nuisance parking no restrictions
+1442. Nuisance parking on restrictions
+1443. Nuisance/Dangerous Animal
+1444. Objects in the road
+1445. Obscured
+1446. Obscured by Graffiti
+1447. Obscured by vegetation or Dirty
+1448. Obstructed by boundary feature
+1449. Obstructed by building
+1450. Obstructed by tree(s)
+1451. Obstruction
+1452. Obstruction (Not Vegetation)
+1453. Obstruction (Road/Pavement)
+1454. Obstruction - Advertising board
+1455. Obstruction - Bins
+1456. Obstruction - Builders materials
+1457. Obstruction - Overgrown / overhanging private tree / hedge
+1458. Obstruction - Scaffolding / Hoarding
+1459. Obstruction - Skips
+1460. Obstruction barbed wire
+1461. Obstruction barrier, fencing, wall or other
+1462. Obstruction building
+1463. Obstruction caused by fence
+1464. Obstruction caused by tree
+1465. Obstruction caused by wall/building
+1466. Obstruction electric fence
+1467. Obstruction fallen tree
+1468. Obstruction on a Road or Pavement
+1469. Obstruction on public right of way
+1470. Obstruction or hazard on road
+1471. Obstruction ploughing or crops
+1472. Obstruction to Highway
+1473. Obstruction to disability access (NH)
+1474. Obstructions
+1475. Obstructions on pavements and roads
+1476. Obstructive vegetation
+1477. Off Street Parking
+1478. Off street Car parking
+1479. Off the carriageway (NH)
+1480. Off-street car parks
+1481. Offensive Graffiti
+1482. Offensive Graffiti on Property
+1483. Offensive graffiti (not witnessed)
+1484. Offensive graffiti (witnessed)
+1485. Offensive up to 2 metres off the ground
+1486. Oil spillage on the highway
+1487. Oil/Obstruction in water
+1488. Old Roadworks Equipment (NH)
+1489. On During the Day
+1490. On Street Parking Issue
+1491. On during day
+1492. On during the day off at night (Illuminated bollard)
+1493. On during the day off at night (Illuminated sign)
+1494. On during the day off at night (Street light)
+1495. On during the day off at night (Zebra crossing light)
+1496. On street Car parking
+1497. On street EV charging application
+1498. On the footway
+1499. On the road
+1500. Open spaces
+1501. Other
+1502. Other (Bridges/Structure)
+1503. Other (Bus Stop)
+1504. Other (Car Park)
+1505. Other (EV Chargers)
+1506. Other (Litter)
+1507. Other (TS)
+1508. Other (TfL)
+1509. Other (Utilities)
+1510. Other (Verges)
+1511. Other (Winter (Snow/Ice))
+1512. Other (Winter Maintenance)
+1513. Other (non-highways)
+1514. Other - Street Lighting
+1515. Other Disability Access Issue (NH)
+1516. Other Estate Ground Issue
+1517. Other Footway or Footpath Issue
+1518. Other Grass Cutting Issues
+1519. Other Highways issue
+1520. Other Lighting Issue
+1521. Other Right of Way Issue
+1522. Other Road Issues
+1523. Other Roads or Carriageway issue
+1524. Other Street Cleaning
+1525. Other Street Lighting issue
+1526. Other Street Tree Problem
+1527. Other Structure
+1528. Other Traffic Signals issue
+1529. Other Tree Related Issues
+1530. Other bridges and structure issues
+1531. Other car park issue
+1532. Other flyposting
+1533. Other hedge problem
+1534. Other issue (Flooding/Gully/Drainage)
+1535. Other issue (Obstruction blocking access)
+1536. Other issue (bus stop)
+1537. Other issue (docks)
+1538. Other issue (parking)
+1539. Other issue with a footway/pavement
+1540. Other issue with the road surface
+1541. Other issues with non-illuminated signs
+1542. Other public drainage issue
+1543. Other public road issue
+1544. Other rights of way issue
+1545. Other road safety issue
+1546. Other road surface issue
+1547. Other scaffold problem
+1548. Other street defect
+1549. Other street furniture
+1550. Other street lighting issue
+1551. Other tree issue
+1552. Other water on the Highway
+1553. Other winter maintenance
+1554. Overflowing Litter Bin / Dog Bin
+1555. Overflowing Public Litter Bin
+1556. Overflowing Street Litter Bin
+1557. Overflowing Water Tank
+1558. Overflowing bin
+1559. Overflowing litter bin
+1560. Overflowing litter/dog bin
+1561. Overgrowing vegetation
+1562. Overgrown - danger or obstructing
+1563. Overgrown Private Vegetation
+1564. Overgrown Trees/Hedges
+1565. Overgrown Vegetation
+1566. Overgrown Vegetation from Private Property
+1567. Overgrown grass
+1568. Overgrown hedge blocking pavement
+1569. Overgrown hedge blocking pavement - Hedges
+1570. Overgrown hedge blocking views into traffic
+1571. Overgrown hedges
+1572. Overgrown hedges (Estates)
+1573. Overgrown hedges or branches blocking road sign
+1574. Overgrown or blocked pavements
+1575. Overgrown or obscuring view (NH)
+1576. Overgrown shrub beds
+1577. Overgrown tree
+1578. Overgrown trees
+1579. Overgrown vegetation
+1580. Overgrown vegetation (car parks)
+1581. Overgrown vegetation (watercourse)
+1582. Overgrown vegetation at bus stop or shelter
+1583. Overgrown vegetation on path/way
+1584. Overgrown verge
+1585. Overgrown weeds
+1586. Overgrown weeds/vegetation from neighbouring property
+1587. Overgrown/hanging Vegetation
+1588. Overhanging Branches
+1589. Overhanging Foliage
+1590. Overhanging Trees
+1591. Overhanging Trees & Vegetation
+1592. Overhanging Vegetation
+1593. Overhanging Vegetation From Private Land
+1594. Overhanging Vegetation from private land
+1595. Overhanging branch/tree
+1596. Overhanging branches
+1597. Overhanging private property
+1598. Overhanging the highway from private property
+1599. Overhanging the road
+1600. Overhanging tree, hedge or shrub
+1601. Overhanging trees on private property
+1602. Overhanging vegetation
+1603. Overhanging/Fallen Tree (TS)
+1604. PROW - Bridge Damaged/Missing
+1605. PROW - Crops obstructing path
+1606. PROW - Gate
+1607. PROW - Livestock
+1608. PROW - Other
+1609. PROW - Ploughed
+1610. PROW - Signs/way marking
+1611. PROW - Stile
+1612. PROW - Vegetation Obstruction
+1613. PSPO Breach
+1614. Paint (dry)
+1615. Paint (wet)
+1616. Park
+1617. Park / Open space
+1618. Park / open space
+1619. Park Furniture
+1620. Park Repairs
+1621. Park furniture damaged
+1622. Park light not coming on
+1623. Park litter bin needs emptying
+1624. Park littering
+1625. Park sign damaged
+1626. Park tree causing damage
+1627. Park tree problem
+1628. Parked vehicles
+1629. Parking
+1630. Parking Bays
+1631. Parking Charges
+1632. Parking Enforcement
+1633. Parking Issue
+1634. Parking Restriction New Request
+1635. Parking at a bus stop
+1636. Parking charges/enforcement
+1637. Parking enforcement
+1638. Parking fine
+1639. Parking in a restricted space
+1640. Parking issue
+1641. Parking on a footpath
+1642. Parking on double yellow lines
+1643. Parking on street
+1644. Parking queries/reports
+1645. Parking related road markings
+1646. Parking restriction road markings and lines
+1647. Parking restriction signs
+1648. Parking signs
+1649. Parking within pay and display car parks
+1650. Parking/ congestion
+1651. Parks
+1652. Parks & Green Spaces
+1653. Parks & open spaces
+1654. Parks / Open Spaces / Cemeteries
+1655. Parks and open spaces
+1656. Parks and playgrounds
+1657. Parks and playing fields
+1658. Parks/Landscapes
+1659. Parks/landscapes
+1660. Parks/landscapes (Lickey Hills)
+1661. Parks/landscapes (West Bridgford only)
+1662. Parks/trees
+1663. Part of the road or pavement is flooded
+1664. Passage-Obstructed/Overgrown
+1665. Path Cleaning
+1666. Path cleaning
+1667. Path is off line
+1668. Path/Way doesn't match map
+1669. Path/Way illegally diverted
+1670. Path/Way misused by unlawful users
+1671. Path/Way not reinstated after ploughing
+1672. Pathways and roads in a park
+1673. Paved OS CP Surface Issue
+1674. Pavement
+1675. Pavement Damaged/Cracked
+1676. Pavement Defect
+1677. Pavement Defect (uneven surface / cracked paving slab)
+1678. Pavement Defects
+1679. Pavement Jetting
+1680. Pavement Overcrowding
+1681. Pavement Potholes
+1682. Pavement and Cycle path
+1683. Pavement and road repairs
+1684. Pavement cleaning
+1685. Pavement damage
+1686. Pavement/footpath/cycleway/bridleway issue (NH)
+1687. Pavements, footpaths or cycleways
+1688. Pavements/Cycleway
+1689. Pavements/Footpaths Repairs
+1690. Pavements/footpaths
+1691. Pavilion/Cafe/Toilet Issue
+1692. Pavilions or Cafés or Toilets
+1693. Paving slabs
+1694. Paving stone/slab is raised, rocking or missing
+1695. Pay & Display Car Parks
+1696. Pay & Display Machines
+1697. Pay & display machine
+1698. Pay and Display machine
+1699. Pay and Display refund query
+1700. Payment Issue
+1701. Pedestrian Barrier Corroded
+1702. Pedestrian Barrier Issue
+1703. Pedestrian Barriers - Damaged / Missing
+1704. Pedestrian Crossing Issue
+1705. Pedestrian Crossing Request
+1706. Pedestrian Guard Rails
+1707. Pedestrian barrier/ railing damaged
+1708. Pedestrian push button not working
+1709. Pedestrian railing
+1710. Pedestrian wait button not working
+1711. Permanent
+1712. Permanent traffic lights
+1713. Permanently on (Illuminated bollard)
+1714. Permanently on (Illuminated sign)
+1715. Permanently on (Street light)
+1716. Permanently on (Zebra crossing light)
+1717. Personal advertising
+1718. Pest Control
+1719. Pest control
+1720. Pests in trees and shrubs
+1721. Phoenix HA
+1722. Pit Lane licence
+1723. Planter
+1724. Planter Damage Hazard
+1725. Planter Damage NonHazard
+1726. Planter not Clean and Tidy
+1727. Planter on the highway
+1728. Play Area
+1729. Play Areas and Skate Parks
+1730. Play Equipment
+1731. Play and Sports areas
+1732. Play area
+1733. Play area damaged
+1734. Play area safety issue
+1735. Play equipment issue
+1736. Playground
+1737. Playground Repairs
+1738. Playground equipment damaged
+1739. Playing Fields
+1740. Ploughing and cropping
+1741. Ploughing/cropping
+1742. Pointing the wrong way
+1743. Pole/signal knocked down
+1744. Pollen, Sap, blossom, leaf and fruit fall
+1745. Poop Scoop Bins
+1746. Poor operation or delays
+1747. Poor repairs (reinstatement)
+1748. Pothole
+1749. Pothole (NH)
+1750. Pothole (TS)
+1751. Pothole (major)
+1752. Pothole (minor)
+1753. Pothole / Failed Reinstatement
+1754. Pothole In CW/FW
+1755. Pothole at least 20 cm wide and 2-3 cm deep
+1756. Pothole at least 20 cm wide and more than 3 cm deep
+1757. Pothole highly likely to result in an accident and needs an immediate response
+1758. Pothole in a carpark on the Countryside Estate
+1759. Pothole in the pavement or footway
+1760. Pothole in the road
+1761. Pothole large (Pavements)
+1762. Pothole large (Roads)
+1763. Pothole less than 30 cm wide and 4-6 cm deep
+1764. Pothole more than 30 cm wide or 6 cm deep
+1765. Pothole on a cycle lane - Less than 75mm wide and 25mm deep - Potholes
+1766. Pothole on a cycle lane - More than 75mm wide and 25mm deep - Potholes
+1767. Pothole on a pavement - Less than 100mm wide and 20mm deep  - Potholes
+1768. Pothole on a pavement - More than 100mm wide and 20mm deep - Potholes
+1769. Pothole on a road - Less than 150mm wide and 40mm deep
+1770. Pothole on a road - More than 150mm wide and 40mm deep
+1771. Pothole on pavement or Footpath
+1772. Pothole on pavement/verge
+1773. Pothole on road/cycleway
+1774. Pothole or other defect
+1775. Pothole or other road damage
+1776. Pothole small (Pavements)
+1777. Pothole small (Roads)
+1778. Pothole/Trip hazard
+1779. Potholes
+1780. Potholes / Highway Condition
+1781. Potholes and Surface Problems
+1782. Potholes and maintenance
+1783. Potholes and paving damage
+1784. Potholes in Road
+1785. Printed timetables and Maps
+1786. Private Land - Overgrown / Overhanging tree
+1787. Private Land - Overgrown hedge
+1788. Private Tree overhanging highway
+1789. Private Trees
+1790. Private Walls
+1791. Private property
+1792. Privately-owned trees
+1793. Problem at LCC roadworks
+1794. Problem at other roadworks
+1795. Problem with BCC highway works undertaken
+1796. Problem with Trench
+1797. Problem with a light not shown on map
+1798. Problem with an on-street parking machine
+1799. Problem with drainage
+1800. Problem with fungi
+1801. Problem with moths
+1802. Problem with stakes
+1803. Problem with tree roots
+1804. Problem with tree stumps
+1805. Property Damaged By Flooding
+1806. Property Flooding
+1807. Property flooding issue
+1808. Property/Vehicle Damage
+1809. Protected trees (in Conservations Areas)
+1810. Pruning or removing a tree
+1811. Public Conveniences
+1812. Public Litter Bin
+1813. Public Right of Way footpath
+1814. Public Rights of Way
+1815. Public Rights of Way Issue
+1816. Public Rights of Ways
+1817. Public Rights of way
+1818. Public Safety
+1819. Public Tennis Courts
+1820. Public Toilets
+1821. Public Tree affecting Property
+1822. Public electric vehicle charging points
+1823. Public footpath or cyclepath
+1824. Public right of way - problem with access or damage
+1825. Public rights of way
+1826. Public rights of way, alleyways and bridlepaths
+1827. Public safety (Bridges/Subways)
+1828. Public safety (Walls)
+1829. Public toilets
+1830. Public toilets and shelters
+1831. Push Button Not Working
+1832. Pushbutton Not Working
+1833. Quality of grass cutting
+1834. Quality/Speed of Service
+1835. Raised or sunken drain cover deeper than 2cm
+1836. Raised or sunken manhole cover deeper than 2cm
+1837. Rats
+1838. Re-stake - Young leaning tree
+1839. Real Time Passenger Information (RTPI) display issue
+1840. Recruitment
+1841. Recycling & rubbish (Missed bin)
+1842. Recycling (green)
+1843. Recycling (household waste)
+1844. Recycling Bank-Full or Overflowing
+1845. Recycling Bank-Other Issue
+1846. Refuse
+1847. Refuse & recycling
+1848. Refuse Collection
+1849. Refuse and recycling
+1850. Regular flytipping (witnessed)
+1851. Removal of Weeds
+1852. Remove a Blue Heart Verge
+1853. Repair failure
+1854. Repairs and road layout (NH)
+1855. Replacement bin enquiry
+1856. Replacement tree planting
+1857. Report a tree problem
+1858. Report ice, snow, and frost on roads and footpaths
+1859. Report missed assisted collection
+1860. Report missed collection
+1861. Report out-of-time missed collection
+1862. Report out-of-time not returned
+1863. Report out-of-time spillage
+1864. Reporting Tree Emergency
+1865. Request Parking Restrictions
+1866. Request Timing Review
+1867. Request a highway improvement
+1868. Request a new road sign
+1869. Request a salt bin
+1870. Request additional collection
+1871. Request assisted collection
+1872. Request changes to existing parking controls and restrictions
+1873. Request container enquiry
+1874. Request container removal
+1875. Request electronic display
+1876. Request for Advice or Information
+1877. Request for Park Infrastructure
+1878. Request for grit bin
+1879. Request for information on planned works
+1880. Request for tree to be planted
+1881. Request for works on my street
+1882. Request gritting action
+1883. Request new container
+1884. Request refill of grit bin
+1885. Request shelter installed
+1886. Request to plant a tree
+1887. Rest and Emergency areas that may impact people with a disability (NH)
+1888. Restrict off-road access
+1889. Restricted Visibility
+1890. Restricted Visibility / Overgrown / Overhanging
+1891. Retaining Wall
+1892. Retaining Wall Damage
+1893. Retaining Wall Vehicle Hit
+1894. Retaining wall
+1895. Return request
+1896. Right of Way not as mapped
+1897. Rights of way
+1898. Risk of falling branch
+1899. River - Life Ring Damaged/Missing
+1900. River Piers - Cleaning
+1901. River Piers Damage doors and glass
+1902. River Piers Damage railings  / gates
+1903. River Piers Damage waiting room
+1904. River Piers Graffiti (non offensive)
+1905. River Piers Graffiti (offensive)
+1906. River Piers Lighting not working
+1907. Road Adoption Issue
+1908. Road Cracked/damaged
+1909. Road Defect
+1910. Road Flooding or Standing Water
+1911. Road Gritting
+1912. Road Marking
+1913. Road Marking - Other
+1914. Road Marking - Request for New
+1915. Road Markings
+1916. Road Markings - Worn/Faded
+1917. Road Markings Missing/Faded
+1918. Road Markings/Studs Non-Comp
+1919. Road Potholes
+1920. Road Safety Issue
+1921. Road Sign
+1922. Road Sign - Other
+1923. Road Sign - Request for New
+1924. Road Sign Damaged
+1925. Road Sign Missing
+1926. Road Sign Obscured or dirty
+1927. Road Sign Obscured vegetation
+1928. Road Signs
+1929. Road Surface
+1930. Road Sweeping
+1931. Road Traffic Collision
+1932. Road Traffic Collision Debris
+1933. Road Traffic Signs
+1934. Road Traffic Signs & Markings
+1935. Road closure problem
+1936. Road condition
+1937. Road damage / Pothole
+1938. Road has not been gritted
+1939. Road impassable (Flooding/Gully/Drainage)
+1940. Road lighting
+1941. Road lines / road markings
+1942. Road markings
+1943. Road markings - faded
+1944. Road markings and lining
+1945. Road markings and white lines
+1946. Road obstruction
+1947. Road resurfacing problem
+1948. Road safety improvement
+1949. Road safety outside a school request
+1950. Road sign with a light (light not working)
+1951. Road sign with a light (other issue)
+1952. Road sign without a light
+1953. Road signage
+1954. Road signs
+1955. Road studs
+1956. Road surface
+1957. Road surface (NH)
+1958. Road surface/pothole in a car park
+1959. Road traffic signs
+1960. Road works
+1961. Road works problem
+1962. Roads Issue on a Private Development
+1963. Roads Issue relating to a planning application
+1964. Roads and Carriageways
+1965. Roads/Highways
+1966. Roads/highways
+1967. Roadside Fence
+1968. Roadside Litter
+1969. Roadside Trees, Hedges and Verges
+1970. Roadside Weeds
+1971. Roadside safety barrier
+1972. Roadworks
+1973. Roadworks Disruption
+1974. Roadworks Noise
+1975. Roadworks Safety
+1976. Rocking (Utility covers)
+1977. Rocking blocks less than 50% of crossing
+1978. Rocking blocks more than 50% of crossing
+1979. Roosting birds and their droppings
+1980. Roots
+1981. Roots causing damage to private property
+1982. Roots causing damage to private property - Trees and roots
+1983. Roots causing damage to property
+1984. Roots causing hazard on the pavement
+1985. Roots causing hazard on the pavement - Trees and roots
+1986. Roots damaging road or pavement
+1987. Roots impacting property
+1988. Rotating tactile cone (under push button on pedestrian crossing) is faulty
+1989. Rough/Uneven or Surface Issue
+1990. Roundabout sponsorship/maintenance
+1991. Rta (Removal of debris)
+1992. Rubbish
+1993. Rubbish (refuse and recycling)
+1994. Rubbish (refuse and recycling)	
+1995. Rubbish accumulation on private property
+1996. Rubbish dumped in an empty home
+1997. Rubbish on Footway and Pavement
+1998. Rutting at least 60 cm long and 5-10 cm deep
+1999. Rutting at least 60 cm long or more than 10 cm deep
+2000. SL Post Knockdown
+2001. Safety Barrier Damaged but not hazard on road, path or cycleway
+2002. Safety Barrier Issue
+2003. Safety Bollard - Damaged/Missing
+2004. Safety Fence
+2005. Safety concern (traffic or pedestrian)
+2006. Safety fence or barrier
+2007. Safety fences and barriers
+2008. Salt & Gritting
+2009. Salt / Grit Bin Damaged
+2010. Salt Bin
+2011. Salt bin damaged
+2012. Salt bin refill
+2013. Salt bins
+2014. Salt bins new
+2015. Salt bins replenish
+2016. Scaffold complaint
+2017. Scaffold licence
+2018. Schemes or works at traffic signals enquiry
+2019. Scrap Metal
+2020. Seat Damaged
+2021. Seating issue
+2022. Seats and benches
+2023. Security Issues
+2024. Severe ice on the road
+2025. Severe loss of chippings
+2026. Sewage leak with foul smelling water and waste
+2027. Sharps (needles)
+2028. Sharps collection
+2029. Shelter Damaged
+2030. Shelter needs cleaning (hazardous waste)
+2031. Shelter needs cleaning (not including litter)
+2032. Shelter timetable case issue
+2033. Shelter/Seat
+2034. Shopping Trolley
+2035. Shopping trolleys
+2036. Short Grass
+2037. Shrub / Hedge - Overgrown
+2038. Shrub Beds
+2039. Shrub Planting Dead
+2040. Shrub Prune
+2041. Shrub bed on the highway
+2042. Shrub weed issue
+2043. Shrub/Rose Maintenance
+2044. Shrub/Rose maintenance
+2045. Shrubs - Litter
+2046. Shrubs - Overgrown
+2047. Shrubs - Weeds
+2048. Shrubs and Hedge
+2049. Shrubs/Trees (Obstruction blocking access)
+2050. Sightlines obscured
+2051. Sign (lit)
+2052. Sign (unlit)
+2053. Sign Dirty/Degraded
+2054. Sign Light Not Working
+2055. Sign Missing/Damaged
+2056. Sign Missing/Knocked Down
+2057. Sign Obscured (NH)
+2058. Sign Obstructed: Vegetation
+2059. Sign Twisted/Misaligned
+2060. Sign cleaning required
+2061. Sign dirty
+2062. Sign missing/defective
+2063. Sign obscured
+2064. Sign obstructing the highway
+2065. Sign or road marking missing following works
+2066. Sign/Pole Damaged
+2067. Sign/Waymarking - Damaged/Missing
+2068. Sign/waymarker is damaged
+2069. Sign/waymarker is misleading
+2070. Signage
+2071. Signal Failure
+2072. Signal Failure all out
+2073. Signal Head Failure
+2074. Signal Head out of Alignment
+2075. Signal Stuck
+2076. Signal Stuck / Not Changing
+2077. Signal head turned around
+2078. Signal-controlled pedestrian crossings
+2079. Signals - Other
+2080. Signals Damaged
+2081. Signals Damaged/exposed wiring
+2082. Signals Lamp/bulb failure
+2083. Signals Request Timing Review
+2084. Signals Stuck / Not Changing
+2085. Signals Timing Issue
+2086. Signals stuck on red
+2087. Significant or Harmful Waste on Private Land
+2088. Signing and Guarding/Traffic Management
+2089. Signpost is damaged
+2090. Signpost is missing
+2091. Signs
+2092. Signs & Bollards
+2093. Signs (TS)
+2094. Signs and bollards
+2095. Signs or Lines Issue
+2096. Signs/Cones/Bollards/Barriers
+2097. Signs/lines issue
+2098. Single Light out (street light)
+2099. Single light out/flickering
+2100. Sinkhole or Subsidence
+2101. Skip Licence
+2102. Skip on road/verge
+2103. Skip on the highway
+2104. Skips
+2105. Slabs - Missing
+2106. Slabs - Uneven / Damaged / Cracked
+2107. Slightly damaged bridge, foot bridge or subway
+2108. Slightly damaged, noisy or rocking manhole cover
+2109. Slip Roads (NH)
+2110. Slippery leaves
+2111. Small food caddy
+2112. Small items collection
+2113. Smelly drain
+2114. Smoking/Sparking equipment
+2115. Snow and Ice problems
+2116. Snow and ice problem/winter salting
+2117. Snow/Ice
+2118. Soft Verge Damaged/Overrun
+2119. Speed Camera Requests
+2120. Speed Humps
+2121. Speed sign damaged
+2122. Speeding
+2123. Speeding Issue
+2124. Spill - Oil/Diesel
+2125. Spill/oil/diesel
+2126. Spillage
+2127. Spillage On Project Network
+2128. Spillage after recycling collection
+2129. Spillage after waste collection
+2130. Spillage on network
+2131. Spillages
+2132. Spillages or obstructions in the road
+2133. Sport Area
+2134. Sports Pitch/Court Maintenance
+2135. Sports pitch/court maintenance
+2136. Staff general enquiry
+2137. Stair Washing
+2138. Standing water
+2139. Standing water covering less than half the road
+2140. Standing water covering more than half the road
+2141. Standing water on land
+2142. Standing water on the highway
+2143. Statues/Artworks licence
+2144. Steps Damaged/Uneven
+2145. Stile is damaged
+2146. Stile is damaged/missing
+2147. Stile is missing
+2148. Stile out of repair
+2149. Stile-Damaged/Missing
+2150. Stones/Bollards on the Verge
+2151. Street
+2152. Street - Furniture Cleaning
+2153. Street - Leafing Request
+2154. Street - Weeding Request
+2155. Street Cleaning
+2156. Street Cleaning Enquiry
+2157. Street Cleansing
+2158. Street Furniture
+2159. Street Furniture Enquiry
+2160. Street Light
+2161. Street Light - Equipment damaged, pole leaning
+2162. Street Light Damaged
+2163. Street Light Day Burning
+2164. Street Light Door Off
+2165. Street Light Electrical Wiring
+2166. Street Light Fault
+2167. Street Light Flash/Flickering
+2168. Street Light Knocked Down
+2169. Street Light Leaning
+2170. Street Light On During the Day
+2171. Street Light Out
+2172. Street Light Wiring Exposed
+2173. Street Lighting
+2174. Street Lighting (TS)
+2175. Street Lighting Other
+2176. Street Lights
+2177. Street Litter Picking
+2178. Street Name Plate Damaged
+2179. Street Name Plate Missing
+2180. Street Name Plates
+2181. Street Nameplate Dam./Miss.
+2182. Street Nameplates
+2183. Street Spillage
+2184. Street Sweeping
+2185. Street Trading Issue
+2186. Street Weeds
+2187. Street Works
+2188. Street cleaning
+2189. Street cleaning - Blue bags left on street
+2190. Street cleaning - Car parks
+2191. Street cleaning - Dead animal on street
+2192. Street cleaning - Dog mess
+2193. Street cleaning - Grass verges / Shrub beds - Littering
+2194. Street cleaning - Litter bin damaged / Missing
+2195. Street cleaning - Litter bin needs emptying
+2196. Street cleaning - Street needs sweeping
+2197. Street cleaning and litter
+2198. Street cleaning/sweeping
+2199. Street cleansing
+2200. Street furniture
+2201. Street furniture damaged / Missing
+2202. Street furniture maintenance (bins/benches etc)
+2203. Street furniture/sign/barrier
+2204. Street light
+2205. Street light dim
+2206. Street light intermittent
+2207. Street light is permanently out
+2208. Street light leaning
+2209. Street light not working
+2210. Street light obscured by tree/hedge/vegetation
+2211. Street light on during the day
+2212. Street light timing issue
+2213. Street light wiring exposed
+2214. Street light/Sign obscured
+2215. Street lighting
+2216. Street lighting (on adopted highways)
+2217. Street lighting (parks, car parks and open spaces)
+2218. Street lighting - other
+2219. Street lighting in parks
+2220. Street lights
+2221. Street name plate problem
+2222. Street name plates
+2223. Street nameplaces
+2224. Street nameplate
+2225. Street nameplate damaged/missing
+2226. Street nameplates
+2227. Street needs sweeping
+2228. Street sweeping
+2229. Street tree - Causing pavement damage
+2230. Street tree - Damaged / Dead
+2231. Street tree - Overgrown
+2232. Street tree - Replacement request
+2233. Street tree - Stump removal
+2234. Street tree overhanging private property
+2235. Street washing
+2236. Street works and obstructions
+2237. Streetlight Not Working
+2238. Streetlight Obscured by Veg
+2239. Streetlight dim
+2240. Streetlight intermittent
+2241. Streetlight lit during the day
+2242. Streetlight not working
+2243. Streetspace Suggestions and Feedback
+2244. Structural issues
+2245. Structurally damaged/leaning more than 20 degrees/loose in ground (SL)
+2246. Structurally damaged/leaning more than 20 degrees/loose in ground (SPC)
+2247. Structure Damaged
+2248. Structure Issue
+2249. Structures (eg bridges, fencing, noise barriers) (NH)
+2250. Stuck on red
+2251. Stud missing/defective
+2252. Studs/Catseyes Missing/Damaged
+2253. Subway
+2254. Subway Flood Hazardous
+2255. Subway Flood Non Hazardous
+2256. Subway Light Damaged
+2257. Subway Light Out or Flickering
+2258. Subway Light Wiring Exposed
+2259. Subway flooding
+2260. Subway light
+2261. Subway light faulty
+2262. Surface Condition
+2263. Surface Damage
+2264. Surface Issue
+2265. Surface car park
+2266. Surface damage
+2267. Surface is damaged
+2268. Surface issue
+2269. Surface out of repair
+2270. Surface risen or sunk by 3-4cm
+2271. Surface risen or sunk more then 20cm wide and 2-3 cm deep
+2272. Surface water on Highway
+2273. Surrey County Council roadworks
+2274. Swaying trees
+2275. Sweeping & Cleansing Hazard
+2276. Switch out application
+2277. Syringes
+2278. Syringes / Needles / Drug related litter
+2279. Syringes or drugs equipment
+2280. TPO enquiry
+2281. Telecoms Cabinet
+2282. Temp Roadwork Traffic Signals
+2283. Temporary
+2284. Temporary Traffic Light Fault
+2285. Temporary Traffic Light Issue
+2286. Temporary Traffic Lights
+2287. Temporary Traffic Lights (malfunctioning)
+2288. Temporary Traffic Signs licence
+2289. Temporary roadworks
+2290. Temporary signs
+2291. Temporary traffic light issue
+2292. Temporary traffic lights
+2293. Temporary traffic lights problem
+2294. Temporary traffic signals
+2295. The drain is blocked
+2296. The drain is damaged
+2297. Ticket machines
+2298. Timetable Missing/Damaged
+2299. Timetable information out of date/wrong
+2300. Timetable/Service query
+2301. Timing incorrect (e.g. on in day/off at night)
+2302. Timing issue
+2303. Timing of proposed works
+2304. Timings
+2305. To let signs
+2306. Toilet issue/damage
+2307. Toilet or Welfare Facility Issue
+2308. Total failure
+2309. Trade Waste Issue
+2310. Traffic Lights
+2311. Traffic Lights (permanent only)
+2312. Traffic Lights Fault - Other
+2313. Traffic Lights Fault - Red Light Out
+2314. Traffic Sign obstructed (vegetation)
+2315. Traffic Signal Timing (perm)
+2316. Traffic Signals Damaged
+2317. Traffic Signals Fault
+2318. Traffic Signals Not Working
+2319. Traffic Signs
+2320. Traffic bollard
+2321. Traffic collision
+2322. Traffic lights
+2323. Traffic lights & crossings problems with buttons, beep or lamps
+2324. Traffic lights & crossings problems with timings
+2325. Traffic lights & signals
+2326. Traffic lights (NH)
+2327. Traffic lights or signals
+2328. Traffic mirrors
+2329. Traffic sign
+2330. Traffic sign - lit
+2331. Traffic sign light
+2332. Traffic signal faulty
+2333. Traffic signal is fully or partly hidden by overgrown trees or vegetation
+2334. Traffic signal is fully or partly hidden by overgrown trees or vegetation - Trees and roots
+2335. Traffic signal obstructed by vegetation
+2336. Traffic signs, barriers or cones left on the road
+2337. Traffic signs, barriers or cones left on the road - Roadworks and road closures
+2338. Traffic view obscured
+2339. Treatment request carriageway
+2340. Treatment request footway
+2341. Tree
+2342. Tree Branches Overhanging
+2343. Tree Causing Minor obstruction
+2344. Tree Damage - General
+2345. Tree Danger/Obstruction on PN
+2346. Tree Dead/Dying/Diseased
+2347. Tree Issues on the Highway
+2348. Tree Obstruction to 3rd Party
+2349. Tree Planting Request
+2350. Tree Preservation Orders
+2351. Tree Pruning Request
+2352. Tree Requires Pruning
+2353. Tree Vandalised
+2354. Tree Wound
+2355. Tree affecting phone lines
+2356. Tree blocking TV/Satellite or radio signal
+2357. Tree blocking a street light
+2358. Tree blocking daylight
+2359. Tree blocking light to a property
+2360. Tree blocking solar panels
+2361. Tree blocking traffic signal/sign
+2362. Tree blocking visibility on road/junction
+2363. Tree causing damage to property
+2364. Tree causing damage/obstruction to pavement or road
+2365. Tree damage
+2366. Tree debris (droppings, sap or seeds)
+2367. Tree growing into electric cables
+2368. Tree growth blocking the pavement
+2369. Tree growth blocking the pavement - Trees and roots
+2370. Tree has fallen
+2371. Tree in poor health
+2372. Tree is considered to be causing damage
+2373. Tree is damaged
+2374. Tree is dead or dying
+2375. Tree is too large
+2376. Tree obscuring streetlight
+2377. Tree obstructing street light
+2378. Tree overhanging the highway from private property
+2379. Tree overhanging/overgrown limb
+2380. Tree problem
+2381. Tree problem on an open space
+2382. Tree roots lifting pavement
+2383. Tree roots raising a footpath
+2384. Tree roots raising footpath
+2385. Tree sap, blossom, falling leaves or berries
+2386. Tree sap/blossom or falling leaves
+2387. Tree shading property
+2388. Tree stumps
+2389. Tree touching building
+2390. Tree touching overhead cables
+2391. Tree/Branch Fallen Non Hazard
+2392. Tree/hedge restricting available highway
+2393. Trees
+2394. Trees & Hedges
+2395. Trees (Urban Areas)
+2396. Trees (along Public Rights of Way)
+2397. Trees (on sites owned by Three Rivers District Council)
+2398. Trees (on the highway verge)
+2399. Trees (parks)
+2400. Trees Fallen on Road
+2401. Trees affecting highways or pavements
+2402. Trees affecting streetlights
+2403. Trees and Woodland Maintenance
+2404. Trees and branches damaging overhead cables
+2405. Trees and plants
+2406. Trees and shrubs affecting public rights of way (Public footpaths, bridleways and byways)
+2407. Trees and woodland
+2408. Trees blocking TV/phone signal or light
+2409. Trees blocking daylight
+2410. Trees blocking light or affecting power, telephone, broadband lines or other services to your property
+2411. Trees damaging private property
+2412. Trees in a park or recreation ground
+2413. Trees in housing estates
+2414. Trees in parks and open spaces (not roads)
+2415. Trees in public parks and open spaces
+2416. Trees obstructing traffic light
+2417. Trees on school sites
+2418. Trees or shrubs blocking visibility
+2419. Trees or shrubs causing obstruction of highway
+2420. Trees overhanging highways
+2421. Trees overhanging roads/paths
+2422. Trees overhanging/obstructing the road or footpath
+2423. Trees touching buildings
+2424. Trees under a Preservation Order or in a Conservation Area
+2425. Trees/Hedges Overhanging Roads Or Footpaths
+2426. Trip Hazard
+2427. Trip hazard
+2428. Trip hazard 2-3cm high
+2429. Trip hazard more than 3cm high
+2430. Trip hazard/uneven surface
+2431. Trodden in Chwing Gum
+2432. Trunkroad or motorway defect
+2433. Twisted Lantern
+2434. Twisted traffic signal - head facing the wrong direction
+2435. Twisted traffic signal - head still facing the right direction
+2436. Unauthorised
+2437. Unauthorised Attachment
+2438. Unauthorised objects attached to street furniture (event signs, personal advertisments, flags)
+2439. Unauthorised objects on other highway infrastructure
+2440. Unauthorised objects on street lighting assets
+2441. Unauthorised shop display
+2442. Unauthorised signs
+2443. Unauthorised site or encampment
+2444. Unauthorised skip
+2445. Unauthorised skip, scaffolding or building materials on the highway
+2446. Unclean public toilets
+2447. Underpass light
+2448. Uneven footway
+2449. Uneven surface
+2450. Uneven surface (Pavements)
+2451. Unlicenced skip/materials on Highway
+2452. Unlit
+2453. Unlit Bollard Issue Hazardous
+2454. Unlit Bollard Issue Non Hazard
+2455. Unlit sign knocked down
+2456. Unmapped Drain or Gully problem
+2457. Unpaved OS CP Surface Issue
+2458. Unpermitted roadworks
+2459. Unsafe dog bin
+2460. Unsafe litter bin
+2461. Unsafe park furniture
+2462. Unsafe playground equipment
+2463. Unsecured void properties
+2464. Untaxed Vehicle
+2465. Urgent safety issue
+2466. Urination
+2467. Utility Box/ cover damaged
+2468. Utility Boxes and Cabinets
+2469. Utility Issue
+2470. Utility Works (Gas,Water,Electric,Telecoms)
+2471. Utility Works and Temporary Traffic Lights
+2472. Utility company roadworks
+2473. Utility company roadworks - Roadworks and road closures
+2474. Utility equipment
+2475. Utility issues
+2476. Vandalised
+2477. Vandalised tree
+2478. Vandalism
+2479. Vandalism on Council-owned land
+2480. Vandalism/disturbance (example, cones moved from works)
+2481. Veg Impeding FW/CW
+2482. Veg Obstructed: Hway Vis
+2483. Veg Obstructed: Traffic Signal
+2484. Vegetation & maintenance
+2485. Vegetation Encroachment
+2486. Vegetation Overgrown
+2487. Vegetation blocking Street Light
+2488. Vegetation blocking road signs or visibility
+2489. Vegetation obstructing visibility, footway, road, or sign
+2490. Vegetation overhanging
+2491. Vegetation side growth
+2492. Vegetation surface growth
+2493. Vegetation/Hedges/Trees
+2494. Vehicle Activated Sign
+2495. Vehicle Barrier Corroded
+2496. Vehicle Barrier Issue
+2497. Vehicle Idling
+2498. Vehicle Impact
+2499. Vehicle abandoned on private land
+2500. Vehicle abandoned on the public road
+2501. Vehicle being repaired on road or pavement
+2502. Vehicle blocking a public footpath or highway
+2503. Vehicle crossover/dropped kerb problem
+2504. Vehicle dwelling encampment
+2505. Vehicle has damaged tree
+2506. Vehicle hit (Bridges/Subways)
+2507. Vehicle hit (Walls)
+2508. Vehicle is parked on parking restrictions
+2509. Vehicle linked with anti-social behaviour or criminal activity
+2510. Vehicle on road that’s been declared off the road (SORN)
+2511. Vehicle parked in an obstructive/ dangerous manner
+2512. Vehicle parked on double yellow lines or double parked
+2513. Vehicle parking - obstruction or illegal
+2514. Vehicle/ Accident Damage
+2515. Vehicles displayed for sale on the public highway
+2516. Vehicles for sale on the public road
+2517. Verge Cutting
+2518. Verge Damage
+2519. Verge cutting required
+2520. Verge cutting residential areas
+2521. Verge/Visibility problem
+2522. Verges
+2523. Verges - Damaged by Vehicles
+2524. Vessel utility supply
+2525. Visibility at junction or bend
+2526. Wall Washing
+2527. Wall/Fence/Gate Damage
+2528. Wall/Fence/Gate damage
+2529. Warning sign bend or hill gradient missing or fallen
+2530. Warning sign bend or hill gradient obscured
+2531. Waste and Recycling
+2532. Waste spillage
+2533. Water Flowing on to the Road
+2534. Water In Lantern Bowl
+2535. Water Pressure (Low/High)
+2536. Water discharging onto a road, footpath or cyclepath
+2537. Water/sewage leak on the road or footway
+2538. Watercourse
+2539. Watercourse Block/Obstruction
+2540. Watering - Watering bag damaged
+2541. Watering - Young tree not being watered
+2542. Waymark post is damaged
+2543. Waymark post is missing
+2544. Weed / Shrub bed problem
+2545. Weed Growth
+2546. Weed growth
+2547. Weed on paving
+2548. Weed problem on the highway
+2549. Weed removal
+2550. Weeding
+2551. Weeding Request
+2552. Weeds
+2553. Weeds (vegetation)
+2554. Weeds on roads or footpaths
+2555. Weeds on the highway
+2556. Weekend RRT / POPs Monitoring
+2557. Wheel tracks or ruts
+2558. Wheeled and large communal bins
+2559. White Bar Marking
+2560. Who is carrying out the roadworks
+2561. Why is no one working at the site
+2562. Why was I not informed about roadworks
+2563. Width Restriction or HGV Signage
+2564. Wildlife issue
+2565. Window Cleaning
+2566. Wires exposed
+2567. Wires exposed/Door off
+2568. Wires/equipment exposed or dangerous (SL)
+2569. Works crew - way of working
+2570. Works not complete
+2571. Works notification letter/leaflet
+2572. Worn or slippery manhole cover
+2573. Worn out road markings
+2574. Wrongful removal
+2575. Yellow diversion signs left behind
+2576. Yellow diversion signs left behind - Roadworks and road closures
+2577. Yellow roadworks warning sign (Surrey County Council) left behind
+2578. Yellow warning sign of works (not Surrey County Council works) left behind
+2579. Yellow warning sign of works (not Surrey County Council works) left behind - Roadworks and road closures
+2580. Young Tree Requires Maintenance
+2581. Your highways general enquiry
+2582. Zebra Crossing Fault
+2583. Zebra Crossing Light Out
+2584. Zebra Crossing Lights
+2585. Zebra Crossing post Damaged
+2586. Zebra crossing light
+2587. Zebra crossing lights (Belisha Beacons)
+2588. Zebra crossing/ belisha faulty
+2589. ditches and drains , flooding,  winter maintenance, Highways issues.
+2590. lectric vehicle existing charge point issue- privately maintained sites
+2591. lit bollard knocked down
+2592. pot holes Ash lane ash magna
+2593. unlit bollard knockdown/ missing (hazardous)
+2594. unlit bollard knockdown/ missing (non hazardous)
+
+====================================================================================================
+Total: 2594 services

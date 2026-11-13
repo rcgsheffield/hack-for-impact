@@ -1,0 +1,11 @@
+# Reference copy of /etc/caddy/Caddyfile on the Spark. Installed by hand with sudo (see README),
+# not by deploy.sh: the runner has no root, and ports 80/443 are privileged.
+spark12.local {
+	tls internal    # Caddy's own CA: self-signed, so browsers warn once.
+	reverse_proxy 127.0.0.1:8000
+}
+
+# Plain HTTP on port 80 (no redirect, so it works without accepting the cert warning).
+http://spark12.local {
+	reverse_proxy 127.0.0.1:8000
+}
