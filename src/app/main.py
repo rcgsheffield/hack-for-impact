@@ -22,9 +22,12 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
-from hack_for_impact.agent.llm import build_agent, new_thread_id, run_agent_events, user_turns
+from langgraph.checkpoint.memory import InMemorySaver
 
-from . import config, photos, submissions, usage
+from hack_for_impact.agent.llm import (FALLBACK_REPLY, build_agent, latest_checkpoint_id, new_thread_id,
+                                       run_agent_events, user_turns)
+
+from . import config, models, photos, submissions, usage
 from .agent import ToolStep
 from .browser_agent import BrowserSession, make_browser_agent, page_heading
 from .tool_display import describe as describe_tool
@@ -40,13 +43,23 @@ app.mount("/ui", StaticFiles(directory=submissions.STATIC_DIR), name="ui")
 
 @app.get("/health")
 def health() -> JSONResponse:
-    """200 if Ollama is reachable and has the configured model, otherwise 503. Used by deploy.sh and check.sh."""
-    body = {"ok": False, "model": config.OLLAMA_MODEL, "sha": config.GIT_SHA}
+    """200 if Ollama is reachable and has the agent-tier model, otherwise 503. Used by deploy.sh and check.sh.
+
+    Also lists every model tier (src/app/models.py) and whether its model is on that Ollama; a missing small or large
+    model is a warning, not a failure, because those turns fall back to the agent tier or simply fail on their own.
+    """
+    agent_model = models.spec("agent").model
+    body = {"ok": False, "model": agent_model, "sha": config.GIT_SHA}
     try:
         body["ollama"] = httpx.get(f"{config.OLLAMA_URL}/api/version", timeout=3).raise_for_status().json()["version"]
         tags = httpx.get(f"{config.OLLAMA_URL}/api/tags", timeout=3).raise_for_status().json()
-        if config.OLLAMA_MODEL not in [m["name"] for m in tags.get("models", [])]:
-            body["error"] = f"model {config.OLLAMA_MODEL} not found in Ollama"
+        have = {m["name"] for m in tags.get("models", [])}
+        body["models"] = {t: {"model": s.model, "where": s.where,
+                              "available": s.model in have if s.provider == "ollama" and s.base_url == config.OLLAMA_URL
+                              else None}
+                          for t, s in models.all_specs().items()}
+        if agent_model not in have and models.spec("agent").provider == "ollama":
+            body["error"] = f"model {agent_model} not found in Ollama"
         else:
             body["ok"] = True
     except (httpx.HTTPError, ValueError, KeyError) as e:
@@ -83,10 +96,25 @@ MODE_CHOICES = [
 ]
 
 
+# One checkpointer per mode, shared by that mode's agents on every model tier, so a conversation can move from the
+# small model to a bigger one mid-thread (src/app/models.py routes each turn).
+_checkpointers: dict[str, InMemorySaver] = {}
+# Threads where the small model fumbled: their later turns go straight to the agent tier.
+_escalated: set[str] = set()
+
+
 @cache
-def get_agent(mode: str = "chat"):
-    """The LangChain agent for one branch ("chat" or "form"), on the configured local Ollama model. Built on first use."""
-    return build_agent(model_name=config.OLLAMA_MODEL, base_url=config.OLLAMA_URL, mode=mode)
+def get_agent(mode: str = "chat", tier: str = "agent"):
+    """The LangChain agent for one branch ("chat" or "form") on one model tier. Built on first use."""
+    return build_agent(model=models.chat_model(tier), mode=mode,
+                       checkpointer=_checkpointers.setdefault(mode, InMemorySaver()))
+
+
+def _route_message(tier: str, reason: str) -> gr.ChatMessage:
+    s = models.spec(tier)
+    return gr.ChatMessage(
+        content=f"Picked the **{models.TIER_LABELS[tier]}** model because this is {reason}. Runs on {s.where}.",
+        metadata={"title": f"🧭 {s.model} ({models.TIER_LABELS[tier]})", "status": "done"})
 
 
 # Runs in the browser: asks for location permission and returns "lat, lon (±N m)" or a message saying why not.
@@ -176,25 +204,73 @@ def respond(message, history: list[dict], mode: str | None, location: str | None
     doesn't match the chat on screen (new chat, or the user retried, undid or edited a message), start a new
     thread seeded with the visible text history.
     """
-    # Each mode has its own agent and checkpointer, so switching mode mid-chat starts a new thread (seeded below).
-    agent = get_agent(mode or "chat")
-    # The location note goes to the model only; the chat shows what the user typed.
-    text = _text(message) or ("(The user sent a photo without a message.)" if _files(message) else "")
+    mode = mode or "chat"
+    has_photo = bool(_files(message))
+    text = _text(message) or ("(The user sent a photo without a message.)" if has_photo else "")
+    # Model routing (src/app/models.py): text-only turns go to the small model, harder ones to a bigger one.
+    tier, reason = models.route_turn(text, mode, has_image=has_photo,
+                                     escalated=bool(thread_id) and thread_id in _escalated)
+    # Each mode has its own checkpointer, so switching mode mid-chat starts a new thread (seeded below).
+    agent = get_agent(mode, tier)
+    # The location and photo notes go to the model only; the chat shows what the user typed. Photos are read by the
+    # vision tier (photos.py) and reach the chat model as a text note.
     new_message = {"role": "user", "content": text + location_note(location) + photo_notes(message)}
     shown_turns = sum(m.get("role") == "user" for m in history)
     if thread_id and user_turns(agent, thread_id) == shown_turns:
         messages = [new_message]
+        before = latest_checkpoint_id(agent, thread_id)
     else:
         thread_id = new_thread_id()
         messages = _to_model_history(history) + [new_message]
+        before = None
 
-    for shown in _show(run_agent_events(agent, messages, thread_id)):
+    trouble = {"errors": 0, "failed": False}
+
+    def watch(events):
+        """Pass events through, noting signs that the small model is out of its depth."""
+        try:
+            for event in events:
+                if isinstance(event, ToolStep) and isinstance(event.result, dict) and (
+                        event.result.get("error") or event.result.get("errors")):
+                    trouble["errors"] += 1
+                if event == FALLBACK_REPLY:
+                    trouble["failed"] = True
+                    if tier == "small":
+                        continue  # the bigger model redoes the turn below, so don't show this apology
+                yield event
+        except Exception:
+            if tier != "small":
+                raise
+            trouble["failed"] = True  # retried on the bigger model below
+
+    started = time.monotonic()
+    route = _route_message(tier, reason)
+    shown = [route]
+    for shown in _show(watch(run_agent_events(agent, messages, thread_id)), shown):
         yield shown, thread_id
 
+    if tier == "small" and (trouble["failed"] or trouble["errors"] >= 2):
+        # Escalate: redo this turn on the agent tier from the checkpoint before it (or on a fresh thread).
+        _escalated.add(thread_id)
+        bigger = models.spec("agent")
+        shown = shown + [gr.ChatMessage(
+            content="The small model got stuck on this one, so a bigger model is redoing it.",
+            metadata={"title": f"↗ Handing over to {bigger.model}", "status": "done"})]
+        yield shown, thread_id
+        if before is None:
+            thread_id = new_thread_id()
+            _escalated.add(thread_id)
+        retry = run_agent_events(get_agent(mode, "agent"), messages, thread_id, checkpoint_id=before)
+        for shown in _show(retry, shown):
+            yield shown, thread_id
 
-def _show(events: Iterator[ToolStep | str]) -> Iterator[list[gr.ChatMessage]]:
-    """Turn agent events into chat bubbles: a collapsible one per tool call, then the reply."""
-    shown: list[gr.ChatMessage] = []
+    route.metadata["duration"] = round(time.monotonic() - started, 1)
+    yield shown, thread_id
+
+
+def _show(events: Iterator[ToolStep | str], shown: list[gr.ChatMessage] | None = None) -> Iterator[list[gr.ChatMessage]]:
+    """Turn agent events into chat bubbles: a collapsible one per tool call, then the reply, after any `shown`."""
+    shown = list(shown or [])
     try:
         for event in events:
             if isinstance(event, ToolStep):
@@ -231,7 +307,7 @@ def _browser_agent(key: str):
             while len(_browser_agents) >= config.BROWSER_MAX_SESSIONS:
                 oldest = min(_browser_agents, key=lambda k: _browser_agents[k][2])
                 to_close.append(_browser_agents.pop(oldest)[1])
-            agent, session = make_browser_agent(model=config.OLLAMA_MODEL, screenshots=True)
+            agent, session = make_browser_agent(tier="large", screenshots=True)
         _browser_agents[key] = (agent, session, now)
     for session in to_close:  # Outside the lock: closing a browser takes a moment.
         session.close()
@@ -388,7 +464,7 @@ SITE_HEADER = f"""<header class="ct-header ct-header--wide">
       <a href="/dashboard">Dashboard</a>
     </nav>
     <div class="ct-header__meta">
-      <span class="ct-badge ct-pill ct-pill--local" title="Model: {config.OLLAMA_MODEL}">Runs locally on DGX Spark</span>
+      <span class="ct-badge ct-pill ct-pill--local" title="Models: {' · '.join(f'{t} {s.model}' for t, s in models.all_specs().items() if t != 'vision')}">Runs locally on DGX Spark</span>
       <span class="ct-badge ct-pill ct-pill--prototype">Prototype</span>
     </div>
   </div>
@@ -528,7 +604,7 @@ with gr.Blocks(title="CouncilTriagent") as demo:
 with gr.Blocks() as browser_mode:
     gr.Markdown(elem_id="ct-browser-intro", value=
         "The agent opens the council's report form in a browser and fills it in itself, page by page, like a "
-        f"person would. The browser runs on NVIDIA DGX Spark with the model ({config.OLLAMA_MODEL}); the picture "
+        f"person would. The browser runs on NVIDIA DGX Spark with the model ({models.spec('large').model}); the picture "
         "on the right updates after every step. It asks you to confirm before it submits. "
         "**Unofficial hackathon prototype: it uses a test copy of the form and nothing is sent to the council.**"
     )

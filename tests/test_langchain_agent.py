@@ -97,7 +97,7 @@ def test_frontend_keeps_one_thread_per_chat_and_resets_on_mismatch(monkeypatch):
     from app import main
 
     agent = make_agent([AIMessage(content=f"reply {i}") for i in range(4)], monkeypatch)
-    monkeypatch.setattr(main, "get_agent", lambda mode="chat": agent)
+    monkeypatch.setattr(main, "get_agent", lambda mode="chat", tier="agent": agent)
 
     def turn(message, history, thread_id):
         shown, thread_id = list(main.respond(message, history, "chat", None, thread_id))[-1]
@@ -185,7 +185,7 @@ def test_shared_location_goes_to_the_model_not_the_chat(monkeypatch):
     assert main.location_note(None) == ""
 
     agent = make_agent([AIMessage(content="ok")], monkeypatch)
-    monkeypatch.setattr(main, "get_agent", lambda mode="chat": agent)
+    monkeypatch.setattr(main, "get_agent", lambda mode="chat", tier="agent": agent)
     _, thread = list(main.respond("pothole right here", [], "chat", "53.38, -1.47 (±9 m)", None))[-1]
 
     sent = agent.get_state({"configurable": {"thread_id": thread}}).values["messages"][0].content
