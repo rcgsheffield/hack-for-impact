@@ -7,6 +7,7 @@ Stack: **Python, FastAPI and a [Gradio](https://www.gradio.app/) chat UI, with t
 | `src/app/main.py` | FastAPI app: chat UI at `/`, status at `/health` |
 | `src/app/usage.py` | Serves the dummy council site (`src/mock/`) at `/mock/` and logs page loads and submissions to `data/usage.jsonl` |
 | `src/app/submissions.py` | Submissions dashboard at `/dashboard` (JSON at `/api/submissions`): what the agents have submitted to the mock forms |
+| `src/app/static/report-card.js` | Front-end library: `ReportCard.render(item, {audience: "staff" | "resident"})` draws one report as a card (styles in `report-card.css`) |
 | `src/app/agent.py` | System prompt and tool-calling loop |
 | `src/app/tools.py` | Agent tools: `route_report`, `assess_pothole`, `file_report` |
 | `src/app/geocode.py` | Turns a typed location into coordinates for the map (sample addresses, postcodes.io, Photon) |
@@ -63,6 +64,12 @@ A map plots every filtered submission that has coordinates, coloured by form; a 
 | `road-report-agent.html` prototype | Sends its location text; `/mock/events` geocodes it |
 
 `src/app/geocode.py` tries the mocks' 10 sample addresses first (offline), then postcodes.io for postcodes and Photon (OpenStreetMap) for anything else, keeping only results inside Sheffield. Lookups time out after 3 s and are cached. A report is filed even if it can't be placed; its `lat`/`lon` are then `null`. Popups mark points placed from typed text as approximate. The map loads Leaflet from unpkg.com and Esri tiles, so it needs internet access; the rest of the dashboard doesn't.
+
+Expanding a row shows the report as a card (`static/report-card.js`, staff view) with the raw record folded away, and a link to the resident view.
+
+### Viewing one report
+
+`/reports/<reference>` (JSON at `/api/reports/<reference>`) shows a single report to the resident who filed it: reference number, what was recorded, severity and a prototype notice, without agent or source details. `file_report` returns this link as `url` and the chat agent passes it on. To render reports on another page, include `/static/report-card.css` and `/static/report-card.js`, then set `el.innerHTML = ReportCard.render(item, { audience: "resident" })` with an item from either API.
 
 ## Settings
 

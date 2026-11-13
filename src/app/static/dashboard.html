@@ -8,6 +8,8 @@
      (unpkg.com, same version as the mock forms) and CARTO basemap tiles; everything else works offline. -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="/static/report-card.css">
+<script src="/static/report-card.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -401,7 +403,10 @@
         <td>${esc(i.location) || '<span class="muted">–</span>'}${mapLink}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
         <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
       </tr>`;
-      const detail = open.has(key) ? `<tr class="detail"><td colspan="6"><pre>${esc(JSON.stringify(i.raw, null, 2))}</pre></td></tr>` : "";
+      const residentLink = i.reference
+        ? `<p class="rc-link"><a href="/reports/${encodeURIComponent(i.reference)}" target="_blank" rel="noopener">Open resident view</a></p>` : "";
+      const detail = open.has(key)
+        ? `<tr class="detail"><td colspan="6">${ReportCard.render(i, { audience: "staff", forms })}${residentLink}</td></tr>` : "";
       return row + detail;
     }).join("");
   }

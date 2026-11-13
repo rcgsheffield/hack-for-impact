@@ -1,5 +1,6 @@
 """Web app: FastAPI with a Gradio chat UI at /, a health check at /health, the dummy council site at /mock/
-and a dashboard of submissions to it at /dashboard.
+a dashboard of submissions to it at /dashboard
+and a resident's view of one report at /reports/{reference}.
 
 Run: uvicorn app.main:app --app-dir src --host 0.0.0.0 --port 8000
 """
@@ -12,6 +13,7 @@ import gradio as gr
 import httpx
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from hack_for_impact.agent.llm import build_agent, new_thread_id, run_agent_events, user_turns
 
@@ -21,6 +23,8 @@ from .agent import ToolStep
 app = FastAPI(title="CouncilTriagent")
 app.include_router(usage.router)
 app.include_router(submissions.router)
+# Report-card library and page assets (static/report-card.js); mounted before Gradio so it isn't shadowed.
+app.mount("/static", StaticFiles(directory=submissions.STATIC_DIR), name="static")
 
 
 @app.get("/health")

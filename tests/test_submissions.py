@@ -88,3 +88,36 @@ def test_api_and_page_are_served(logs):
     page = client.get("/dashboard")
     assert page.status_code == 200
     assert "Submissions dashboard" in page.text
+
+
+def test_report_api_returns_one_report(logs):
+    client = TestClient(main.app)
+    r = client.get("/api/reports/SCC-20261113-ABCD")
+    assert r.status_code == 200
+    report = r.json()["report"]
+    assert report["source"] == "chat_agent"
+    assert report["problem"] == "Road: Greater than 40mm"
+    tree = client.get("/api/reports/123456789")
+    assert tree.status_code == 200
+    assert "Ada" not in tree.text and "ada@example.com" not in tree.text
+    assert client.get("/api/reports/nope").status_code == 404
+
+
+def test_report_page_and_library_are_served(logs):
+    client = TestClient(main.app)
+    page = client.get("/reports/SCC-20261113-ABCD")
+    assert page.status_code == 200
+    assert "/static/report-card.js" in page.text
+    # Mounted before Gradio, so not shadowed by its catch-all routes.
+    js = client.get("/static/report-card.js")
+    assert js.status_code == 200 and "ReportCard" in js.text
+    assert client.get("/static/report-card.css").status_code == 200
+
+
+def test_chat_agent_tree_report_keeps_its_form(logs):
+    with (logs / "reports.jsonl").open("a") as f:
+        f.write(json.dumps({"reference": "SCC-20261113-TREE", "filed_at": "2026-11-13T15:00:00+00:00",
+                            "form": "report_tree", "form_payload": {"rad_tree_location": "Highway",
+                                                                    "rad_tree_problem": "Fallen"}}) + "\n")
+    report = TestClient(main.app).get("/api/reports/SCC-20261113-TREE").json()["report"]
+    assert (report["form"], report["title"], report["problem"]) == ("report_tree", "Problem with a tree", "Fallen")

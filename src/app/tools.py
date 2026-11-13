@@ -207,7 +207,8 @@ def _save_report(record: dict) -> dict:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(record) + "\n")
-    result = {"reference": record["reference"], "status": "recorded (prototype: not sent to the council)"}
+    result = {"reference": record["reference"], "url": f"/reports/{record['reference']}",
+              "status": "recorded (prototype: not sent to the council)"}
     if geo:
         result["located_at"] = geo["matched"]
     else:

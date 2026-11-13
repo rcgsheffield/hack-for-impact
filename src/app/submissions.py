@@ -8,6 +8,8 @@ Sources, all JSON lines under data/ (git-ignored):
   Page views feed the view counts.
 
 GET /dashboard serves static/dashboard.html, which polls GET /api/submissions.
+GET /reports/{reference} serves static/report.html, which renders GET /api/reports/{reference} for the resident.
+Both pages draw reports with static/report-card.js.
 Reporter details (name, date of birth, phone, email) are never written to disk by save_submission.
 
 Every item has lat/lon (None if the place couldn't be found) and geo_source: "form" when picked on the form's
@@ -23,7 +25,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from . import config
@@ -31,7 +33,9 @@ from .geocode import geocode, le_gis
 
 log = logging.getLogger(__name__)
 
-DASHBOARD_HTML = Path(__file__).resolve().parent / "static" / "dashboard.html"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+DASHBOARD_HTML = STATIC_DIR / "dashboard.html"
+REPORT_HTML = STATIC_DIR / "report.html"
 PERSONAL_FIELDS = {"sel_title", "txt_firstname", "txt_surname", "txt_date_of_birth", "dt_date_of_birth",
                    "tel_phone_number", "eml_address"}
 FORM_NAMES = {"report_pothole_crack": "Pothole or crack", "report_tree": "Tree problem",
@@ -142,12 +146,13 @@ def _from_report(r: dict) -> dict:
     payload = r.get("form_payload") or {}
     geo = r.get("geo") or {}
     lat, lon = _number(geo.get("lat")), _number(geo.get("lon"))
+    form = r.get("form") or "report_pothole_crack"  # file_tree_report sets "report_tree"; older records have no form
     return {
         "source": "chat_agent",
-        "form": r.get("form") or "report_pothole_crack",  # file_tree_report sets "report_tree"
+        "form": form,
         "reference": str(r.get("reference", "")),
         "submitted_at": r.get("filed_at", ""),
-        "title": "Problem with a tree" if r.get("form") == "report_tree" else "Pothole or crack on the highway",
+        "title": "Problem with a tree" if form == "report_tree" else "Pothole or crack on the highway",
         "location": payload.get("txt_find_address_about_the_location", ""),
         "details": payload.get("txta_details_about_the_location", ""),
         "problem": _problem(payload),
@@ -212,3 +217,21 @@ def api_submissions() -> dict[str, Any]:
 @router.get("/dashboard", include_in_schema=False)
 def dashboard() -> FileResponse:
     return FileResponse(DASHBOARD_HTML, media_type="text/html")
+
+
+def find_submission(reference: str) -> dict | None:
+    """The newest submission with this reference, or None."""
+    return next((i for i in load_submissions()["submissions"] if i["reference"] == reference), None)
+
+
+@router.get("/api/reports/{reference}")
+def api_report(reference: str) -> dict[str, Any]:
+    item = find_submission(reference) if reference else None
+    if item is None:
+        raise HTTPException(status_code=404, detail="report not found")
+    return {"report": item, "forms": FORM_NAMES}
+
+
+@router.get("/reports/{reference}", include_in_schema=False)
+def report_page(reference: str) -> FileResponse:
+    return FileResponse(REPORT_HTML, media_type="text/html")
