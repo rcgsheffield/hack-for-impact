@@ -34,6 +34,17 @@ if ! command -v uv >/dev/null; then
 fi
 UV_PROJECT_ENVIRONMENT="$VENV" uv sync --frozen --no-dev --no-install-project --quiet
 
+# Chromium for the web-form tools (src/app/council_form.py). No sudo needed; cached in ~/.cache/ms-playwright,
+# so later deploys skip the download. If the OS libraries it needs are missing, someone with sudo runs
+# `$VENV/bin/playwright install-deps chromium` once. A failure here only disables the form tools, so warn, don't fail.
+if "$VENV/bin/playwright" install chromium >/dev/null 2>&1 \
+   && "$VENV/bin/python" -c "from playwright.sync_api import sync_playwright as s; p = s().start(); p.chromium.launch().close(); p.stop()" 2>/dev/null; then
+  echo "Form browser (Chromium) OK"
+else
+  echo "WARNING: Chromium can't start, so the web-form tools will tell users to phone instead." >&2
+  echo "  Fix: sudo $VENV/bin/playwright install-deps chromium   (then redeploy)" >&2
+fi
+
 # Stop the previous version.
 if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
   old_pid="$(cat "$PIDFILE")"
