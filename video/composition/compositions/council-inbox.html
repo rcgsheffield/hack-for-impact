@@ -1,0 +1,234 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #343f4f;
+      color: #f1f4f8;
+    }
+    #ci-title {
+      position: absolute;
+      left: 140px;
+      top: 100px;
+      width: 640px;
+      font-size: 64px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    #ci-subtitle {
+      position: absolute;
+      left: 142px;
+      top: 250px;
+      font-size: 36px;
+      color: #c9d1dc;
+    }
+    /* worker at desk */
+    #ci-worker {
+      position: absolute;
+      left: 200px;
+      top: 330px;
+      width: 320px;
+      height: 520px;
+    }
+    .ci-face {
+      position: absolute;
+      left: 50px;
+      top: 0;
+      width: 220px;
+      height: 240px;
+      border-radius: 50%;
+      background: #c99272;
+    }
+    .ci-hair {
+      position: absolute;
+      left: 40px;
+      top: -14px;
+      width: 240px;
+      height: 120px;
+      border-radius: 120px 120px 30px 30px;
+      background: #3b2a20;
+    }
+    .ci-eye {
+      position: absolute;
+      top: 120px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #22160f;
+    }
+    .ci-mouth {
+      position: absolute;
+      left: 75px;
+      top: 180px;
+      width: 70px;
+      height: 10px;
+      background: #5a2f22;
+      border-radius: 6px;
+    }
+    .ci-body {
+      position: absolute;
+      left: 0;
+      top: 230px;
+      width: 320px;
+      height: 290px;
+      border-radius: 140px 140px 0 0;
+      background: #2f6f8f;
+    }
+    .ci-lanyard {
+      position: absolute;
+      left: 135px;
+      top: 300px;
+      width: 50px;
+      height: 70px;
+      background: #f1f4f8;
+      border-radius: 6px;
+    }
+    #ci-desk {
+      position: absolute;
+      left: 80px;
+      top: 800px;
+      width: 700px;
+      height: 280px;
+      background: #6b5444;
+      border-radius: 10px 10px 0 0;
+    }
+    #ci-sweat {
+      position: absolute;
+      left: 470px;
+      top: 330px;
+      width: 30px;
+      height: 44px;
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      background: #8fd0f0;
+    }
+    /* inbox */
+    #ci-inbox {
+      position: absolute;
+      left: 860px;
+      top: 110px;
+      width: 920px;
+      height: 860px;
+      border-radius: 18px;
+      background: #f5f6f8;
+      color: #1f2530;
+      overflow: hidden;
+    }
+    #ci-bar {
+      height: 110px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #d8dde5;
+      font-size: 38px;
+      font-weight: 700;
+    }
+    #ci-count {
+      min-width: 210px;
+      padding: 8px 26px;
+      border-radius: 40px;
+      background: #c62828;
+      color: #fff;
+      font-size: 44px;
+      font-weight: 900;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    #ci-list {
+      position: relative;
+      height: 750px;
+    }
+    .ci-mail {
+      position: absolute;
+      left: 30px;
+      width: 860px;
+      height: 96px;
+      padding: 14px 26px;
+      border-radius: 12px;
+      background: #fff;
+      border: 2px solid #cfd5de;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    }
+    .ci-from {
+      font-size: 28px;
+      font-weight: 700;
+      color: #333b48;
+    }
+    .ci-subj {
+      font-size: 28px;
+      color: #1f2530;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  </style>
+  <div id="root" data-composition-id="council-inbox" data-width="1920" data-height="1080">
+    <div id="ci-title">Meanwhile, at the council…</div>
+    <div id="ci-subtitle">One shared inbox. Every report.</div>
+    <div id="ci-desk"></div>
+    <div id="ci-worker">
+      <div class="ci-body"></div>
+      <div class="ci-lanyard"></div>
+      <div class="ci-hair"></div>
+      <div class="ci-face">
+        <div class="ci-eye" style="left: 60px"></div>
+        <div class="ci-eye" style="left: 140px"></div>
+        <div class="ci-mouth"></div>
+      </div>
+    </div>
+    <div id="ci-sweat"></div>
+    <div id="ci-inbox" data-layout-allow-occlusion>
+      <div id="ci-bar"><span>Inbox · reports@</span><span id="ci-count">12</span></div>
+      <div id="ci-list" data-layout-allow-overflow data-layout-allow-overlap>
+        <div class="ci-mail" style="top: 20px"><div class="ci-from">resident</div><div class="ci-subj">Pothole outside 42 Abbeydale Rd</div></div>
+        <div class="ci-mail" style="top: 135px"><div class="ci-from">resident</div><div class="ci-subj">RE: RE: FW: streetlight still out</div></div>
+        <div class="ci-mail" style="top: 250px"><div class="ci-from">resident</div><div class="ci-subj">Bins not collected AGAIN</div></div>
+        <div class="ci-mail" style="top: 365px"><div class="ci-from">resident</div><div class="ci-subj">Form X attached (wrong form?)</div></div>
+        <div class="ci-mail" style="top: 480px"><div class="ci-from">resident</div><div class="ci-subj">Fly-tipping on Sharrow Lane</div></div>
+        <div class="ci-mail" style="top: 595px"><div class="ci-from">resident</div><div class="ci-subj">Pothole Abbeydale Road (same one?)</div></div>
+        <div class="ci-mail" style="top: 200px; left: 60px"><div class="ci-from">resident</div><div class="ci-subj">Who do I talk to about a pothole?</div></div>
+        <div class="ci-mail" style="top: 330px; left: 10px"><div class="ci-from">resident</div><div class="ci-subj">Blocked drain flooding road</div></div>
+        <div class="ci-mail" style="top: 90px; left: 50px"><div class="ci-from">resident</div><div class="ci-subj">URGENT: tree down on pavement</div></div>
+        <div class="ci-mail" style="top: 520px; left: 70px"><div class="ci-from">resident</div><div class="ci-subj">Graffiti on bus shelter</div></div>
+        <div class="ci-mail" style="top: 420px; left: 20px"><div class="ci-from">resident</div><div class="ci-subj">Chasing my report from March</div></div>
+        <div class="ci-mail" style="top: 260px; left: 40px"><div class="ci-from">resident</div><div class="ci-subj">Pothole!!!</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#ci-title", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0);
+      tl.fromTo("#ci-subtitle", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.3);
+      tl.fromTo("#ci-worker", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.2);
+      tl.fromTo("#ci-inbox", { x: 120, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.4);
+      // emails drop in, accelerating
+      const mails = gsap.utils.toArray(".ci-mail");
+      let t = 1.0;
+      mails.forEach((m, i) => {
+        tl.fromTo(m, { y: -300, opacity: 0, rotation: 0 }, { y: 0, opacity: 1, rotation: (i % 3) - 1, duration: 0.35, ease: "power2.out" }, t);
+        t += Math.max(0.12, 0.45 - i * 0.04);
+      });
+      const n = { v: 12 };
+      tl.fromTo(
+        n,
+        { v: 12 },
+        {
+          v: 1204,
+          duration: 5.2,
+          ease: "power3.in",
+          onUpdate: () => {
+            document.querySelector("#ci-count").textContent = Math.round(n.v).toLocaleString("en-GB");
+          },
+        },
+        1.0,
+      );
+      tl.fromTo("#ci-count", { scale: 1 }, { scale: 1.25, duration: 0.15, yoyo: true, repeat: 5 }, 5.2);
+      tl.fromTo("#ci-sweat", { opacity: 0, y: 0 }, { opacity: 1, y: 60, duration: 1.2, ease: "power1.in" }, 4.4);
+      tl.fromTo("#ci-worker", { y: 0 }, { y: 20, duration: 1.4, ease: "power2.in" }, 5.0);
+      window.__timelines["council-inbox"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,229 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #eef3e6;
+      color: #13200f;
+    }
+    #ch-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 75% 20%, #d6ecb0 0%, #eef3e6 55%);
+    }
+    #ch-side {
+      position: absolute;
+      left: 140px;
+      top: 300px;
+      width: 520px;
+    }
+    #ch-kicker {
+      font-size: 32px;
+      font-weight: 700;
+      color: #4d7a00;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #ch-head {
+      margin-top: 16px;
+      font-size: 76px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    #ch-win {
+      position: absolute;
+      left: 760px;
+      top: 70px;
+      width: 1020px;
+      height: 940px;
+      border-radius: 28px;
+      background: #ffffff;
+      box-shadow: 0 30px 80px rgba(30, 60, 0, 0.18);
+      overflow: hidden;
+    }
+    #ch-bar {
+      position: relative;
+      z-index: 2;
+      height: 110px;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      background: #13200f;
+      color: #ffffff;
+      font-size: 36px;
+      font-weight: 700;
+    }
+    #ch-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #76b900;
+    }
+    #ch-online {
+      font-size: 28px;
+      font-weight: 400;
+      color: #b9e07a;
+    }
+    #ch-body {
+      position: relative;
+      padding: 30px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .ch-msg {
+      max-width: 760px;
+      padding: 22px 30px;
+      border-radius: 26px;
+      font-size: 32px;
+      line-height: 1.35;
+    }
+    .ch-me {
+      align-self: flex-end;
+      background: #13200f;
+      color: #ffffff;
+      border-bottom-right-radius: 6px;
+    }
+    .ch-bot {
+      align-self: flex-start;
+      background: #eef3e6;
+      color: #13200f;
+      border-bottom-left-radius: 6px;
+    }
+    #ch-photo {
+      align-self: flex-end;
+      width: 380px;
+      height: 210px;
+      border-radius: 20px;
+      background: #4a4f57;
+      position: relative;
+      overflow: hidden;
+    }
+    #ch-photo-hole {
+      position: absolute;
+      left: 70px;
+      top: 60px;
+      width: 240px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 40%, #0d0f12 0%, #1c1f24 60%, #4a4f57 100%);
+    }
+    #ch-photo-line {
+      position: absolute;
+      left: 0;
+      top: 20px;
+      width: 380px;
+      height: 10px;
+      background: #d9d2a0;
+    }
+    #ch-slot {
+      position: relative;
+      align-self: flex-start;
+    }
+    .ch-typing {
+      position: absolute;
+      left: 0;
+      top: 0;
+      display: flex;
+      gap: 10px;
+      padding: 24px 30px;
+      border-radius: 26px;
+      background: #eef3e6;
+    }
+    .ch-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #6b7a60;
+    }
+    #ch-done {
+      align-self: flex-start;
+      max-width: 820px;
+      padding: 26px 30px;
+      border-radius: 22px;
+      background: #76b900;
+      color: #0d1a05;
+      font-size: 32px;
+      line-height: 1.35;
+      display: flex;
+      gap: 22px;
+      align-items: flex-start;
+    }
+    #ch-tick {
+      flex: none;
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: #0d1a05;
+      position: relative;
+    }
+    #ch-tick::after {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 10px;
+      width: 12px;
+      height: 24px;
+      border-right: 6px solid #76b900;
+      border-bottom: 6px solid #76b900;
+      transform: rotate(45deg);
+    }
+    #ch-ref {
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 700;
+    }
+  </style>
+  <div id="root" data-composition-id="chat" data-width="1920" data-height="1080">
+    <div id="ch-glow"></div>
+    <div id="ch-side">
+      <div id="ch-kicker">Another way</div>
+      <div id="ch-head">Just say what's wrong.</div>
+    </div>
+    <div id="ch-win">
+      <div id="ch-bar">
+        <div id="ch-avatar"></div>
+        <div>CouncilTriagent<br /><span id="ch-online">Sheffield · online</span></div>
+      </div>
+      <div id="ch-body">
+        <div class="ch-msg ch-me" id="ch-m1">There's a huge pothole outside 42 Abbeydale Road. Nearly came off my bike.</div>
+        <div id="ch-photo"><div id="ch-photo-line"></div><div id="ch-photo-hole"></div></div>
+        <div id="ch-slot" data-layout-allow-overlap>
+          <div class="ch-typing" id="ch-t1"><div class="ch-dot"></div><div class="ch-dot"></div><div class="ch-dot"></div></div>
+          <div class="ch-msg ch-bot" id="ch-m2">Sorry to hear that, Irene. Is it in the road or on the pavement, and roughly how deep?</div>
+        </div>
+        <div class="ch-msg ch-me" id="ch-m3">In the road, by the bus stop. About a hand deep.</div>
+        <div id="ch-done">
+          <div id="ch-tick"></div>
+          <div>Reported to <b>Highways</b>. Ref <span id="ch-ref">SHF-24817</span>.<br />I'll let you know when it's inspected.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#ch-side", { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, 0.1);
+      tl.fromTo("#ch-win", { y: 200, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, 0.2);
+      const pop = (sel, at) =>
+        tl.fromTo(sel, { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, at);
+      // hidden until popped
+      tl.set(["#ch-m1", "#ch-photo", "#ch-t1", "#ch-m2", "#ch-m3", "#ch-done"], { opacity: 0 }, 0);
+      pop("#ch-m1", 1.0);
+      pop("#ch-photo", 1.8);
+      pop("#ch-t1", 2.6);
+      tl.fromTo("#ch-t1 .ch-dot", { y: 0 }, { y: -10, duration: 0.2, yoyo: true, repeat: 3, stagger: 0.1 }, 2.7);
+      tl.fromTo("#ch-t1", { opacity: 1 }, { opacity: 0, duration: 0.15 }, 3.6);
+      pop("#ch-m2", 3.7);
+      pop("#ch-m3", 5.6);
+      tl.fromTo("#ch-body", { y: 0 }, { y: -60, duration: 0.5, ease: "power2.inOut" }, 7.0);
+      pop("#ch-done", 7.2);
+      tl.fromTo("#ch-tick", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2)" }, 7.4);
+      tl.fromTo("#ch-done", { boxShadow: "0 0 0 0 rgba(118,185,0,0.6)" }, { boxShadow: "0 0 0 24px rgba(118,185,0,0)", duration: 0.9 }, 7.6);
+      window.__timelines["chat"] = tl;
+    })();
+  </script>
+</template>

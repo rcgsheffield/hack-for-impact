@@ -1,0 +1,219 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: Inter, sans-serif;
+      background: #3d4a5c;
+      color: #f1f4f8;
+    }
+    #ip-sky {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #56657a 0%, #3d4a5c 70%);
+    }
+    #ip-road {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 360px;
+      background: #2b2f36;
+    }
+    .ip-line {
+      position: absolute;
+      bottom: 170px;
+      width: 160px;
+      height: 14px;
+      background: #d9d2a0;
+      border-radius: 4px;
+    }
+    #ip-pothole {
+      position: absolute;
+      left: 300px;
+      bottom: 80px;
+      width: 420px;
+      height: 130px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 40%, #0d0f12 0%, #15181d 55%, #3a3f47 72%, #2b2f36 100%);
+    }
+    #ip-cone {
+      position: absolute;
+      left: 760px;
+      bottom: 150px;
+      width: 0;
+      height: 0;
+      border-left: 50px solid transparent;
+      border-right: 50px solid transparent;
+      border-bottom: 150px solid #e8742a;
+    }
+    #ip-house {
+      position: absolute;
+      left: 1180px;
+      bottom: 360px;
+      width: 560px;
+      height: 420px;
+      background: #8a6e5a;
+      border-radius: 8px 8px 0 0;
+    }
+    .ip-window {
+      position: absolute;
+      top: 70px;
+      width: 150px;
+      height: 130px;
+      background: #f3d98b;
+      border: 10px solid #e9e3d8;
+    }
+    #ip-irene {
+      position: absolute;
+      left: 1300px;
+      top: 330px;
+      width: 320px;
+      height: 520px;
+    }
+    .ip-face {
+      position: absolute;
+      left: 50px;
+      top: 0;
+      width: 220px;
+      height: 240px;
+      border-radius: 50%;
+      background: #f2c7a5;
+    }
+    .ip-hair {
+      position: absolute;
+      left: 30px;
+      top: -22px;
+      width: 260px;
+      height: 170px;
+      border-radius: 130px 130px 40px 40px;
+      background: #c9ccd3;
+    }
+    .ip-eye {
+      position: absolute;
+      top: 120px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #2a1d17;
+    }
+    #ip-mouth {
+      position: absolute;
+      left: 75px;
+      top: 175px;
+      width: 70px;
+      height: 30px;
+      border-top: 7px solid #6b3b2b;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    }
+    .ip-body {
+      position: absolute;
+      left: 0;
+      top: 230px;
+      width: 320px;
+      height: 290px;
+      border-radius: 140px 140px 0 0;
+      background: #7b5ea7;
+    }
+    #ip-phone {
+      position: absolute;
+      left: 1600px;
+      top: 560px;
+      width: 90px;
+      height: 170px;
+      border-radius: 18px;
+      background: #1d2129;
+      border: 6px solid #9aa3b1;
+    }
+    #ip-label {
+      position: absolute;
+      left: 140px;
+      top: 120px;
+      font-size: 88px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+    #ip-sub {
+      position: absolute;
+      left: 144px;
+      top: 230px;
+      font-size: 40px;
+      font-weight: 400;
+      color: #d5dbe4;
+    }
+    #ip-call {
+      position: absolute;
+      left: 1250px;
+      top: 150px;
+      padding: 22px 34px;
+      border-radius: 20px;
+      background: #1d2129;
+      color: #f1f4f8;
+      font-size: 40px;
+      font-weight: 700;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    #ip-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #e04b4b;
+    }
+    #ip-timer {
+      font-family: "JetBrains Mono", monospace;
+      color: #f3d98b;
+    }
+  </style>
+  <div id="root" data-composition-id="irene-phone" data-width="1920" data-height="1080">
+    <div id="ip-sky"></div>
+    <div id="ip-house">
+      <div class="ip-window" style="left: 70px"></div>
+      <div class="ip-window" style="left: 340px"></div>
+    </div>
+    <div id="ip-road">
+      <div class="ip-line" style="left: 60px"></div>
+      <div class="ip-line" style="left: 860px"></div>
+      <div class="ip-line" style="left: 1260px"></div>
+      <div class="ip-line" style="left: 1660px"></div>
+    </div>
+    <div id="ip-pothole"></div>
+    <div id="ip-cone"></div>
+    <div id="ip-irene">
+      <div class="ip-body"></div>
+      <div class="ip-hair"></div>
+      <div class="ip-face">
+        <div class="ip-eye" style="left: 60px"></div>
+        <div class="ip-eye" style="left: 140px"></div>
+        <div id="ip-mouth"></div>
+      </div>
+    </div>
+    <div id="ip-phone"></div>
+    <div id="ip-label">This is Irene.</div>
+    <div id="ip-sub">Abbeydale Road, Sheffield</div>
+    <div id="ip-call">
+      <div id="ip-dot"></div>
+      <span id="ip-calltext">Calling the council…</span>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#ip-pothole", { scale: 0.85, opacity: 1 }, { scale: 1, opacity: 1, duration: 0.8, ease: "power3.out" }, 0);
+      tl.fromTo("#ip-cone", { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "bounce.out" }, 0.4);
+      tl.fromTo("#ip-irene", { x: 40, opacity: 1 }, { x: 0, opacity: 1, duration: 1.2, ease: "power3.out" }, 0.3);
+      tl.fromTo("#ip-label", { y: 20, opacity: 1 }, { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" }, 0);
+      tl.fromTo("#ip-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.9);
+      // She looks at the pothole, sighs
+      tl.fromTo("#ip-irene", { rotation: 0 }, { rotation: -4, duration: 0.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.8);
+      // Phone lifts to her ear
+      tl.fromTo("#ip-phone", { x: 0, y: 200, opacity: 0, rotation: 0 }, { x: -20, y: -150, opacity: 1, rotation: -15, duration: 0.7, ease: "back.out(1.6)" }, 3.6);
+      tl.fromTo("#ip-call", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, 4.0);
+      tl.fromTo("#ip-dot", { scale: 1 }, { scale: 1.5, duration: 0.25, yoyo: true, repeat: 7, ease: "sine.inOut" }, 4.0);
+      tl.fromTo("#ip-phone", { rotation: -15 }, { rotation: -10, duration: 0.08, yoyo: true, repeat: 9, ease: "none" }, 4.4);
+      window.__timelines["irene-phone"] = tl;
+    })();
+  </script>
+</template>
