@@ -27,7 +27,7 @@ from typing import Any, Callable, Literal
 from langchain_core.tools import BaseTool, StructuredTool
 from pydantic import BaseModel, Field
 
-from .submissions import save_submission
+from .submissions import save_submission, similar_to_reference
 
 
 def _env(name: str, default: str | None = None) -> str | None:
@@ -290,9 +290,17 @@ class CouncilFormSession:
             p.wait_for_selector("#page_complete:not([hidden])")
             record = p.evaluate("() => window.mockSubmissions[window.mockSubmissions.length - 1]")
             save_submission(record)  # for the dashboard; the browser's own copy is lost when the session closes
+            # Others reported this too? Tell the resident in code (tell_user), not via the prompt. Never raises.
+            similar = similar_to_reference(str(record["reference"]))
+            extra = {}
+            if similar.get("count"):
+                extra["similar_reports"] = {k: similar[k] for k in ("count", "nearest_m", "first_at", "message")
+                                            if k in similar}
+                if similar["message"] not in self.tell_user:
+                    self.tell_user.append(similar["message"])
             return self._state(reference=record["reference"], url=f"/reports/{record['reference']}",
                                status="submitted to the mock form (test only: not sent to the council)",
-                               record=record)
+                               record=record, **extra)
         return self._run(step)
 
     def status(self) -> dict:

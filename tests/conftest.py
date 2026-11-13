@@ -8,6 +8,9 @@ def mock_submissions_path(tmp_path, monkeypatch):
     """Keep tests (including the browser ones, whose submit saves a record) out of the real data/ file."""
     path = tmp_path / "mock_submissions.jsonl"
     monkeypatch.setattr(config, "MOCK_SUBMISSIONS_PATH", path)
+    # Filing now reads every source (duplicate detection), so keep the other data files out of the real data/ too.
+    monkeypatch.setattr(config, "REPORTS_PATH", tmp_path / "reports.jsonl")
+    monkeypatch.setattr(config, "USAGE_PATH", tmp_path / "usage.jsonl")
     return path
 
 

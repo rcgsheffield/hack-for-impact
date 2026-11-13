@@ -116,6 +116,15 @@
   @keyframes pulse { 0% { stroke-width: 2; } 50% { stroke-width: 10; stroke-opacity: .4; } 100% { stroke-width: 2; } }
   @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tag.dup { background: var(--warn-bg); color: var(--warn-text); border-color: transparent; margin-left: 6px; }
+  .groups-card { margin-bottom: 12px; }
+  .groups { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .group { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: start; padding: 10px 12px;
+           border: 1px solid var(--border); border-radius: 8px; }
+  .group.active { border-color: var(--accent); background: var(--accent-soft); }
+  .group .count { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 2.5em; }
+  .group .actions { display: flex; gap: 10px; white-space: nowrap; }
+  .group-filter { display: inline-flex; gap: 6px; align-items: center; }
 </style>
 </head>
 <body>
@@ -142,6 +151,7 @@
     <div class="card kpi"><div class="label">Last hour</div><div class="value" id="k-hour">–</div><div class="sub" id="k-hour-sub"></div></div>
     <div class="card kpi"><div class="label">By agents</div><div class="value" id="k-agent">–</div><div class="sub" id="k-agent-sub"></div></div>
     <div class="card kpi"><div class="label">Form page views</div><div class="value" id="k-views">–</div><div class="sub" id="k-views-sub"></div></div>
+    <div class="card kpi"><div class="label">Repeated problems</div><div class="value" id="k-dup">–</div><div class="sub" id="k-dup-sub"></div></div>
   </section>
 
   <section class="charts">
@@ -164,6 +174,12 @@
     </div>
     <div id="map" role="region" aria-labelledby="h-map" aria-describedby="map-note"></div>
     <p class="map-note" id="map-note"></p>
+  </section>
+
+  <section class="card groups-card" aria-labelledby="h-groups">
+    <h2 id="h-groups">Repeated problems</h2>
+    <p class="muted" id="groups-note" style="margin:-6px 0 10px"></p>
+    <ul class="groups" id="groups"></ul>
   </section>
 
   <section class="card" aria-labelledby="h-list">
@@ -193,6 +209,8 @@
       </select>
       <label class="sr-only" for="f-q">Search</label>
       <input id="f-q" type="search" placeholder="Search reference, location, details…">
+      <label class="group-filter"><input type="checkbox" id="f-dup"> Repeated only</label>
+      <span class="group-filter" id="group-chip" hidden></span>
       <span class="muted" id="shown"></span>
     </div>
     <div class="table-wrap">
@@ -238,7 +256,10 @@
   }
 
   let data = null, seen = null, paused = false, open = new Set(), forms = {};
+  let groupFilter = null; // id of the duplicate group the table is filtered to, or null
   const formName = f => forms[f] || f || "Unknown";
+  const dupOf = i => i.duplicate && i.duplicate.group_size > 1 ? i.duplicate : null;
+  const dupBadge = i => { const d = dupOf(i); return d ? `<span class="tag dup" title="Probably the same problem as ${d.others} other report${d.others === 1 ? "" : "s"} (first ${esc(d.first_reference)})">×${d.group_size} similar</span>` : ""; };
 
   // ---------- tooltip ----------
   const tip = $("tip");
@@ -380,7 +401,8 @@
       + `${esc(i.reference)}${isNaN(t) ? "" : ` · ${esc(fmtDateTime(t))}`}`
       + (i.location ? `<br>${esc(i.location)}` : "")
       + (i.geo_source && !["form", "device"].includes(i.geo_source) ? `<br><span style="opacity:.75">Approximate: placed from the typed location (${esc(i.geo_source)})</span>` : "")
-      + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "");
+      + (i.details ? `<br><span style="opacity:.75">${esc(i.details)}</span>` : "")
+      + (dupOf(i) ? `<br><strong>Repeated problem: ${dupOf(i).group_size} reports</strong> (first ${esc(dupOf(i).first_reference)})` : "");
   }
 
   function drawMap(items, fresh) {
@@ -441,16 +463,64 @@
     const v = Object.values(data.views || {}).reduce((o, p) => (o.agent += p.agent, o.person += p.person, o), { agent: 0, person: 0 });
     $("k-views").textContent = v.agent + v.person;
     $("k-views-sub").textContent = `Agent ${v.agent} · Person ${v.person} (served from /mock/ only)`;
+    const groups = data.groups || [];
+    const inGroups = groups.reduce((s, g) => s + g.size, 0);
+    $("k-dup").textContent = groups.length;
+    $("k-dup-sub").textContent = groups.length
+      ? `${inGroups} reports in groups · biggest ×${groups[0].size}` : "No duplicates detected";
   }
+
+  // ---------- duplicate groups ----------
+  function drawGroups() {
+    const groups = data.groups || [], cfg = data.dedup || {};
+    $("groups-note").textContent = `Reports of the same kind of problem within ${Math.round(cfg.radius_m ?? 60)} m and ${Math.round(cfg.window_days ?? 30)} days of each other, `
+      + "or on the same street when one has no map position (marked approximate).";
+    if (!groups.length) { $("groups").innerHTML = `<li class="empty">No repeated problems yet.</li>`; return; }
+    $("groups").innerHTML = groups.map(g => {
+      const first = new Date(g.first_at), last = new Date(g.last_at);
+      const span = isNaN(first) ? "" : `${fmtDateTime(first)}${isNaN(last) || +last === +first ? "" : ` – ${fmtDateTime(last)}`}`;
+      const srcs = Object.entries(g.sources || {}).map(([s, n]) => `${esc(SOURCE_LABEL[s] || s)} ${n}`).join(" · ");
+      const firstKey = g.members[g.members.length - 1]?.key || "";
+      return `<li class="group${groupFilter === g.id ? " active" : ""}">
+        <span class="count">×${g.size}</span>
+        <div>
+          <span class="tag"><span class="sw" style="background:${color(g.form)}"></span>${esc(formName(g.form))}</span>
+          ${g.problem ? ` <strong>${esc(g.problem)}</strong>` : ""}
+          <div>${esc(g.location) || '<span class="muted">Location not recorded</span>'}${g.approximate ? ' <span class="muted">(approximate: matched by street)</span>' : ""}</div>
+          <div class="muted">First ${esc(g.id)} · ${esc(span)}${srcs ? ` · ${srcs}` : ""}</div>
+        </div>
+        <div class="actions">
+          <button type="button" class="linkish" data-group="${esc(g.id)}">${groupFilter === g.id ? "Show all" : "Show reports"}</button>
+          ${map && markers.has(firstKey) ? `<button type="button" class="linkish map-link" data-map-key="${esc(firstKey)}">map</button>` : ""}
+        </div>
+      </li>`;
+    }).join("");
+  }
+  $("groups").addEventListener("click", e => {
+    const link = e.target.closest(".map-link");
+    if (link) { showOnMap(link.dataset.mapKey); return; }
+    const b = e.target.closest("[data-group]");
+    if (!b) return;
+    groupFilter = groupFilter === b.dataset.group ? null : b.dataset.group;
+    render(new Set());
+    if (groupFilter) $("h-list").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
 
   // ---------- table ----------
   function filtered() {
     const f = $("f-form").value, src = $("f-source").value, pr = $("f-prio").value, q = $("f-q").value.trim().toLowerCase();
+    const dupOnly = $("f-dup").checked;
+    if (groupFilter && !(data.groups || []).some(g => g.id === groupFilter)) groupFilter = null;
+    const chip = $("group-chip");
+    chip.hidden = !groupFilter;
+    chip.innerHTML = groupFilter ? `Group ${esc(groupFilter)} <button type="button" class="linkish" id="clear-group">clear</button>` : "";
     const items = data.submissions.filter(i => (!f || i.form === f) && (!src || i.source === src) && (!pr || prioOf(i) === pr) &&
+      (!dupOnly || dupOf(i)) && (!groupFilter || (i.duplicate && i.duplicate.group_id === groupFilter)) &&
       (!q || [i.reference, i.location, i.details, i.problem, i.title, ...((i.triage || {}).reasons || [])].join(" ").toLowerCase().includes(q)));
     // The API sends newest first; a stable sort by priority keeps newest first within each priority.
     return $("f-sort").value === "time" ? items : items.sort((a, b) => PRIO[prioOf(a)].rank - PRIO[prioOf(b)].rank);
   }
+  $("group-chip").addEventListener("click", e => { if (e.target.id === "clear-group") { groupFilter = null; render(new Set()); } });
 
   function drawTable(items, fresh) {
     $("shown").textContent = items.length === data.submissions.length ? "" : `${items.length} of ${data.submissions.length} shown`;
@@ -469,7 +539,7 @@
         <td class="num" title="${esc(i.submitted_at)}">${isNaN(t) ? "" : fmtDateTime(t)}</td>
         <td class="num">${esc(i.reference)}</td>
         <td><span class="tag"><span class="sw" style="background:${color(i.form)}"></span>${esc(formName(i.form))}</span></td>
-        <td>${esc(i.problem) || '<span class="muted">–</span>'}</td>
+        <td>${esc(i.problem) || '<span class="muted">–</span>'}${dupBadge(i)}</td>
         <td>${esc(i.location) || '<span class="muted">–</span>'}${mapLink}${i.details ? `<div class="muted">${esc(i.details)}</div>` : ""}</td>
         <td>${esc(SOURCE_LABEL[i.source] || i.source)}${i.anonymous === true ? '<div class="muted">anonymous</div>' : i.anonymous === false ? '<div class="muted">named</div>' : ""}</td>
       </tr>`;
@@ -505,6 +575,7 @@
     drawTime(items);
     drawProblems(items);
     drawMap(items, fresh);
+    drawGroups();
     drawTable(items, fresh);
   }
 
@@ -543,7 +614,7 @@
   }
 
   $("p1-alert-close").addEventListener("click", () => ($("p1-alert").hidden = true));
-  ["f-sort", "f-prio", "f-form", "f-source", "f-q"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
+  ["f-sort", "f-prio", "f-form", "f-source", "f-q", "f-dup"].forEach(id => $(id).addEventListener("input", () => render(new Set())));
   $("pause").addEventListener("click", () => {
     paused = !paused;
     $("pause").textContent = paused ? "Resume" : "Pause";
