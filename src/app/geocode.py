@@ -53,9 +53,14 @@ def in_sheffield(lat: float, lon: float) -> bool:
     return south <= lat <= north and west <= lon <= east
 
 
-def _result(lat: float, lon: float, matched: str, source: str) -> dict | None:
+def _result(lat: float, lon: float, matched: str, source: str, road_class: str | None = None) -> dict | None:
     lat, lon = round(float(lat), 6), round(float(lon), 6)
-    return {"lat": lat, "lon": lon, "matched": matched, "source": source} if in_sheffield(lat, lon) else None
+    if not in_sheffield(lat, lon):
+        return None
+    out = {"lat": lat, "lon": lon, "matched": matched, "source": source}
+    if road_class:
+        out["road_class"] = road_class
+    return out
 
 
 def _sample(text: str) -> dict | None:
@@ -88,7 +93,9 @@ def _photon(text: str) -> dict | None:
     p, (lon, lat) = features[0]["properties"], features[0]["geometry"]["coordinates"]
     street = p.get("street") or p.get("name") or ""
     matched = ", ".join(x for x in (p.get("housenumber"), street, p.get("city") or "Sheffield", p.get("postcode")) if x)
-    return _result(lat, lon, matched, "photon")
+    # OSM highway=* value (primary, residential, footway...) when Photon matched a street; triage_context.py uses it.
+    road_class = p.get("osm_value") if p.get("osm_key") == "highway" else None
+    return _result(lat, lon, matched, "photon", road_class)
 
 
 def _candidates(text: str) -> list[str]:
@@ -115,7 +122,7 @@ def _lookup(text: str, live: bool) -> dict | None:
 
 
 def geocode(text: str | None) -> dict | None:
-    """{"lat", "lon", "matched", "source"} for a place in Sheffield, or None if it can't be found."""
+    """{"lat", "lon", "matched", "source"} (plus "road_class" from Photon street matches) in Sheffield, or None."""
     text = re.sub(r"\s+", " ", str(text or "")).strip()
     if len(text) < 2:
         return None
